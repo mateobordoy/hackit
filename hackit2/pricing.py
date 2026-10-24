@@ -22,7 +22,7 @@ from arena_kit.cost import (
     total_cost,
 )
 
-from . import settings
+from . import settings, telemetry
 
 __all__ = [
     "RELATIONSHIP_GOALS",
@@ -77,6 +77,7 @@ def acceptable_cost(case, terms, standard, valuation=None):
     return c if c < fallback_cost(case) else None
 
 
+@telemetry.traced("pricing.price_ceiling")
 def price_ceiling(case, terms, standard, valuation=None):
     """The highest price at `terms` that still beats the alternative by at least a cent; None when
     the case has no alternative, 0.0 when no positive price beats it.
@@ -188,6 +189,7 @@ def clause_cost_share(case, clause):
     return share * max(0.0, path - deadband) + share * buyer.get("index_risk_pct", 0) / 100
 
 
+@telemetry.traced("pricing.best_index_clause")
 def best_index_clause(case, valuation, min_gain=None):
     """The allowed index clause whose value to the supplier exceeds its cost to us by the most (at
     least `min_gain` of the price); among equal gains the widest deadband. None when none pays."""
@@ -256,6 +258,7 @@ def supplier_preference(terms):
     return tuple(SUPPLIER_LEANING[f] * (terms.get(f) or 0) for f in SUPPLIER_LEANING if f in terms)
 
 
+@telemetry.traced("pricing.cheapest_terms", result_view=telemetry.plan_view)
 def cheapest_terms(case, standard, valuation, reference_terms, reference_price):
     """The non-price terms that cost us least once the supplier reprices them at its own valuation.
 
@@ -277,6 +280,7 @@ def cheapest_terms(case, standard, valuation, reference_terms, reference_price):
     return terms, c
 
 
+@telemetry.traced("pricing.relationship_sweet_spot")
 def relationship_sweet_spot(case, terms, standard, valuation, low, high):
     """Relationship goals only: the price in [low, high] with the lowest C, relationship charge
     included (C falls with the price until the margin charge grows faster). None for other goals or

@@ -7,7 +7,7 @@ switching to a cheaper package the supplier quoted, and the guards against repea
 import json
 import re
 
-from .. import pricing, settings
+from .. import pricing, settings, telemetry
 
 # Why we changed a term, as the e-mail writer may explain it
 NEED_REASONS = {
@@ -75,6 +75,7 @@ class PackageDesk:
                 keys.add(alternative_key(changed[0], sheet[changed[0]]))
         return keys
 
+    @telemetry.traced("negotiation.packages.prepared_alternatives", result_view=telemetry.prices_view)
     def prepared_alternatives(self, thread, main):
         """The lead researcher's trades as extra sheets next to our opening sheet `main`. Each changes
         one term and is priced so it costs us exactly what `main` costs: whichever the supplier picks,
@@ -120,6 +121,7 @@ class PackageDesk:
             )
         return sheets
 
+    @telemetry.traced("negotiation.packages.offer_index_clause")
     def offer_index_clause(self, thread, quote, full_cost):
         """Put an index clause into our plan when the supplier values it more than it costs us (its
         driver rose over the year while the case's path is small). It is priced to be worth the same
@@ -166,6 +168,7 @@ class PackageDesk:
             sweet_spot=thread.sweet_spot,
         )
 
+    @telemetry.traced("negotiation.packages.replan")
     def replan(self, thread, new_terms, why):
         """Switch to new non-price terms; our last price and its last price are converted so they keep
         the same worth to the supplier."""
@@ -181,6 +184,7 @@ class PackageDesk:
             thread.supplier_id, "replan", why=why, terms={k: v for k, v in new_terms.items() if k != "unit_price"}
         )
 
+    @telemetry.traced("negotiation.packages.adopt_cheaper_package")
     def adopt_cheaper_package(self, thread, sheets):
         """Compare the complete packages the supplier quoted and switch once to the cheapest one that
         clearly beats our plan at its current price."""
@@ -204,6 +208,7 @@ class PackageDesk:
             _, package = min(candidates, key=lambda row: (row[0], repr(sorted(row[1].items()))))
             self.replan(thread, package, "complete quoted package costs us less")
 
+    @telemetry.traced("negotiation.packages.need_alternatives", result_view=telemetry.prices_view)
     def need_alternatives(self, thread, main):
         """Alternatives that answer a stated or evidenced supplier need, offered only when the complete
         package costs us less. Each keeps the supplier's estimated worth of `main`; must-haves, allowed

@@ -12,7 +12,7 @@ import logging
 import threading
 from pathlib import Path
 
-from . import model, settings
+from . import model, settings, telemetry
 
 log = logging.getLogger("hackit2")
 LESSONS_FILE = Path(__file__).parent / "lessons.jsonl"  # committed, so the final machine starts with it
@@ -64,6 +64,7 @@ def supplier_reasons(result, supplier_id):
     return reasons
 
 
+@telemetry.traced("lessons.record_lesson")
 def record_lesson(case, negotiator, result, complete):
     """Append this case's row with its lesson. Only a scored case teaches (the final shows no score)."""
     if result.get("score") is None:
@@ -79,13 +80,15 @@ def record_lesson(case, negotiator, result, complete):
         "threads": [price_path(t) for t in ([winner] if winner and winner.our_prices else threads)],
     }
     reasons = [r for t in threads for r in supplier_reasons(result, t.supplier_id)][-12:]
-    answer = model.ask_json(complete, DEBRIEF_SYSTEM, json.dumps({**row, "reasons": reasons}, ensure_ascii=False)) or {}
+    prompt = json.dumps({**row, "reasons": reasons}, ensure_ascii=False)
+    answer = model.ask_json(complete, DEBRIEF_SYSTEM, prompt, role="debrief") or {}
     row["lesson"] = " ".join(str(answer.get("lesson") or "").split())[:300]
     with _write_lock, LESSONS_FILE.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(row, ensure_ascii=False) + "\n")
     return row
 
 
+@telemetry.traced("lessons.recall_lessons", result_view=lambda lines: f"{len(lines)} similar earlier cases")
 def recall_lessons(case, count=None):
     """The latest rows of the most similar earlier cases (same goal, then same case type) as lines:
     what we did and what came of it. The lesson text itself stays in the file, since a lead reads one

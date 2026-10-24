@@ -55,6 +55,21 @@ uv run hackit2 run --set final --parallel 10 -v 2>&1 | tee logs/final.log   # Li
 uv run pytest -q && uv run ruff check . && uv run ruff format --check .
 ```
 
+Live watch UI (reads `logs/live/`, never contacts the arena). The agent runs the same way with or
+without it:
+
+```sh
+uv run hackit2 run --set practice                   # default: no UI, live files written (attach a UI any time)
+uv run hackit2 run --set practice --gui             # agent + watch UI in one process, http://127.0.0.1:8790
+uv run hackit2 gui                                  # the watch UI alone, for runs started elsewhere
+uv run hackit2 run --set final --no-gui             # headless: no UI, no live files (or HACKIT_NO_GUI=1)
+```
+
+It shows, per case, the module map with the code running right now and the data flowing between
+modules, every LLM call (role, prompt Python sends, answer, latency, whether it was used), the
+preparation team's findings, strategy and sparring playbook, the e-mail thread with term sheets and
+claim checks, the price paths and the full decision trace; finished cases can be replayed.
+
 Environment variables (names only): `ARENA_URL`, `ARENA_API_KEY`, `ARENA_DATA`, `LLM_PROVIDER`,
 `LLM_MODEL`, `LLM_EFFORT`, `ANTHROPIC_API_KEY`, `LLM_BASE_URL`, `LLM_API_KEY`, `HACKIT_BUDGET_EUR`,
 `HACKIT_SPEND_FILE`.

@@ -4,7 +4,7 @@ and factual and never mentions urgency, a budget, the absence of an alternative 
 from arena_kit.cost import closing_terms
 from arena_kit.play import latest
 
-from . import transcript
+from . import telemetry, transcript
 
 SIGNATURE = ["Kind regards,", "Hollerau Pumpenwerke, Purchasing"]
 
@@ -49,6 +49,7 @@ OPEN_QUESTION = (
 )
 
 
+@telemetry.traced("mailer.compose_email")
 def compose_email(case, sheets, arguments, statements=(), first=False, moved=False, warm=True, paragraph=None):
     """The e-mail: our words (the model's paragraph, otherwise a template), then code sentences that
     answer its requests (figures, no IDs), then the data arguments, then the proposal exactly as code
@@ -109,6 +110,7 @@ OWNERSHIP_NOTES = {
 }
 
 
+@telemetry.traced("mailer.paragraph_prompt", result_view=lambda text: f"{len(text)} chars")
 def paragraph_prompt(case, profile, last_body, facts, tone, question_allowed, insight=(), history=None):
     """What the model needs for the middle paragraph: who the supplier is, what it wrote, what we may
     say. `insight`: the preparation team's and the reply reader's notes on this supplier."""
@@ -144,6 +146,7 @@ def keepalive_body():
     )
 
 
+@telemetry.traced("mailer.speakable_facts", result_view=lambda facts: f"{len(facts)} facts")
 def speakable_facts(case, thread, arguments, moved, statements, attachments, clause_traded):
     """Plain statements the model may use, true by construction. The supplier's own requests come first
     so the paragraph answers them (a supplier that kept asking for faster payment without an answer
@@ -190,6 +193,7 @@ def speakable_facts(case, thread, arguments, moved, statements, attachments, cla
     return facts
 
 
+@telemetry.traced("mailer.binding_statements")
 def binding_statements(case, thread, sheets):
     """Code sentences with figures that answer its requests: a fixed payment term when it asks for
     faster payment, and the binding volume in our first message and whenever it asks (a stated figure

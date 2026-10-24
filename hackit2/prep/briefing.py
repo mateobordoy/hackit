@@ -14,7 +14,7 @@ import json
 import logging
 import time
 
-from .. import lessons, model, settings
+from .. import lessons, model, settings, telemetry
 from . import sparring
 
 log = logging.getLogger("hackit2")
@@ -284,6 +284,7 @@ def recent_news(pkg, supplier_id, limit=5):
     return items
 
 
+@telemetry.traced("prep.briefing.data_slice", result_view=lambda text: f"{len(text)} chars of data")
 def data_slice(pkg, case, supplier_id, specialist):
     """The data one specialist studies, as text; empty when the package knows nothing relevant."""
     parts = case.get("parts") or []
@@ -331,6 +332,7 @@ def clamp_strategy(raw, case):
     }
 
 
+@telemetry.traced("prep.briefing.prepare_briefs", result_view=lambda briefs: {"briefs_for": list(briefs)})
 def prepare_briefs(case, pkg, complete, budget_s=None):
     """{supplier_id: brief} for a case: the specialists' findings, the lead's checked strategy and the
     sparring playbook. {} without a model; a supplier whose lead answered too late gets no brief.
@@ -352,6 +354,7 @@ def prepare_briefs(case, pkg, complete, budget_s=None):
         return min(end, time.monotonic() + settings.PREP_STAGE_S)
 
     # stage 1: specialists
+    telemetry.emit("prep_stage", stage="specialists", status="start", suppliers=suppliers, data_known=known)
     pending = {}
     for supplier_id in suppliers:
         for name, (scope, goal) in SPECIALISTS.items():
@@ -359,11 +362,15 @@ def prepare_briefs(case, pkg, complete, budget_s=None):
             if data:
                 system = SPECIALIST_SYSTEM.format(name=name, scope=scope, goal=goal)
                 pending[supplier_id, name] = model.start(
-                    complete, system, f"{header}\n\nSUPPLIER {supplier_id}\n{data}"
+                    complete, system, f"{header}\n\nSUPPLIER {supplier_id}\n{data}", f"specialist:{name}", supplier_id
                 )
     deadline = stage_deadline()
     reports = {key: model.collect_json(future, deadline - time.monotonic()) for key, future in pending.items()}
+    for (supplier_id, name), report in reports.items():
+        telemetry.emit("prep_report", supplier=supplier_id, specialist=name, report=report)
     earlier = lessons.recall_lessons(case)
+    telemetry.emit("prep_stage", stage="specialists", status="end", lessons=earlier)
+    telemetry.emit("prep_stage", stage="lead_and_sparring", status="start")
 
     # stage 2: lead researcher and sparring supplier
     stage_two = {}
@@ -389,8 +396,8 @@ def prepare_briefs(case, pkg, complete, budget_s=None):
         stage_two[supplier_id] = (
             findings,
             user,
-            model.start(complete, LEAD_SYSTEM, user),
-            model.start(complete, sparring.SUPPLIER_SYSTEM, user),
+            model.start(complete, LEAD_SYSTEM, user, "lead", supplier_id),
+            model.start(complete, sparring.SUPPLIER_SYSTEM, user, "sparring_supplier", supplier_id),
         )
 
     # collect stage 2, then start stage 3: the sparring buyer answers the supplier's arguments
@@ -402,9 +409,16 @@ def prepare_briefs(case, pkg, complete, budget_s=None):
         buyer_future = None
         if side["arguments"]:
             buyer_future = model.start(
-                complete, sparring.BUYER_SYSTEM, f"{user}\n\n{sparring.supplier_statement(side)}"
+                complete,
+                sparring.BUYER_SYSTEM,
+                f"{user}\n\n{sparring.supplier_statement(side)}",
+                "sparring_buyer",
+                supplier_id,
             )
         stage_three[supplier_id] = (findings, strategy, side, buyer_future)
+        telemetry.emit("prep_strategy", supplier=supplier_id, strategy=strategy, sparring_supplier=side)
+    telemetry.emit("prep_stage", stage="lead_and_sparring", status="end")
+    telemetry.emit("prep_stage", stage="sparring_buyer", status="start")
 
     deadline = stage_deadline()  # collect stage 3
     briefs = {}
@@ -420,6 +434,8 @@ def prepare_briefs(case, pkg, complete, budget_s=None):
         )
         brief["findings"] = {name: r.get("findings") for name, r in findings.items() if r.get("findings")}
         briefs[supplier_id] = brief
+        telemetry.emit("prep_brief", supplier=supplier_id, brief=brief)
+    telemetry.emit("prep_stage", stage="sparring_buyer", status="end", seconds=round(time.monotonic() - started, 1))
     log.info(
         "%s preparation in %.1fs: %s",
         case["case_id"],

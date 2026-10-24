@@ -27,7 +27,7 @@ from pathlib import Path
 
 import httpx
 
-from . import settings
+from . import settings, telemetry
 
 log = logging.getLogger("hackit2")
 
@@ -220,9 +220,58 @@ def connect():
 # --- calling patterns -------------------------------------------------------------------------
 
 
-def start(complete, system, user):
-    """Start a helper call in the background; a future for `collect_json`, or None without a model."""
-    return _pool.submit(complete, system, user) if complete else None
+def start(complete, system, user, role=None, supplier_id=None):
+    """Start a model call in the background; a future for `collect_json`, or None without a model.
+    `role` and `supplier_id` only label the call for the live view."""
+    if not complete:
+        return None
+    channel = telemetry.current()
+    if channel is None:
+        return _pool.submit(complete, system, user)
+    call = telemetry.next_call_id()
+    channel.emit(
+        "model_call",
+        call=call,
+        role=role,
+        supplier=supplier_id,
+        system=telemetry.excerpt(system, telemetry.SYSTEM_CHARS),
+        user=telemetry.excerpt(user, telemetry.PROMPT_CHARS),
+    )
+
+    def run():
+        started = time.monotonic()
+        try:
+            text = complete(system, user)
+        except Exception as exc:
+            channel.emit(
+                "model_done",
+                call=call,
+                role=role,
+                status="error",
+                seconds=round(time.monotonic() - started, 2),
+                error=telemetry.excerpt(repr(exc), 300),
+            )
+            raise
+        channel.emit(
+            "model_done",
+            call=call,
+            role=role,
+            status="ok",
+            seconds=round(time.monotonic() - started, 2),
+            answer=telemetry.excerpt(text, telemetry.ANSWER_CHARS),
+        )
+        return text
+
+    future = _pool.submit(run)
+    future.telemetry_call = call
+    return future
+
+
+def _outcome(future, status):
+    """Tell the live view what the caller made of a model answer (used, late, invalid, rejected)."""
+    call = getattr(future, "telemetry_call", None)
+    if call is not None:
+        telemetry.emit("model_outcome", call=call, status=status)
 
 
 def collect_json(future, timeout=None):
@@ -237,38 +286,44 @@ def collect_json(future, timeout=None):
         text = future.result(timeout=timeout) or ""
     except TimeoutError as exc:
         _count("helper.timeout")
+        _outcome(future, "timeout")
         log.warning("helper timed out: %s", exc)
         return None
     except Exception as exc:  # noqa: BLE001 - a slow or broken model must not cost the move
         _count("helper.error")
+        _outcome(future, "error")
         log.warning("helper failed: %r", exc)
         return None
     try:
         answer = json.loads(text[text.index("{") : text.rindex("}") + 1])
     except (ValueError, TypeError, AttributeError):
         _count("helper.invalid")
+        _outcome(future, "invalid")
         log.warning("helper returned invalid JSON")
         return None
     if not isinstance(answer, dict):
         _count("helper.invalid")
+        _outcome(future, "invalid")
         return None
     _count("helper.success")
+    _outcome(future, "used")
     return answer
 
 
-def ask_json(complete, system, user, timeout=None):
+def ask_json(complete, system, user, timeout=None, role=None, supplier_id=None):
     """Start a helper call and wait for its JSON answer (see `collect_json`)."""
     timeout = settings.MODEL_TIMEOUT_S if timeout is None else timeout
     if timeout < settings.MODEL_MIN_S:
         _count("helper.skipped_deadline")
+        telemetry.emit("model_skipped", role=role, supplier=supplier_id, reason="no time left on the clocks")
         return None
     if complete is None:
         _count("helper.disabled")
         return None
-    return collect_json(start(complete, system, user), timeout)
+    return collect_json(start(complete, system, user, role, supplier_id), timeout)
 
 
-def write_paragraph(complete, prompt, timeout=None):
+def write_paragraph(complete, prompt, timeout=None, supplier_id=None):
     """The model's middle paragraph for `prompt` within `timeout` seconds, or None (no model, no time,
     late, failed, too long or unsafe)."""
     timeout = settings.MODEL_TIMEOUT_S if timeout is None else timeout
@@ -277,26 +332,32 @@ def write_paragraph(complete, prompt, timeout=None):
         return None
     if timeout < settings.MODEL_MIN_S:
         _count("paragraph.skipped_deadline")
+        telemetry.emit("model_skipped", role="writer", supplier=supplier_id, reason="no time left on the clocks")
         log.warning("paragraph skipped: %.1fs left on the clocks", timeout)
         return None
     started = time.monotonic()
     _count("paragraph.attempted")
+    future = None
     try:
-        future = _pool.submit(complete, WRITER_SYSTEM, prompt)
+        future = start(complete, WRITER_SYSTEM, prompt, "writer", supplier_id)
         text = (future.result(timeout=min(timeout, settings.MODEL_TIMEOUT_S)) or "").strip()
     except TimeoutError as exc:
         _count("paragraph.timeout")
+        _outcome(future, "timeout")
         log.warning("paragraph timed out after %.1fs: %s", time.monotonic() - started, exc)
         return None
     except Exception as exc:  # noqa: BLE001 - a slow or broken model must not cost the move
         _count("paragraph.error")
+        _outcome(future, "error")
         log.warning("paragraph failed after %.1fs: %s", time.monotonic() - started, exc)
         return None
     text = " ".join(text.split())
     if not text or len(text) > settings.PARAGRAPH_MAX_CHARS or UNSAFE_TEXT.search(text):
         _count("paragraph.rejected")
+        _outcome(future, "rejected by the guard")
         log.warning("paragraph dropped: %r", text[:200])
         return None
     _count("paragraph.success")
+    _outcome(future, "used")
     log.info("paragraph in %.1fs", time.monotonic() - started)
     return text

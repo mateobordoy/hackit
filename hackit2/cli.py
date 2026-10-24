@@ -15,7 +15,7 @@ from arena_kit.cli import load_env, summary
 from arena_kit.data import DataPackage
 from arena_kit.play import hosted, play_waves
 
-from . import model, session
+from . import liveview, model, session, settings
 
 SESSION_LOGS = Path("logs/sessions")
 AGENTS = ("hackit", "naive")  # our engine, or the kit's baseline for comparison
@@ -73,6 +73,19 @@ def build_parser():
         default=argparse.SUPPRESS,
         help="plain price engine: no preparation team, no reply reader, no debrief",
     )
+    shared.add_argument(
+        "--gui",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="also serve the live watch UI while the agent runs (http://127.0.0.1:8790)",
+    )
+    shared.add_argument(
+        "--no-gui",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="headless: no watch UI and no live telemetry files (same as HACKIT_NO_GUI=1)",
+    )
+    shared.add_argument("--gui-port", type=int, default=argparse.SUPPRESS, help="port of the watch UI")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser = functools.partial(commands.add_parser, parents=[shared])
     data = {"default": os.environ.get("ARENA_DATA"), "help": "data package folder"}
@@ -89,6 +102,7 @@ def build_parser():
     run_cmd.add_argument("--cases", help="practice or sandbox: only these cases, e.g. P01,P08")
     pull_cmd = commands.add_parser("pull", help="save finished sessions with trace and back office to logs/sessions/")
     pull_cmd.add_argument("--set", default="practice", choices=["practice", "sandbox", "final"])
+    commands.add_parser("gui", help="serve the live watch UI only (watch runs started elsewhere)")
     return parser
 
 
@@ -100,6 +114,18 @@ def print_outcomes(outcomes):
 def main(argv=None):
     load_env()
     args = build_parser().parse_args(argv)
+    gui_port = getattr(args, "gui_port", settings.GUI_PORT)
+    if args.command == "gui":
+        return liveview.serve(gui_port)
+    if getattr(args, "no_gui", False):
+        if getattr(args, "gui", False):
+            raise SystemExit("--gui and --no-gui exclude each other")
+        settings.LIVE_TELEMETRY = False
+    elif getattr(args, "gui", False):
+        if not settings.LIVE_TELEMETRY:
+            raise SystemExit("--gui needs live telemetry: unset HACKIT_NO_GUI")
+        liveview.serve(gui_port, background=True)
+        print("the watch UI closes when this run ends; `uv run hackit2 gui` keeps watching afterwards")
     no_llm = getattr(args, "no_llm", False)
     team = not getattr(args, "no_team", False)
     logging.basicConfig(

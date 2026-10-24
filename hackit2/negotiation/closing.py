@@ -9,13 +9,14 @@ import math
 
 from arena_kit.play import ENDED, latest, live_threads, standing
 
-from .. import pricing, settings
+from .. import pricing, settings, telemetry
 from .common import ACTIVE, ECHO, FROZEN, SETTLED, guarded
 from .packages import same_offer
 from .thread import SupplierThread, quoted_standard_terms
 
 
 class ClosingDesk:
+    @telemetry.traced("negotiation.closing.wrap_up", result_view=telemetry.message_view)
     def wrap_up(self, thread, sheets, events, counter, messages_left):
         """Its final word, its agreement, or our last message. If one of its alternative sheets costs
         us less than its standing sheet, send that sheet back so it becomes the standing one. If its
@@ -57,6 +58,7 @@ class ClosingDesk:
             self.case, terms, quoted_standard_terms(events) or thread.standard, thread.valuation
         )
 
+    @telemetry.traced("negotiation.closing.retire_outclassed")
     def retire_outclassed(self, threads):
         """With several bidders, an agreed or final sheet no longer moves and our sheets to the others
         only rise. A bidder whose deal at our latest sheets would cost at least the cheapest acceptable
@@ -87,6 +89,7 @@ class ClosingDesk:
                 thread.phase, thread.outclassed = SETTLED, True
                 self.log_event(supplier_id, "outclassed", ours=round(lowest, 2), frozen=round(best, 2))
 
+    @telemetry.traced("negotiation.closing.best_standing_offer")
     def best_standing_offer(self, threads):
         """(C, supplier, term_sheet_id) of the cheapest acceptable standing sheet. Only a standing sheet
         can be accepted; alternatives were echoed back to become standing first. Broken data on one
@@ -101,6 +104,7 @@ class ClosingDesk:
                 best = (c, supplier_id, offer_id)
         return best
 
+    @telemetry.traced("negotiation.closing.final_decision", result_view=telemetry.decision_view)
     def final_decision(self, threads):
         """Accept the cheapest acceptable standing sheet, or walk away."""
         best = self.best_standing_offer(threads)

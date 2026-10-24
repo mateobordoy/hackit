@@ -3,6 +3,8 @@
 Modules read these as `settings.NAME` at call time, so a test or an experiment can override a value
 on this module and the whole agent follows."""
 
+import os
+
 # --- Negotiation pace -------------------------------------------------------------------------
 
 # Share of the remaining gap to the supplier's counter that one of our sheets closes.
@@ -89,3 +91,9 @@ PREP_BUDGET_S = 40.0  # the whole team per case, before the session opens
 PREP_STAGE_S = 13.0  # one stage: specialists; then lead + sparring supplier; then sparring buyer
 PREP_TRADES_MAX = 2
 LESSONS_RECALLED = 5
+
+# --- Live telemetry (watch UI) ----------------------------------------------------------------
+
+# Off in no-GUI mode (`--no-gui` or HACKIT_NO_GUI=1): no live files are written at all.
+LIVE_TELEMETRY = os.environ.get("HACKIT_NO_GUI", "").strip().lower() not in ("1", "true", "yes")
+GUI_PORT = 8790

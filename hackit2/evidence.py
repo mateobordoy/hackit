@@ -17,6 +17,8 @@ An argument is a dict:
 
 import re
 
+from . import telemetry
+
 INDEX_LABELS = {
     "PPI-C2451": "Producer prices for iron castings",
     "PPI-C2452": "Producer prices for steel castings",
@@ -328,6 +330,7 @@ class EvidenceBank:
 
     # --- per supplier -------------------------------------------------------------------------
 
+    @telemetry.traced("evidence.for_supplier", result_view=telemetry.topics_view)
     def for_supplier(self, supplier_id, quote):
         """Every argument for this supplier that pushes our way, strongest first, without duplicates."""
         case, found = self.case, []

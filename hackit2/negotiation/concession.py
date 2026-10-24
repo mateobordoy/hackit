@@ -1,8 +1,9 @@
 """How far our price moves each round. Pure arithmetic, shared by the live negotiation."""
 
-from .. import settings
+from .. import settings, telemetry
 
 
+@telemetry.traced("negotiation.concession.next_step_price")
 def next_step_price(last, counter, first_drop, first_round, share, patience, patience_used, terms_changed=False):
     """Our next price after `last`, facing the supplier's counter `counter`.
 

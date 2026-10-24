@@ -14,12 +14,11 @@ What the suppliers showed in sandbox and practice:
 - a large first concession means a deep floor: then we hold low instead of meeting it."""
 
 import base64
-import json
 import time
 
 from arena_kit.play import ENDED, latest, moves_left, standing
 
-from .. import mailer, model, pricing, reply_reader, settings, transcript
+from .. import mailer, model, pricing, reply_reader, settings, telemetry, transcript
 from ..evidence import EvidenceBank, live_rival_offer
 from ..supplier_profile import build_profile, neutral_profile, traits_in
 from .closing import ClosingDesk
@@ -48,6 +47,7 @@ class Negotiator(PackageDesk, ClosingDesk):
 
     # --- opening a thread -----------------------------------------------------------------------
 
+    @telemetry.traced("negotiation.engine.open_thread", result_view=telemetry.thread_view)
     def open_thread(self, supplier_id, events):
         case, thread = self.case, SupplierThread(supplier_id)
         thread.standard = guarded(lambda: quoted_standard_terms(events), {}) or {}
@@ -191,6 +191,7 @@ class Negotiator(PackageDesk, ClosingDesk):
         row = self.evidence_bank.fact(refs[-1]) if refs else None
         return row.get("ppm") if row else None
 
+    @telemetry.traced("negotiation.engine.resume_thread")
     def resume_thread(self, supplier_id, events):
         """A resumed session (crash, restart): rebuild what we sent and what it answered from the thread,
         so the next move continues the path instead of opening again."""
@@ -250,6 +251,7 @@ class Negotiator(PackageDesk, ClosingDesk):
             thread.valuation["full_cost"] = offered
             self.log_event(thread.supplier_id, "full_cost_capped", offered=round(offered, 2), was=round(full_cost, 2))
 
+    @telemetry.traced("negotiation.engine.consult_reader")
     def consult_reader(self, thread, body):
         """The reply reader on its latest e-mail: the mood goes to the writer, the tactic paces our next
         price and evidence, the matched argument picks our prepared answer, and its requests join the
@@ -269,6 +271,7 @@ class Negotiator(PackageDesk, ClosingDesk):
             expected,
             self.write_budget_s / 2,
             history=thread.history,
+            supplier_id=thread.supplier_id,
         )
         self.write_budget_s -= time.monotonic() - started
         if reading is None:
@@ -325,6 +328,7 @@ class Negotiator(PackageDesk, ClosingDesk):
 
     # --- one move -------------------------------------------------------------------------------
 
+    @telemetry.traced("negotiation.engine.next_message", result_view=telemetry.message_view)
     def next_message(self, supplier_id, threads, write_budget_s=None):
         """The next message to this supplier as {"message": ...}, or None when the thread is finished.
         `write_budget_s`: what the supplier clocks leave for the model."""
@@ -429,6 +433,7 @@ class Negotiator(PackageDesk, ClosingDesk):
         """Messages we may still send: the arena counts a late message as a round too."""
         return moves_left(self.case, events) - thread.late_rounds
 
+    @telemetry.traced("negotiation.engine.next_offer_price")
     def next_offer_price(self, thread, counter):
         """(our next price at the plan, how many arguments to cite): the opening first, then a share of
         the gap, held after a deep first concession and kept within the supplier's patience."""
@@ -451,6 +456,7 @@ class Negotiator(PackageDesk, ClosingDesk):
         extra = 1 if thread.tactic == "argue" else 0  # an argument deserves evidence
         return round(max(price, last), 2), settings.CLAIMS_LATER_ROUNDS + extra
 
+    @telemetry.traced("negotiation.engine.choose_arguments", result_view=telemetry.topics_view)
     def choose_arguments(self, thread, count, threads):
         """The next unused arguments for this supplier: in a multi-bidder case the cheapest live rival
         offer first (a new offer is a new argument every round), then its own arguments, strongest first."""
@@ -496,6 +502,7 @@ class Negotiator(PackageDesk, ClosingDesk):
         content = base64.b64encode("\n".join(lines).encode()).decode()
         return [{"name": "forecast.csv", "type": "csv", "content_b64": content}]
 
+    @telemetry.traced("negotiation.engine.dispatch", result_view=telemetry.message_view)
     def dispatch(self, thread, sheets, arguments, events, counter):
         """Build the e-mail for `sheets` and `arguments` and record what to commit or undo."""
         first = not thread.our_prices
@@ -532,7 +539,7 @@ class Negotiator(PackageDesk, ClosingDesk):
             [thread.prep_notes, thread.reader_notes],
             history=transcript.build(self.case, events),
         )
-        paragraph = model.write_paragraph(self.complete, prompt, self.write_budget_s)
+        paragraph = model.write_paragraph(self.complete, prompt, self.write_budget_s, supplier_id=thread.supplier_id)
         body = mailer.compose_email(
             self.case, sheets, arguments, statements, first=first, moved=moved, warm=warm, paragraph=paragraph
         )
@@ -556,6 +563,7 @@ class Negotiator(PackageDesk, ClosingDesk):
             message["attachments"] = attachments
         return {"message": message}
 
+    @telemetry.traced("negotiation.engine.safe_message")
     def safe_message(self, supplier_id, threads):
         """A template acknowledgement after a failed move; it never resends an unchanged binding offer."""
         thread = self.suppliers.get(supplier_id)
@@ -601,11 +609,7 @@ class Negotiator(PackageDesk, ClosingDesk):
         entry = {"at": round(time.time(), 1), "supplier": supplier_id, "event": event, **details}
         self.journal.append(entry)
         if self.live_journal is not None:
-            try:
-                with open(self.live_journal, "a", encoding="utf-8") as handle:
-                    handle.write(json.dumps(entry, default=str, ensure_ascii=False) + "\n")
-            except OSError:  # a live view must never cost the move
-                pass
+            telemetry.append(self.live_journal, entry)  # guarded: a live view never costs the move
         log.info(
             "%s %s %s",
             self.case["case_id"],

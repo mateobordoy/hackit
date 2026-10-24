@@ -25,7 +25,7 @@ from arena_kit.play import (
     quota_used_up,
 )
 
-from . import lessons, model, settings
+from . import lessons, model, settings, telemetry
 from .mailer import keepalive_message
 from .negotiation import FINISHED, SETTLED, Negotiator, SupplierThread
 from .prep import briefing
@@ -61,7 +61,27 @@ def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True, 
 
     `team`: the preparation team briefs the negotiator before the session opens (it needs the case
     file on `table.case`) and the reply reader reads every reply; off, the plain price engine plays.
-    `learn`: the debrief records this case's lesson for later cases."""
+    `learn`: the debrief records this case's lesson for later cases.
+
+    Everything the case does streams into its live file for the watch UI (`telemetry`)."""
+    live_path = open_live_journal(case_id)
+    token = telemetry.bind(live_path)
+    try:
+        case_file = getattr(table, "case", None) or {}
+        telemetry.emit(
+            "case_start",
+            case_id=case_id,
+            title=case_file.get("title"),
+            type=case_file.get("type"),
+            goal=(case_file.get("buyer") or {}).get("category_goal"),
+            team=bool(team and complete),
+        )
+        return _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn)
+    finally:
+        telemetry.unbind(token)
+
+
+def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
     briefs = None
     if team and complete:
         briefs = briefs_or_empty(table.case, pkg, complete)
@@ -73,7 +93,7 @@ def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True, 
         for message in events:
             read_attachments(table, case_id, message)
     negotiator = Negotiator(case, pkg, complete, briefs)
-    negotiator.live_journal = open_live_journal(case_id)
+    negotiator.live_journal = live_path
     negotiator.log_event(
         None,
         "session",
@@ -85,6 +105,9 @@ def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True, 
         suppliers=list(threads),
     )
     for supplier_id, events in threads.items():
+        for message in events:
+            publish_message(supplier_id, message)
+    for supplier_id, events in threads.items():
         try:
             negotiator.open_thread(supplier_id, events)
             if any(m.get("from") == "buyer" for m in events):  # resumed: continue the path
@@ -92,6 +115,8 @@ def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True, 
         except Exception:  # one supplier's data must not lose the case
             log.exception("%s %s: thread setup failed", case_id, supplier_id)
             negotiator.suppliers.setdefault(supplier_id, SupplierThread(supplier_id)).phase = SETTLED
+    for supplier_id in threads:
+        publish_state(negotiator, supplier_id)
     failures = dict.fromkeys(threads, 0)
     replied_at = dict.fromkeys(threads, opened_at)
     round_trip_s = settings.FIRST_ROUND_TRIP_S  # the slowest send so far
@@ -141,9 +166,11 @@ def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True, 
                     negotiator.suppliers[supplier_id].phase = SETTLED
                     continue
                 move = negotiator.safe_message(supplier_id, threads)
+            publish_state(negotiator, supplier_id)
             if move is None:
                 continue
             message = move["message"]
+        publish_message(supplier_id, {**message, "from": "buyer"})
         sent_at = time.monotonic()
         try:
             reply = table.send(supplier_id, message)
@@ -155,11 +182,13 @@ def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True, 
             slowest_round = max(slowest_round, time.monotonic() - round_started)
             log.info("%s %s: %s", case_id, supplier_id, exc.detail)
             negotiator.undo_delivery(supplier_id)  # it never got this message: our last offer stands
+            telemetry.emit("delivery_failed", supplier=supplier_id, detail=str(exc.detail)[:300])
             reply = table.missed(supplier_id, exc)
             if "result" in reply:
                 result = reply["result"]
                 break
             threads[supplier_id].append(reply)
+            publish_message(supplier_id, reply)
             replied_at[supplier_id] = time.monotonic()
             continue
         negotiator.confirm_delivery(supplier_id)
@@ -167,6 +196,7 @@ def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True, 
             result = reply["result"]
             break
         threads[supplier_id] += [{**message, "from": "buyer"}, reply]
+        publish_message(supplier_id, reply)
         replied_at[supplier_id] = time.monotonic()
     if result is None:
         for events in threads.values():  # the latest quote PDFs: standard terms for the close
@@ -190,9 +220,59 @@ def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True, 
     return result
 
 
+def publish_message(supplier_id, message):
+    """One e-mail in or out, in full, for the live view."""
+    if telemetry.current() is None:
+        return
+    sheets = message.get("term_sheets") or []
+    telemetry.emit(
+        "message_out" if message.get("from") == "buyer" else "message_in",
+        supplier=supplier_id,
+        sender=message.get("from"),
+        status=message.get("status"),
+        subject=message.get("subject"),
+        body=message.get("body"),
+        sheets=[sheet.get("terms") for sheet in sheets],
+        offer_ids=[sheet.get("term_sheet_id") for sheet in sheets],
+        refs=message.get("refs"),
+        claim_results=message.get("claim_results"),
+        attachments=[a.get("name") for a in message.get("attachments") or []],
+        action=message.get("action"),
+    )
+
+
+def publish_state(negotiator, supplier_id):
+    """A thread's numbers after a move, for the live view's state panel and price chart."""
+    if telemetry.current() is None:
+        return
+    thread = negotiator.suppliers.get(supplier_id)
+    if thread is None:
+        return
+    telemetry.emit(
+        "thread_state",
+        supplier=supplier_id,
+        phase=thread.phase,
+        our_prices=thread.our_prices,
+        their_prices=thread.their_prices,
+        opening=thread.opening_price,
+        quote_at_plan=thread.quote_at_plan,
+        sweet_spot=thread.sweet_spot,
+        patience=thread.patience,
+        patience_used=round(sum(thread.gap_history), 4),
+        tactic=thread.tactic,
+        mood=thread.mood,
+        requests=thread.requests,
+        plan={k: v for k, v in thread.plan.items() if k != "unit_price"},
+        evidence_left=len(thread.evidence),
+        late_rounds=thread.late_rounds,
+    )
+
+
 def open_live_journal(case_id):
     """The file a case's decisions stream into while it runs (`logs/live/case_<id>.jsonl`), for the
-    live dashboard; None when it cannot be created."""
+    live dashboard; None in no-GUI mode or when it cannot be created."""
+    if not settings.LIVE_TELEMETRY:
+        return None
     try:
         LIVE_LOGS.mkdir(parents=True, exist_ok=True)
     except OSError:
@@ -221,6 +301,7 @@ def briefs_or_empty(case, pkg, complete):
         return {}
 
 
+@telemetry.traced("session.settle")
 def settle(table, case_id, negotiator, threads):
     """Accept or walk away. A 409 (the sheet expired, the thread ended) means the arena state moved:
     re-read what stands now and decide again with the same guards. Anything else raises, and the Live
@@ -228,6 +309,7 @@ def settle(table, case_id, negotiator, threads):
     for _ in range(settings.CLOSE_ATTEMPTS):
         decision = negotiator.final_decision(threads)
         supplier_id = decision["supplier_id"]
+        publish_message(supplier_id, {**decision["message"], "from": "buyer"})
         try:
             return table.close(supplier_id, decision["message"])
         except ArenaError as exc:

@@ -7,7 +7,7 @@ Every value it returns comes from a fixed list and the negotiation engine decide
 changes. Traits that move anchors or rates stay with the patterns in `supplier_profile`: a model's
 guess there is too expensive."""
 
-from . import model, settings, transcript
+from . import model, settings, telemetry, transcript
 
 MOODS = ("warm", "neutral", "irritated", "pressured")
 TACTICS = ("steady", "hold", "argue")
@@ -27,7 +27,10 @@ Return JSON only:
   about right now and how to answer. No figures, no dates.}"""
 
 
-def read_reply(complete, case, body, our_prices, their_prices, expected_arguments=(), timeout=None, history=None):
+@telemetry.traced("reply_reader.read_reply")
+def read_reply(
+    complete, case, body, our_prices, their_prices, expected_arguments=(), timeout=None, history=None, supplier_id=None
+):
     """{mood, tactic, argument, requests, notes} for one supplier e-mail, every value clamped to its
     list; None when the model is off, late or wrong. `expected_arguments` are what the sparring
     round predicted; `argument` indexes them from 1 (0 for none)."""
@@ -40,7 +43,9 @@ def read_reply(complete, case, body, our_prices, their_prices, expected_argument
     )
     if history is not None:
         user += transcript.as_prompt(history)
-    raw = model.ask_json(complete, SYSTEM, user, min(timeout, settings.READER_TIMEOUT_S))
+    raw = model.ask_json(
+        complete, SYSTEM, user, min(timeout, settings.READER_TIMEOUT_S), role="reply_reader", supplier_id=supplier_id
+    )
     if raw is None:
         return None
     requests = raw.get("requests")

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>hackit2 Live</title><link rel="icon" href="data:,">
+<style>
+:root{--bg:#0b0d12;--panel:#12151d;--panel2:#181c26;--line:#262b38;--text:#e8eaf0;--muted:#8b93a7;
+--us:#5b8cff;--them:#ff9a4d;--ok:#3ddc97;--warn:#ffcc4d;--bad:#ff5d6c;--llm:#b48cff;--code:#4dd2ff;--glow:0 0 0 2px rgba(91,140,255,.35),0 0 24px rgba(91,140,255,.45)}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font:13.5px/1.45 Inter,system-ui,-apple-system,sans-serif}
+a{color:var(--us)}header{display:flex;align-items:center;gap:16px;padding:12px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#121624,#0b0d12)}
+header h1{font-size:16px;margin:0;letter-spacing:.3px}header .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.35}}.stat{color:var(--muted);font-size:12px}.stat b{color:var(--text)}
+.layout{display:grid;grid-template-columns:270px 1fr;height:calc(100vh - 51px)}
+aside{border-right:1px solid var(--line);overflow:auto;padding:10px}main{overflow:auto;padding:14px 18px 40px}
+.case{padding:10px 11px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer;background:var(--panel);transition:.15s}
+.case:hover{border-color:#3a4256}.case.sel{border-color:var(--us);box-shadow:var(--glow)}
+.case .top{display:flex;justify-content:space-between;align-items:center}.case .t{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{font-size:11px;font-weight:600;padding:1px 8px;border-radius:99px;border:1px solid currentColor}
+.live{color:var(--warn)}.done{color:var(--ok)}.stalled{color:var(--muted)}.bad{color:var(--bad)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:0 0 10px;font-weight:600}
+.grid2{display:grid;grid-template-columns:1.25fr 1fr;gap:14px}@media(max-width:1250px){.grid2{grid-template-columns:1fr}}
+.casehead{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;margin-bottom:10px}.casehead h1{font-size:20px;margin:0}
+.now{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-radius:12px;background:linear-gradient(90deg,rgba(91,140,255,.12),rgba(180,140,255,.08));border:1px solid #2d3550;margin-bottom:14px;min-height:46px}
+.now .lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.8px}
+.chipc{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;padding:2px 8px;border-radius:6px;background:#1d2333;border:1px solid #2d3550;color:var(--code)}
+.chipm{font:12px ui-monospace,monospace;padding:2px 8px;border-radius:6px;background:#241d36;border:1px solid #3d2f5e;color:var(--llm)}
+svg text{font:11.5px Inter,system-ui,sans-serif;fill:var(--text)}
+.node rect{fill:var(--panel2);stroke:#323a4f;stroke-width:1.2;transition:.25s}.node .sub{fill:var(--muted);font-size:10px}
+.node.active rect{stroke:var(--code);fill:#132235;filter:drop-shadow(0 0 8px rgba(77,210,255,.7))}
+.node.llm rect{stroke:#4a3b73}.node.llm.active rect{stroke:var(--llm);fill:#211735;filter:drop-shadow(0 0 10px rgba(180,140,255,.8))}
+.node.ext rect{stroke:#5a4632}.node.ext.active rect{stroke:var(--them);filter:drop-shadow(0 0 10px rgba(255,154,77,.7))}
+.edge{stroke:#2a3142;stroke-width:1.6;fill:none}.edge.flow{stroke:var(--code);stroke-width:2.4;stroke-dasharray:6 6;animation:dash .6s linear infinite}
+.edge.flow.llm{stroke:var(--llm)}.edge.flow.ext{stroke:var(--them)}@keyframes dash{to{stroke-dashoffset:-24}}
+.badge{display:inline-block;font-size:10.5px;padding:0 6px;border-radius:5px;margin-left:4px;background:#1d2333;color:var(--muted)}
+.chat{max-height:640px;overflow:auto;padding-right:6px}.msg{border-radius:12px;padding:10px 12px;margin:8px 0;max-width:94%;border:1px solid var(--line);animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+.msg.in{background:#1d1a17;border-color:#3a2d20;margin-right:auto}.msg.out{background:#141c2e;border-color:#25365c;margin-left:auto}
+.msg .who{font-size:11.5px;color:var(--muted);display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.msg pre{white-space:pre-wrap;margin:0;font:12.8px/1.5 Inter,system-ui,sans-serif}.sheets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.sheet{font:11.5px ui-monospace,monospace;background:#0e1118;border:1px solid var(--line);border-radius:8px;padding:4px 8px}
+.sheet b{color:var(--text);font-size:12.5px}.claim{font-size:11px;padding:1px 6px;border-radius:5px;margin-right:4px}
+.c-verified{background:rgba(61,220,151,.15);color:var(--ok)}.c-contradicted{background:rgba(255,93,108,.15);color:var(--bad)}.c-other{background:#222838;color:var(--muted)}
+.sup{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px;background:var(--panel2)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12px}.kv span:nth-child(odd){color:var(--muted)}
+.bar{height:6px;background:#222838;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--ok),var(--warn),var(--bad))}
+table{width:100%;border-collapse:collapse;font-size:12.5px}td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--muted);font-weight:500}
+tr.click{cursor:pointer}tr.click:hover{background:#161a24}.detail pre{white-space:pre-wrap;font:12px/1.45 ui-monospace,monospace;background:#0e1118;border:1px solid var(--line);border-radius:8px;padding:8px;max-height:340px;overflow:auto;margin:6px 0}
+.feed{font:12px/1.55 ui-monospace,monospace;max-height:420px;overflow:auto}.feed div{padding:1px 0;border-bottom:1px dashed #1c2130;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed .t{color:var(--muted)}.f-trace{color:var(--code)}.f-dec{color:var(--warn)}.f-llm{color:var(--llm)}.f-msg{color:var(--them)}
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}.tab{padding:4px 10px;border-radius:7px;border:1px solid var(--line);cursor:pointer;color:var(--muted);font-size:12px}.tab.on{color:var(--text);border-color:var(--us);background:#141c2e}
+.stages{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}.stage{flex:1;min-width:170px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--panel2)}
+.stage.run{border-color:var(--llm);box-shadow:0 0 14px rgba(180,140,255,.35)}.stage.ok{border-color:#2c6b52}
+.findings{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}.find{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--panel2)}
+.find h3{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--llm)}.find ul{margin:0;padding-left:16px}.find li{margin:3px 0}
+.muted{color:var(--muted)}.btn{padding:4px 10px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;font-size:12px}
+.btn:hover{border-color:var(--us)}.flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+</style></head><body>
+<header><div class="dot"></div><h1>hackit2 Live</h1><div class="stat" id="gstats"></div><div style="flex:1"></div><div class="stat" id="clock"></div></header>
+<div class="layout"><aside id="cases"></aside><main id="main"><div class="muted">Waiting for a case… start a run (sandbox or practice) and it appears here.</div></main></div>
+<script>
+const $=s=>document.querySelector(s), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(v,d=2)=>v==null||isNaN(v)?'–':Number(v).toFixed(d), tm=t=>t?new Date(t*1000).toLocaleTimeString([], {hour12:false}):'';
+const TELEMETRY=new Set(['case_start','trace','model_call','model_done','model_outcome','model_skipped','prep_stage','prep_report','prep_strategy','prep_brief','message_in','message_out','thread_state','delivery_failed']);
+const NODES={arena:{x:100,y:230,label:'Arena API',sub:'supplier bots',cls:'ext'},
+ session:{x:280,y:230,label:'session.py',sub:'case loop · clocks'},
+ 'prep.briefing':{x:450,y:70,label:'prep.briefing',sub:'research team'},
+ lessons:{x:450,y:150,label:'lessons.py',sub:'memory'},
+ 'negotiation.engine':{x:450,y:300,label:'negotiation.engine',sub:'Negotiator'},
+ 'negotiation.closing':{x:450,y:400,label:'negotiation.closing',sub:'accept / walk'},
+ reply_reader:{x:690,y:150,label:'reply_reader.py',sub:'mood · tactic'},
+ mailer:{x:690,y:230,label:'mailer.py',sub:'e-mail'},
+ evidence:{x:690,y:310,label:'evidence.py',sub:'claims'},
+ 'negotiation.packages':{x:690,y:400,label:'negotiation.packages',sub:'alternatives'},
+ 'negotiation.concession':{x:910,y:310,label:'concession.py',sub:'next price'},
+ pricing:{x:910,y:400,label:'pricing.py',sub:'C · worth · ceiling'},
+ model:{x:930,y:110,label:'LLM (Claude)',sub:'',cls:'llm',w:190,h:120}};
+const EDGES=[['arena','session'],['session','prep.briefing'],['session','negotiation.engine'],['session','negotiation.closing'],['session','lessons'],
+ ['prep.briefing','lessons'],['prep.briefing','model'],['negotiation.engine','reply_reader'],['reply_reader','model'],['negotiation.engine','mailer'],
+ ['negotiation.engine','model'],['negotiation.engine','evidence'],['negotiation.engine','negotiation.packages'],['negotiation.engine','negotiation.concession'],
+ ['negotiation.engine','pricing'],['negotiation.packages','pricing'],['negotiation.closing','pricing'],['negotiation.engine','negotiation.closing'],['lessons','model']];
+const ROLE_FROM={writer:'negotiation.engine',reply_reader:'reply_reader',debrief:'lessons'};
+const nodeOf=label=>{if(!label)return null;let best=null;for(const k of Object.keys(NODES)){if(label===k||label.startsWith(k+'.')){if(!best||k.length>best.length)best=k}}return best};
+const roleNode=r=>ROLE_FROM[r]||'prep.briefing';
+let SEL=null, ARENA='https://arena.tacto.ai', S=null, CASES=[], replay=null, TAB='calls', openCalls={}, feedFilter='all';
+function fresh(){return {events:[],next:0,runStart:null,head:{},session:{},end:null,suppliers:[],msgs:[],states:{},calls:{},callOrder:[],prep:{stages:{},reports:{},strategy:{},brief:{}},
+ feed:[],stack:{},open:{},active:{},flows:{},decisions:[]}}
+function touchNode(n,ms=1400){if(n)S.active[n]=performance.now()+ms}
+function touchFlow(a,b,cls='',ms=1300){if(a&&b){S.flows[a+'>'+b]={until:performance.now()+ms,cls}}}
+function apply(e,animate){
+ const k=e.event; S.events.push(e);
+ if(k==='case_start'){S.head=e}
+ else if(k==='session'){S.session=e;for(const s of e.suppliers||[])if(!S.suppliers.includes(s))S.suppliers.push(s)}
+ else if(k==='end'){S.end=e}
+ if(e.supplier&&!S.suppliers.includes(e.supplier))S.suppliers.push(e.supplier);
+ if(k==='trace'){const n=nodeOf(e.fn),p=nodeOf(e.parent)||'session';
+  if(e.phase==='start'){S.open[e.call]=e;if(animate){touchNode(n);if(p&&p!==n)touchFlow(p,n)}}
+  else{delete S.open[e.call];if(animate)touchNode(n,500)}
+  if(e.phase!=='start')S.feed.push({t:e.at,cls:'f-trace',kind:'trace',txt:`${e.fn}${e.parent?`  ← ${e.parent}`:''}  ${e.phase==='error'?'ERROR '+e.error:'→ '+JSON.stringify(e.result)} (${e.ms} ms)`})}
+ else if(k==='model_call'){S.calls[e.call]={...e,status:'running',start:e.at};S.callOrder.push(e.call);if(animate){touchNode('model');touchFlow(roleNode(e.role),'model','llm')}
+  S.feed.push({t:e.at,cls:'f-llm',kind:'model',txt:`LLM ⇢ ${e.role}${e.supplier?' ['+e.supplier+']':''}  prompt ${String(e.user||'').length} chars`})}
+ else if(k==='model_done'){const c=S.calls[e.call]||(S.calls[e.call]={call:e.call,role:e.role});c.status=e.status;c.seconds=e.seconds;c.answer=e.answer;c.error=e.error;
+  if(animate){touchNode('model',600);touchFlow('model',roleNode(c.role),'llm')}
+  S.feed.push({t:e.at,cls:'f-llm',kind:'model',txt:`LLM ⇠ ${c.role} ${e.status} in ${e.seconds}s`})}
+ else if(k==='model_outcome'){const c=S.calls[e.call];if(c)c.outcome=e.status}
+ else if(k==='model_skipped'){S.feed.push({t:e.at,cls:'f-llm',kind:'model',txt:`LLM skipped (${e.role}): ${e.reason}`})}
+ else if(k==='prep_stage'){S.prep.stages[e.stage]={...(S.prep.stages[e.stage]||{}),[e.status]:e.at,...e};if(e.lessons)S.prep.lessons=e.lessons}
+ else if(k==='prep_report'){(S.prep.reports[e.supplier]=S.prep.reports[e.supplier]||{})[e.specialist]=e.report}
+ else if(k==='prep_strategy'){S.prep.strategy[e.supplier]=e}
+ else if(k==='prep_brief'){S.prep.brief[e.supplier]=e.brief}
+ else if(k==='message_in'||k==='message_out'){S.msgs.push(e);if(animate){touchNode('arena');touchNode('session');k==='message_in'?touchFlow('arena','session','ext',1600):touchFlow('session','arena','ext',1600)}
+  S.feed.push({t:e.at,cls:'f-msg',kind:'msg',txt:`${k==='message_in'?'✉ in ':'✉ out'} ${e.supplier}  ${e.action?JSON.stringify(e.action):(e.sheets||[]).map(s=>s&&s.unit_price).join(' / ')} ${e.status||''}`})}
+ else if(k==='thread_state'){S.states[e.supplier]=e}
+ else if(k==='delivery_failed'){S.feed.push({t:e.at,cls:'f-dec',kind:'dec',txt:`late delivery ${e.supplier}: ${e.detail}`})}
+ else if(!TELEMETRY.has(k)){S.decisions.push(e);const {at,event,supplier,...rest}=e;
+  S.feed.push({t:e.at,cls:'f-dec',kind:'dec',txt:`◆ ${event}${supplier?' ['+supplier+']':''}  ${JSON.stringify(rest).slice(0,300)}`})}
+}
+async function poll(){
+ try{const d=await (await fetch('/api/cases')).json();CASES=d.cases;ARENA=d.arena;renderCases(d);
+  if(!SEL&&CASES.length)select(CASES[0].case);
+  if(SEL&&!replay){const r=await (await fetch(`/api/events?case=${SEL}&from=${S.next}`)).json();
+   if(S.runStart&&r.run_start&&r.run_start!==S.runStart){S=fresh()}
+   if(!S.runStart)S.runStart=r.run_start;
+   const bulk=S.next===0;for(const e of r.events)apply(e,!bulk);S.next=r.next;render()}
+ }catch(err){console.error(err)}
+ setTimeout(poll,800)}
+function select(c){SEL=c;S=fresh();replay=null;render();document.querySelectorAll('.case').forEach(x=>x.classList.toggle('sel',x.dataset.c===c))}
+function renderCases(d){const done=d.cases.filter(c=>c.status==='done'),sc=done.filter(c=>c.score!=null);
+ $('#gstats').innerHTML=`<b>${d.cases.filter(c=>c.status==='live').length}</b> live · <b>${done.length}</b> done · mean score <b>${sc.length?(100*sc.reduce((a,c)=>a+c.score,0)/sc.length).toFixed(1):'–'}</b> · model spend <b>€${fmt((d.spend||{}).eur)}</b> in ${(d.spend||{}).calls||0} calls`;
+ $('#clock').textContent=new Date().toLocaleTimeString([], {hour12:false});
+ $('#cases').innerHTML=d.cases.map(c=>`<div class="case ${c.case===SEL?'sel':''}" data-c="${esc(c.case)}" onclick="select('${esc(c.case)}')">
+  <div class="top"><b>${esc(c.case)}</b><span class="pill ${c.status}">${c.status==='done'?(c.score!=null?c.score.toFixed(3):'done'):c.status}</span></div>
+  <div class="t">${esc(c.title||'')}</div><div class="t">${esc(c.type||'')} · ${esc(c.goal||'')} · ${c.suppliers.length} supplier(s) · ${c.model_calls} LLM calls</div></div>`).join('')||'<div class="muted">no live files yet</div>'}
+function nowBanner(){
+ const opens=Object.values(S.open).sort((a,b)=>a.call-b.call);const deep=opens[opens.length-1];
+ const llm=Object.values(S.calls).filter(c=>c.status==='running');
+ const parts=[];
+ if(deep){parts.push(`<span class="lbl">running code</span>`+opens.slice(-4).map(o=>`<span class="chipc">${esc(o.fn)}${o.args&&o.args.supplier?' · '+esc(o.args.supplier):''}</span>`).join(' → '))}
+ if(llm.length)parts.push(`<span class="lbl">LLM in flight</span>`+llm.map(c=>`<span class="chipm">${esc(c.role)}${c.supplier?' · '+esc(c.supplier):''} · ${((Date.now()/1000)-c.start).toFixed(0)}s</span>`).join(' '));
+ if(!parts.length)parts.push(S.end?`<span class="lbl">finished</span> <span>score <b>${fmt(S.end.score,3)}</b> · ${S.end.deal?'deal with '+esc(S.end.supplier):'no deal'}</span>`:`<span class="lbl">idle</span><span class="muted">waiting for the supplier's reply…</span>`);
+ return parts.join('<span style="width:14px"></span>')}
+function mapSVG(){
+ const now=performance.now(),opNodes=new Set(Object.values(S.open).map(o=>nodeOf(o.fn)));
+ const llmBusy=Object.values(S.calls).filter(c=>c.status==='running');
+ if(llmBusy.length){opNodes.add('model');for(const c of llmBusy)S.flows[roleNode(c.role)+'>model']={until:now+300,cls:'llm'}}
+ if(Object.keys(S.open).length)opNodes.add('session');
+ const W=1100,H=460,box=(n)=>({w:NODES[n].w||170,h:NODES[n].h||46});
+ let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`;
+ for(const [a,b] of EDGES){const A=NODES[a],B=NODES[b];const f=S.flows[a+'>'+b]||S.flows[b+'>'+a];const on=f&&f.until>now;
+  const mx=(A.x+B.x)/2;s+=`<path class="edge ${on?'flow '+(f.cls||''):''}" d="M${A.x},${A.y} C${mx},${A.y} ${mx},${B.y} ${B.x},${B.y}"/>`}
+ for(const [id,n] of Object.entries(NODES)){const {w,h}=box(id);const act=(S.active[id]||0)>now||opNodes.has(id);
+  let sub=n.sub;if(id==='model'){const roles={};for(const c of llmBusy)roles[c.role]=(roles[c.role]||0)+1;
+   const total=Object.keys(S.calls).length;sub=llmBusy.length?Object.entries(roles).map(([r,c])=>`${r}×${c}`).join(' '):`${total} calls so far`}
+  s+=`<g class="node ${n.cls||''} ${act?'active':''}"><rect x="${n.x-w/2}" y="${n.y-h/2}" width="${w}" height="${h}" rx="10"/>
+   <text x="${n.x}" y="${n.y-(id==='model'?18:3)}" text-anchor="middle" font-weight="600">${esc(n.label)}</text>
+   <text class="sub" x="${n.x}" y="${n.y+(id==='model'?4:13)}" text-anchor="middle">${esc(sub)}</text>`;
+  if(id==='model'){const recent=S.callOrder.slice(-3).map(i=>S.calls[i]);recent.forEach((c,i)=>{s+=`<text class="sub" x="${n.x}" y="${n.y+24+i*13}" text-anchor="middle">${esc(c.role)} · ${esc(c.status)}${c.seconds!=null?' '+c.seconds+'s':''}</text>`})}
+  s+=`</g>`}
+ return s+'</svg>'}
+function sheetChip(t,i,n){if(!t)return'';const keys=['payment_days','contract_months','volume_per_year','lead_time_days','incoterm','index_clause','ppm_commitment'];
+ const extra=keys.filter(k=>t[k]!=null&&t[k]!=='').map(k=>k==='index_clause'?(t[k]?'index '+t[k].series:'fixed price'):`${k.replace(/_/g,' ')} ${t[k]}`).join(' · ');
+ return `<div class="sheet">${n>1?'Option '+String.fromCharCode(65+i)+': ':''}<b>€${fmt(t.unit_price)}</b> <span class="muted">${esc(extra)}</span></div>`}
+function chatHTML(){if(!S.msgs.length)return '<div class="muted">no e-mails yet (the preparation team works before the first e-mail)</div>';
+ return S.msgs.map(m=>{const out=m.event==='message_out';const claims=(m.claim_results||[]).map(c=>`<span class="claim ${c.result==='verified'?'c-verified':c.result==='contradicted'?'c-contradicted':'c-other'}">claim ${c.index+1}: ${esc(c.result)}</span>`).join('');
+  const body=m.action?`<b>${esc(m.action.type)}</b> ${esc(m.action.term_sheet_id||'')}`:`<pre>${esc(m.body||'')}</pre>`;
+  return `<div class="msg ${out?'out':'in'}"><div class="who"><b style="color:${out?'var(--us)':'var(--them)'}">${out?'Hollerau (hackit2)':esc(m.sender||m.supplier)}</b><span>${esc(m.supplier)}</span>
+   ${m.status?`<span class="pill ${m.status==='open'?'live':m.status==='agreed'?'done':'bad'}">${esc(m.status)}</span>`:''}<span>${tm(m.at)}</span>
+   ${(m.refs||[]).length?`<span class="badge">${m.refs.length} refs</span>`:''}${(m.attachments||[]).length?`<span class="badge">📎 ${esc(m.attachments.join(', '))}</span>`:''}</div>
+   ${body}${(m.sheets||[]).length?`<div class="sheets">${m.sheets.map((t,i)=>sheetChip(t,i,m.sheets.length)).join('')}</div>`:''}${claims?`<div style="margin-top:6px">${claims}</div>`:''}</div>`}).join('')}
+function chart(st){const th=st.their_prices||[],ou=st.our_prices||[];const vals=[...th,...ou,st.sweet_spot,st.quote_at_plan].filter(v=>v!=null&&v>0);if(!vals.length)return'';
+ let lo=Math.min(...vals),hi=Math.max(...vals);if(hi-lo<1e-6){hi+=1;lo-=1}const pad=(hi-lo)*.08;lo-=pad;hi+=pad;
+ const n=Math.max(th.length,ou.length,2),W=420,H=150,P=24,x=i=>P+i*(W-2*P)/(n-1),y=v=>H-14-(v-lo)/(hi-lo)*(H-28);
+ const line=(a,c,dy)=>a.length?`<polyline fill="none" stroke="${c}" stroke-width="2.4" points="${a.map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`+a.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="3.6" fill="${c}"><title>${fmt(v)}</title></circle><text x="${x(i)}" y="${y(v)+dy}" text-anchor="middle" style="font-size:10px;fill:${c}">${fmt(v)}</text>`).join(''):'';
+ const hl=(v,c,l)=>v?`<line x1="${P}" x2="${W-P}" y1="${y(v)}" y2="${y(v)}" stroke="${c}" stroke-dasharray="4 4"/><text x="${W-P}" y="${y(v)-3}" text-anchor="end" style="font-size:10px;fill:${c}">${l} ${fmt(v)}</text>`:'';
+ return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${hl(st.sweet_spot,'var(--ok)','sweet spot')}${hl(st.quote_at_plan,'#5c6478','quote')}${line(th,'var(--them)',-7)}${line(ou,'var(--us)',15)}</svg>`}
+function statesHTML(){return S.suppliers.map(sid=>{const st=S.states[sid];if(!st)return `<div class="sup"><b>${esc(sid)}</b> <span class="muted">waiting…</span></div>`;
+ const used=st.patience?Math.min(1,(st.patience_used||0)/st.patience):0;
+ return `<div class="sup"><div class="flex" style="justify-content:space-between"><b>${esc(sid)}</b><span class="pill ${st.phase==='active'?'live':st.phase==='gone'?'bad':'done'}">${esc(st.phase)}</span></div>
+  ${chart(st)}<div class="kv"><span>opening</span><span>€${fmt(st.opening)} · quote at our terms €${fmt(st.quote_at_plan)}</span>
+  <span>patience</span><span><div class="bar"><i style="width:${(used*100).toFixed(0)}%"></i></div><span class="muted">${fmt(st.patience_used,3)} of ${fmt(st.patience,2)} used</span></span>
+  <span>reader</span><span>${st.tactic?`<span class="chipm">${esc(st.tactic)}</span>`:'<span class="muted">–</span>'} ${st.mood?`mood ${esc(st.mood)}`:''}</span>
+  <span>requests</span><span>${(st.requests||[]).join(', ')||'–'}</span><span>plan</span><span class="muted">${esc(Object.entries(st.plan||{}).map(([k,v])=>`${k}=${typeof v==='object'?(v?v.series:'none'):v}`).join(' · '))}</span>
+  <span>arguments left</span><span>${st.evidence_left}</span></div></div>`}).join('')}
+function prepHTML(){const st=S.prep.stages,order=[['specialists','4 specialists study the data'],['lead_and_sparring','lead researcher + sparring supplier'],['sparring_buyer','sparring buyer answers']];
+ const stg=order.map(([k,l])=>{const s=st[k]||{};const cls=s.end?'ok':s.start?'run':'';return `<div class="stage ${cls}"><b>${l}</b><div class="muted">${s.end?'done '+fmt(s.end-s.start,1)+'s':s.start?'running…':'waiting'}</div></div>`}).join('');
+ let body='';for(const sid of S.suppliers){const reps=S.prep.reports[sid]||{},strat=(S.prep.strategy[sid]||{}).strategy,spar=(S.prep.strategy[sid]||{}).sparring_supplier,brief=S.prep.brief[sid];
+  if(!Object.keys(reps).length&&!strat&&!brief)continue;
+  body+=`<h3 style="margin:14px 0 8px">${esc(sid)}</h3><div class="findings">`+Object.entries(reps).map(([name,r])=>`<div class="find"><h3>${esc(name)} analyst ${r&&r.leverage?`<span class="badge">leverage: ${esc(r.leverage)}</span>`:''}</h3>${r?`<ul>${(r.findings||[]).map(f=>`<li>${esc(f)}</li>`).join('')||'<li class="muted">no findings</li>'}</ul>`:'<span class="muted">no answer in time</span>'}</div>`).join('')+`</div>`;
+  const b=brief||{};if(strat||brief){body+=`<div class="findings" style="margin-top:10px"><div class="find"><h3>lead researcher · strategy</h3><div class="kv"><span>tone</span><span>${esc(b.tone||(strat||{}).tone||'–')}</span>
+   <span>argument order</span><span>${esc((b.argument_order||(strat||{}).argument_order||[]).join(' → '))}</span>
+   <span>trades</span><span>${(b.trades||[]).map(t=>`<div><span class="chipc">${esc(t.field)}=${esc(typeof t.value==='object'?JSON.stringify(t.value):t.value)}</span> <span class="muted">${esc(t.why)}</span></div>`).join('')||'none'}</span>
+   <span>notes</span><span>${esc(b.writer_notes||(strat||{}).notes||'')}</span><span>why</span><span class="muted">${esc(b.rationale||(strat||{}).reason||'')}</span></div></div>`;
+   const pb=b.playbook||{};const args=pb.arguments||(spar||{}).arguments||[];
+   body+=`<div class="find"><h3>sparring round · playbook</h3>${args.map((a,i)=>`<div style="margin-bottom:6px"><b style="color:var(--them)">them:</b> ${esc(a)}${pb.answers&&pb.answers[i]?`<div><b style="color:var(--us)">us:</b> ${esc(pb.answers[i])}</div>`:''}</div>`).join('')||'<span class="muted">–</span>'}
+   ${(pb.raise||[]).length?`<div><b>raise:</b> ${esc(pb.raise.join(' · '))}</div>`:''}${(pb.wants||(spar||{}).wants||[]).length?`<div class="muted">wants: ${esc((pb.wants||spar.wants).join(', '))}</div>`:''}
+   ${(spar||{}).weak_spots&&spar.weak_spots.length?`<div class="muted">weak spots: ${esc(spar.weak_spots.join(' · '))}</div>`:''}</div></div>`}}
+ if(S.prep.lessons&&S.prep.lessons.length)body+=`<div class="find" style="margin-top:10px"><h3>memory · similar earlier cases</h3><ul>${S.prep.lessons.map(l=>`<li>${esc(l)}</li>`).join('')}</ul></div>`;
+ return `<div class="stages">${stg}</div>${body||'<div class="muted">no preparation data (plain engine, or not started yet)</div>'}`}
+let expanded=new Set();
+function callsHTML(){const rows=S.callOrder.slice().reverse().map(id=>{const c=S.calls[id];const col=c.status==='running'?'var(--warn)':c.status==='ok'?(c.outcome&&c.outcome!=='used'?'var(--bad)':'var(--ok)'):'var(--bad)';
+  const open=expanded.has(id);return `<tr class="click" onclick="toggleCall(${id})"><td>${tm(c.start)}</td><td><span class="chipm">${esc(c.role)}</span></td><td>${esc(c.supplier||'')}</td>
+   <td style="color:${col}">${esc(c.status)}${c.outcome?' · '+esc(c.outcome):''}</td><td>${c.seconds!=null?c.seconds+'s':'…'}</td><td class="muted">${esc(String(c.answer||c.error||'').slice(0,110))}</td></tr>
+   ${open?`<tr><td colspan="6" class="detail"><b>system prompt</b><pre>${esc(c.system)}</pre><b>user prompt (what Python sends)</b><pre>${esc(c.user)}</pre><b>answer (what the model returns)</b><pre>${esc(c.answer||c.error||'…')}</pre></td></tr>`:''}`}).join('');
+ return `<table><thead><tr><th>time</th><th>role</th><th>supplier</th><th>status</th><th>latency</th><th>answer (click a row for prompt + answer)</th></tr></thead><tbody>${rows||'<tr><td colspan=6 class=muted>no model calls yet</td></tr>'}</tbody></table>`}
+function toggleCall(id){expanded.has(id)?expanded.delete(id):expanded.add(id);render(true)}
+function feedHTML(){const f=S.feed.filter(x=>feedFilter==='all'||x.kind===feedFilter).slice(-500).reverse();
+ return f.map(x=>`<div class="${x.cls}"><span class="t">${tm(x.t)}</span> ${esc(x.txt)}</div>`).join('')||'<div class="muted">empty</div>'}
+function setTab(t){TAB=t;render(true)} function setFeed(f){feedFilter=f;render(true)}
+function startReplay(speed){if(!S.events.length)return;const all=S.events.slice();const t0=all[0].at;S=fresh();S.next=all.length;S.runStart=all[0].at;
+ replay={all,i:0,t0,speed,wall:performance.now()};render()}
+function replayTick(){if(!replay)return;const el=(performance.now()-replay.wall)/1000*replay.speed;
+ while(replay.i<replay.all.length&&replay.all[replay.i].at-replay.t0<=el){apply(replay.all[replay.i],true);replay.i++}
+ if(replay.i>=replay.all.length){replay=null}}
+let lastHTML={};
+function setHTML(id,html){if(lastHTML[id]!==html){const el=document.getElementById(id);if(el){const sc=el.scrollTop;el.innerHTML=html;el.scrollTop=sc}lastHTML[id]=html}}
+function render(force){if(!SEL||!S)return;const c=CASES.find(x=>x.case===SEL)||{};
+ if(!document.getElementById('mapbox')||$('#main').dataset.case!==SEL){
+  $('#main').dataset.case=SEL;lastHTML={};
+  $('#main').innerHTML=`<div class="casehead"><h1 id="ctitle"></h1><span id="cmeta" class="muted"></span><span style="flex:1"></span>
+   <span class="flex"><button class="btn" onclick="startReplay(4)">▶ replay ×4</button><button class="btn" onclick="startReplay(12)">▶ ×12</button><button class="btn" onclick="replay=null;select(SEL)">⟳ live</button></span></div>
+   <div class="now" id="now"></div><div class="card"><h2>Module map · code paths and data flow</h2><div id="mapbox"></div>
+   <div class="muted" style="font-size:11.5px">Blue glow: Python function running now · purple: LLM call in flight · orange: e-mail to / from the arena. Arrows animate when data moves between modules.</div></div>
+   <div class="grid2"><div class="card"><h2>Negotiation · live e-mail thread</h2><div class="chat" id="chat"></div></div><div class="card"><h2>Supplier state · price paths</h2><div id="states"></div></div></div>
+   <div class="card"><div class="tabs" id="tabs"></div><div id="tabbody"></div></div>`}
+ const title=S.head.title||S.session.title||c.title||'';$('#ctitle').textContent=`${SEL} · ${title}`;
+ const sid=S.session.session_id||c.session_id;
+ $('#cmeta').innerHTML=`${esc(S.head.type||c.type||'')} · goal ${esc(S.head.goal||c.goal||'')} · ${S.suppliers.length} supplier(s)${S.end?` · <b style="color:var(--ok)">score ${fmt(S.end.score,3)}</b>`:''}${sid?` · <a href="${esc(ARENA)}/replay/${esc(sid)}" target="_blank">arena replay</a>`:''}${replay?' · <span class="live">replaying</span>':''}`;
+ setHTML('now',nowBanner());setHTML('mapbox',mapSVG());
+ const chatEl=document.getElementById('chat');const atBottom=chatEl&&chatEl.scrollHeight-chatEl.scrollTop-chatEl.clientHeight<60;
+ setHTML('chat',chatHTML());if(chatEl&&atBottom)chatEl.scrollTop=chatEl.scrollHeight;
+ setHTML('states',statesHTML());
+ const tabs=[['calls',`LLM calls (${S.callOrder.length})`],['prep','Preparation · what the team thinks'],['feed','Trace · every step']];
+ setHTML('tabs',tabs.map(([k,l])=>`<div class="tab ${TAB===k?'on':''}" onclick="setTab('${k}')">${l}</div>`).join('')+(TAB==='feed'?`<span style="flex:1"></span>`+['all','trace','model','msg','dec'].map(f=>`<div class="tab ${feedFilter===f?'on':''}" onclick="setFeed('${f}')">${f}</div>`).join(''):''));
+ setHTML('tabbody',TAB==='calls'?callsHTML():TAB==='prep'?prepHTML():`<div class="feed">${feedHTML()}</div>`)}
+function frame(){replayTick();if(S&&SEL){setHTML('mapbox',mapSVG());setHTML('now',nowBanner());if(replay)render(true)}requestAnimationFrame(frame)}
+poll();requestAnimationFrame(frame);setInterval(()=>{if(S&&SEL&&!replay)render(true)},1500);
+</script></body></html>
