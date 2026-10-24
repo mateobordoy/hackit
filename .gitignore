@@ -1,0 +1,12 @@
+# claves: NUNCA se suben
+.env
+# datos descargados con `uv run arena data` y archivos generados
+data/
+hackit-dossiers.json
+logs/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.DS_Store
