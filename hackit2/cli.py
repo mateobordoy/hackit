@@ -106,6 +106,11 @@ def build_parser():
     gui_cmd.add_argument(
         "--offline", action="store_true", help="never contact the arena: the team's best from pulled sessions only"
     )
+    gui_cmd.add_argument(
+        "--reference",
+        default=None,
+        help="reference run scores, a manifest .json or digest .md (or HACKIT_REFERENCE_FILE)",
+    )
     return parser
 
 
@@ -119,7 +124,7 @@ def main(argv=None):
     args = build_parser().parse_args(argv)
     gui_port = getattr(args, "gui_port", settings.GUI_PORT)
     if args.command == "gui":
-        return liveview.serve(gui_port, offline=args.offline)
+        return liveview.serve(gui_port, offline=args.offline, reference=args.reference)
     if getattr(args, "no_gui", False):
         if getattr(args, "gui", False):
             raise SystemExit("--gui and --no-gui exclude each other")

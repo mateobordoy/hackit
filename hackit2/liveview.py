@@ -27,8 +27,16 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-# roots: the checkouts whose logs the Scores view reads (None: this one and its sibling worktrees)
-CONFIG = {"live": Path("logs/live"), "spend": None, "arena": "https://arena.tacto.ai", "roots": None, "offline": False}
+# roots: the checkouts whose logs the Scores view reads (None: this one and its sibling worktrees);
+# reference: the file with the reference run's scores (None: logs/compare/digest.md)
+CONFIG = {
+    "live": Path("logs/live"),
+    "spend": None,
+    "arena": "https://arena.tacto.ai",
+    "roots": None,
+    "offline": False,
+    "reference": None,
+}
 TEAM_REFRESH_S = 60  # how often the team's best is read from the arena
 _cache = {}
 _json_cache = {}
@@ -193,15 +201,34 @@ def pulled_best(roots):
     return best
 
 
+def read_reference(path):
+    """{case: score} from a run manifest (`.json`: `results[]` with `case_id` and `score`) or a
+    comparison digest (`.md`: the third column of its table); {} when unreadable."""
+    if path.suffix == ".json":
+        record = read_json(path)
+        results = record.get("results") if isinstance(record, dict) else record
+        return {
+            short_case(r["case_id"]): float(r["score"])
+            for r in results or []
+            if isinstance(r, dict) and r.get("case_id") and r.get("score") is not None
+        }
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return {}
+    rows = (REFERENCE_ROW.match(line) for line in text.splitlines())
+    return {m.group(1): float(m.group(3)) for m in rows if m}
+
+
 def reference_scores(roots):
-    """The reference run's score per case: the third column of `logs/compare/digest.md`."""
-    for root in roots:
-        try:
-            text = (root / "logs" / "compare" / "digest.md").read_text(encoding="utf-8")
-        except OSError:
-            continue
-        rows = (REFERENCE_ROW.match(line) for line in text.splitlines())
-        return {m.group(1): float(m.group(3)) for m in rows if m}
+    """The reference run's score per case: from the configured file (`--reference` or
+    HACKIT_REFERENCE_FILE), else from `logs/compare/digest.md` in the checkouts."""
+    configured = CONFIG.get("reference")
+    paths = [Path(configured)] if configured else [root / "logs" / "compare" / "digest.md" for root in roots]
+    for path in paths:
+        found = read_reference(path)
+        if found:
+            return found
     return {}
 
 
@@ -311,15 +338,17 @@ class Handler(BaseHTTPRequestHandler):
 PAGE_FILE = Path(__file__).with_suffix(".html")
 
 
-def serve(port=8790, live=None, spend_file=None, arena=None, background=False, offline=False):
+def serve(port=8790, live=None, spend_file=None, arena=None, background=False, offline=False, reference=None):
     """Start the watch UI on 127.0.0.1:`port`. `background`: run it on a daemon thread next to the
     agent (`hackit2 run --gui`) and return the server; otherwise serve until interrupted.
-    `offline`: never contact the arena (the team's best then comes from pulled sessions only)."""
+    `offline`: never contact the arena (the team's best then comes from pulled sessions only).
+    `reference`: the reference run's scores file (default $HACKIT_REFERENCE_FILE)."""
     CONFIG.update(
         live=Path(live) if live else CONFIG["live"],
         spend=spend_file or os.environ.get("HACKIT_SPEND_FILE", "logs/spend.json"),
         arena=(arena or os.environ.get("ARENA_URL") or CONFIG["arena"]).rstrip("/"),
         offline=offline,
+        reference=reference or os.environ.get("HACKIT_REFERENCE_FILE") or None,
     )
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     if not offline:
@@ -344,8 +373,9 @@ def main(argv=None):
     parser.add_argument("--spend", default=None, help="model spend file (default $HACKIT_SPEND_FILE)")
     parser.add_argument("--arena", default=None, help="arena URL for replay links (default $ARENA_URL)")
     parser.add_argument("--offline", action="store_true", help="never contact the arena (no live team best)")
+    parser.add_argument("--reference", default=None, help="reference run scores: manifest .json or digest .md")
     args = parser.parse_args(argv)
-    serve(args.port, args.live, args.spend, args.arena, offline=args.offline)
+    serve(args.port, args.live, args.spend, args.arena, offline=args.offline, reference=args.reference)
 
 
 if __name__ == "__main__":

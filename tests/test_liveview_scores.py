@@ -111,3 +111,39 @@ def test_offline_server_serves_scores_and_never_starts_the_team_reader(roots, mo
         server.shutdown()
     assert started == [] and data["team"]["offline"] is True
     assert row(data, "P04")["latest"]["score"] == 0.86
+
+
+def test_reference_scores_can_come_from_a_configured_run_manifest(roots, tmp_path, monkeypatch):
+    v2, _ = roots
+    manifest = tmp_path / "manifest.json"
+    results = [{"case_id": "case:P05", "score": 0.828}, {"case_id": "case:P08", "score": None}]
+    manifest.write_text(json.dumps({"results": results}))
+    monkeypatch.setitem(liveview.CONFIG, "reference", str(manifest))
+    write_run(v2, "P05", "s1", 0.822, at=1_000)
+    data = liveview.scores()
+    assert row(data, "P05")["reference"] == 0.828
+    assert all(r["case"] != "P08" or r["reference"] is None for r in data["rows"])  # no score: no reference
+
+
+class FakeArena:
+    """Stands in for arena_kit's client: no network in tests."""
+
+    answer = {"best": {"case:P11": 0.81, "case:P01": None}, "practice": {"used": 130, "left": 270}}
+
+    def me(self):
+        if isinstance(self.answer, Exception):
+            raise self.answer
+        return self.answer
+
+
+def test_team_best_is_read_from_a_faked_arena_and_an_error_keeps_the_last_reading(monkeypatch):
+    import arena_kit.client
+
+    monkeypatch.setattr(liveview, "_team", {"best": {}, "practice": {}, "at": None, "error": None})
+    monkeypatch.setattr(arena_kit.client, "ArenaClient", FakeArena)
+    liveview.read_team_best()
+    assert liveview._team["best"] == {"P11": 0.81} and liveview._team["practice"]["left"] == 270
+    assert liveview._team["error"] is None and liveview._team["at"]
+    monkeypatch.setattr(FakeArena, "answer", RuntimeError("no network"))
+    liveview.read_team_best()
+    assert liveview._team["best"] == {"P11": 0.81} and "no network" in liveview._team["error"]
