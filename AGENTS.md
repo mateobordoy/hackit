@@ -33,6 +33,11 @@ messages and docs are in **English**.
   - P11 run 2: a prepared trade loosened `ppm_commitment` (300 -> 800); the supplier still stopped at
     the same price floor, so the looser term just cost us money (-0.038).
   - P02, P18 (~0.63-0.73) are the hardest cases.
+- Rejected after evidence (do not reintroduce): asking the seller's departments for their priorities
+  (T13/T21, 22 practice sessions, no gain; code on branch `legacy-test-feature-not-gonna-use`); the
+  T18 index-clause guard (P02 0.488 vs 0.735, reverted).
+- The Live Final persists preparation briefs in `logs/briefs/final-<host>-<date>/` so a restart does
+  not prepare again (`hackit2 run --set final`).
 - Done today: hackit2 v2 code base, 73 unit tests green, live telemetry + watch UI (`--gui`,
   `--no-gui`, `hackit2 gui`), side-by-side run comparison.
 - Team quota: practice sessions are scarce (limit 400 / rolling 24 h, ~270 left at 23:00 Sat). Model
@@ -52,8 +57,10 @@ The live task board is **`../agents-hub/BOARD.md`** (generated). Read it before 
    `uv run hackit2 run --set final --no-gui`. No pushes to `burak` after the code freeze.
 4. **Code owns every number.** Never let a model set a price, a term, an accept or a walk-away. Model
    text with digits or data IDs is dropped (`model.UNSAFE_TEXT`). Keep it that way.
-5. **Never push after a final offer.** After `final_offer` / `agreed` only accept, or echo back a sheet
-   the supplier itself offered.
+5. **Never push after a final offer.** After `final_offer` / `agreed` only accept, echo back a sheet the
+   supplier itself offered, or - only when its standing sheet is unacceptable to us (dearer than the
+   alternative or a must-have broken) - send one last sheet at our ceiling (a refusal leaves us the
+   alternative either way).
 6. **A bad deal beats no deal.** Never add a path that walks away while an acceptable sheet stands.
 7. **Don't edit Tacto's kit** (`../negotiation-arena-kit`). Wrap it.
 8. **Performance first.** A change to `hackit2/negotiation/`, `pricing.py`, `evidence.py`, prompts or

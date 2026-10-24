@@ -7,7 +7,9 @@ import json
 import logging
 import os
 import statistics
+import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 from arena_kit import ArenaClient, ArenaError, RemoteTable, play, play_all
 from arena_kit.agents import NaiveAgent
@@ -16,6 +18,7 @@ from arena_kit.data import DataPackage
 from arena_kit.play import hosted, play_waves
 
 from . import liveview, model, session, settings
+from .prep import briefing
 
 SESSION_LOGS = Path("logs/sessions")
 AGENTS = ("hackit", "naive")  # our engine, or the kit's baseline for comparison
@@ -115,6 +118,21 @@ def build_parser():
     return parser
 
 
+def final_brief_cache_folder():
+    """Where the Live Final keeps each case's preparation briefs: one folder per arena host and day, so a
+    restarted process reuses them (no second preparation eating the supplier clocks) and a rehearsal on
+    the simulator never shares a folder with the real final."""
+    host = urlparse(os.environ.get("ARENA_URL", "")).netloc.replace(":", "_") or "arena"
+    return Path("logs/briefs") / f"final-{host}-{time.strftime('%Y%m%d')}"
+
+
+def enable_final_brief_cache():
+    """Persist briefs during the Live Final unless HACKIT_BRIEF_CACHE is already set; returns the folder."""
+    folder = os.environ.get(briefing.BRIEF_CACHE_ENV) or str(final_brief_cache_folder())
+    os.environ[briefing.BRIEF_CACHE_ENV] = folder
+    return folder
+
+
 def print_outcomes(outcomes):
     for case_id, result in outcomes.items():
         print(case_id, result if isinstance(result, Exception) else summary(result))
@@ -169,6 +187,7 @@ def main(argv=None):
         if naive:
             outcomes = play_waves(client, NaiveAgent, args.waves, parallel)
         else:
+            enable_final_brief_cache()
             outcomes = session.run_final(client, pkg, args.waves, parallel, complete=complete, team=team)
         print_outcomes(outcomes)
     else:
