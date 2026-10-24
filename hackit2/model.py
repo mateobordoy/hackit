@@ -37,7 +37,14 @@ _pool = ThreadPoolExecutor(max_workers=settings.MODEL_WORKERS, thread_name_prefi
 
 UNSAFE_TEXT = re.compile(
     r"\d|\b(?:idx|quote|offer|sc|qn|po|cost|fc|news|doc|ctr):|urgent|urgency|deadline|budget|no alternative|"
-    r"walk away|other options|last chance|desperate|must close|time pressure|target price",
+    r"walk away|other options|last chance|desperate|must close|time pressure|target price|"
+    # giving away our price position (P11: "We agree that your casting and labour cost indices give no
+    # case for a further price cut, and price is not our main focus here." The seller quoted it back.)
+    r"no\s+case\s+for\s+(?:a\s+)?(?:further\s+)?price\s+(?:cut|reduction)|"
+    r"price\s+is\s+not\s+our\s+(?:main\s+)?(?:focus|priority|concern)|"
+    r"(?<!not\s)(?<!cannot\s)(?<!n't\s)(?<!unable\sto\s)\b(?:accept|agree)\s+(?:that\s+)?(?:the|your)\s+price|"
+    r"price\s+(?:is|seems|looks)\s+(?:fair|reasonable|justified|acceptable)|"
+    r"no\s+(?:room|scope)\s+for\s+(?:a\s+)?(?:further\s+)?(?:price\s+)?(?:cut|reduction)",
     re.I,
 )
 
@@ -55,8 +62,9 @@ The paragraph should:
 
 Never write a number, price, percentage, date, quantity or data ID; code adds all figures. Never
 mention urgency, deadlines, a budget, our alternatives or the lack of them, a target price, or walking
-away. Never invent facts, promises or commitments. Stay polite, factual and warm unless the tone says
-firm."""
+away. Never invent facts, promises or commitments. Never concede that the price is fair, justified or
+not important to us, and never agree that there is no room to move on price. Stay polite, factual and
+warm unless the tone says firm."""
 
 
 # --- reliability counters ---------------------------------------------------------------------

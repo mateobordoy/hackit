@@ -8,16 +8,23 @@ every figure a specialist sees and checks everything that comes back: a proposed
 with the cost function and only offered at a price that costs us no more than our main proposal.
 Without a brief (no model, a timeout) the plain price engine negotiates.
 
-A brief is a dict: trades, argument_order, tone, writer_notes, rationale, playbook, findings."""
+A brief is a dict: trades, argument_order, tone, writer_notes, rationale, playbook, findings.
+
+Controlled A/B runs (T21): with HACKIT_BRIEF_CACHE set to a folder, the briefs of a case are frozen in
+`<folder>/<case>.json` the first time they are prepared and loaded from there afterwards, without any
+model call, so both arms of a comparison negotiate from the same preparation."""
 
 import json
 import logging
+import os
 import time
+from pathlib import Path
 
 from .. import lessons, model, settings, telemetry
 from . import sparring
 
 log = logging.getLogger("hackit2")
+BRIEF_CACHE_ENV = "HACKIT_BRIEF_CACHE"
 ROUTINE_MAIL_WORDS = ("holiday", "iso ", "certificate", "contact person", "packaging", "trade fair")
 ARGUMENT_TOPICS = ("should_cost", "order_history", "index", "notice", "rival", "forecast", "scorecard", "hedged")
 NO_DATA_NOTE = "No data on this supplier: propose no trades, and take tone and notes from the case alone."
@@ -343,6 +350,10 @@ def prepare_briefs(case, pkg, complete, budget_s=None):
         return {}
     if case["case_id"] in _briefs_by_case:
         return _briefs_by_case[case["case_id"]]
+    frozen = load_frozen_briefs(case)
+    if frozen is not None:
+        _briefs_by_case[case["case_id"]] = frozen
+        return frozen
     budget_s = settings.PREP_BUDGET_S if budget_s is None else budget_s
     started = time.monotonic()
     end = started + budget_s
@@ -443,4 +454,44 @@ def prepare_briefs(case, pkg, complete, budget_s=None):
         json.dumps(briefs, ensure_ascii=False),
     )
     _briefs_by_case[case["case_id"]] = briefs
+    freeze_briefs(case, briefs)
     return briefs
+
+
+def frozen_briefs_path(case):
+    """`<HACKIT_BRIEF_CACHE>/<case>.json` (case:P11 -> P11.json), or None when the variable is unset."""
+    folder = os.environ.get(BRIEF_CACHE_ENV, "").strip()
+    return Path(folder) / f"{case['case_id'].removeprefix('case:')}.json" if folder else None
+
+
+def load_frozen_briefs(case):
+    """The case's frozen briefs, or None (no cache folder, no file yet, or a file that cannot be read:
+    then the team prepares as usual)."""
+    path = frozen_briefs_path(case)
+    if path is None or not path.is_file():
+        return None
+    try:
+        briefs = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        log.warning("%s: frozen briefs not readable (%s), preparing again", case["case_id"], exc)
+        return None
+    if not isinstance(briefs, dict):
+        return None
+    log.info("%s preparation loaded from cache %s", case["case_id"], path)
+    for supplier_id, brief in briefs.items():
+        telemetry.emit("prep_brief", supplier=supplier_id, brief=brief, frozen=True)
+    return briefs
+
+
+def freeze_briefs(case, briefs):
+    """Write the briefs to the cache folder when one is set. An empty result (the team failed or ran
+    out of time) is not frozen, so the next run prepares again. Never raises."""
+    path = frozen_briefs_path(case)
+    if path is None or not briefs:
+        return
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(briefs, ensure_ascii=False, indent=1), encoding="utf-8")
+        log.info("%s preparation frozen in %s", case["case_id"], path)
+    except OSError as exc:
+        log.warning("%s: briefs not frozen (%s)", case["case_id"], exc)
