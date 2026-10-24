@@ -91,7 +91,10 @@ def case_summary(path):
         "started": run[0].get("at") if run else 0,
         "last": last,
         "suppliers": suppliers,
-        "model_calls": sum(1 for e in run if e.get("event") == "model_call"),
+        # an observer (a sidecar that only polls the arena) cannot see our model calls: unknown, not 0
+        "model_calls": None if head.get("observer") else sum(1 for e in run if e.get("event") == "model_call"),
+        "observer": bool(head.get("observer")),
+        "trial": head.get("trial"),
         "events": len(run),
     }
 

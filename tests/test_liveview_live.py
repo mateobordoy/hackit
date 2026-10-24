@@ -53,3 +53,17 @@ def test_open_arena_sessions_show_as_running(worktrees, monkeypatch):
     assert runs[0]["session"] == "s-open" and runs[0]["running"] and runs[0]["case"] == "P07"
     assert all(r["session"] != "s-done" for r in runs)  # ended and not recorded locally: nothing to show
     assert liveview.running_sessions().keys() == {"s-open"}
+
+
+def test_an_observer_session_reports_model_calls_as_unknown(worktrees):
+    _, codex = worktrees
+    live(
+        codex,
+        "P07",
+        [
+            {"event": "case_start", "at": 1, "observer": True, "trial": "P07-pair1-off"},
+            {"event": "session", "at": 2, "session_id": "c"},
+        ],
+    )
+    case = next(c for c in liveview.all_cases() if c["case"] == "P07@codex")
+    assert case["model_calls"] is None and case["observer"] and case["trial"] == "P07-pair1-off"

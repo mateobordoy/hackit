@@ -143,7 +143,7 @@ function renderCases(d){const done=d.cases.filter(c=>c.status==='done'),sc=done.
  $('#clock').textContent=new Date().toLocaleTimeString([], {hour12:false});
  $('#cases').innerHTML=d.cases.map(c=>`<div class="case ${VIEW==='case'&&!PINNED&&c.case===SEL?'sel':''}" data-c="${esc(c.case)}" onclick="select('${esc(c.case)}')">
   <div class="top"><b>${esc(c.case)}</b><span class="pill ${c.status}">${c.status==='done'?(c.score!=null?c.score.toFixed(3):'done'):c.status}</span></div>
-  <div class="t">${esc(c.title||'')}</div><div class="t">${esc(c.type||'')} · ${esc(c.goal||'')} · ${c.suppliers.length} supplier(s) · ${c.model_calls} LLM calls${c.source?' · in '+esc(c.source):''}</div></div>`).join('')||'<div class="muted">no live files yet</div>'}
+  <div class="t">${esc(c.title||'')}</div><div class="t">${esc(c.type||'')} · ${esc(c.goal||'')} · ${c.suppliers.length} supplier(s) · ${c.model_calls==null?'LLM calls not observed':c.model_calls+' LLM calls'}${c.trial?' · '+esc(c.trial):''}${c.source?' · in '+esc(c.source):''}</div></div>`).join('')||'<div class="muted">no live files yet</div>'}
 function nowBanner(){
  const opens=Object.values(S.open).sort((a,b)=>a.call-b.call);const deep=opens[opens.length-1];
  const llm=Object.values(S.calls).filter(c=>c.status==='running');
@@ -164,7 +164,7 @@ function mapSVG(){
   const mx=(A.x+B.x)/2;s+=`<path class="edge ${on?'flow '+(f.cls||''):''}" d="M${A.x},${A.y} C${mx},${A.y} ${mx},${B.y} ${B.x},${B.y}"/>`}
  for(const [id,n] of Object.entries(NODES)){const {w,h}=box(id);const act=(S.active[id]||0)>now||opNodes.has(id);
   let sub=n.sub;if(id==='model'){const roles={};for(const c of llmBusy)roles[c.role]=(roles[c.role]||0)+1;
-   const total=Object.keys(S.calls).length;sub=llmBusy.length?Object.entries(roles).map(([r,c])=>`${r}×${c}`).join(' '):`${total} calls so far`}
+   const total=Object.keys(S.calls).length;sub=llmBusy.length?Object.entries(roles).map(([r,c])=>`${r}×${c}`).join(' '):(S.head.observer?'calls not observed':`${total} calls so far`)}
   s+=`<g class="node ${n.cls||''} ${act?'active':''}"><rect x="${n.x-w/2}" y="${n.y-h/2}" width="${w}" height="${h}" rx="10"/>
    <text x="${n.x}" y="${n.y-(id==='model'?18:3)}" text-anchor="middle" font-weight="600">${esc(n.label)}</text>
    <text class="sub" x="${n.x}" y="${n.y+(id==='model'?4:13)}" text-anchor="middle">${esc(sub)}</text>`;
@@ -315,7 +315,7 @@ function render(force){if(VIEW!=='case'||!SEL||!S)return;const c=CASES.find(x=>x
  const chatEl=document.getElementById('chat');const atBottom=chatEl&&chatEl.scrollHeight-chatEl.scrollTop-chatEl.clientHeight<60;
  setHTML('chat',chatHTML());if(chatEl&&atBottom)chatEl.scrollTop=chatEl.scrollHeight;
  setHTML('states',statesHTML());
- const tabs=[['calls',`LLM calls (${S.callOrder.length})`],['prep','Preparation · what the team thinks'],['notes',`Supplier back office (${S.notes.length})`],['feed','Trace · every step']];
+ const tabs=[['calls',S.head.observer?'LLM calls (not observed)':`LLM calls (${S.callOrder.length})`],['prep','Preparation · what the team thinks'],['notes',`Supplier back office (${S.notes.length})`],['feed','Trace · every step']];
  setHTML('tabs',tabs.map(([k,l])=>`<div class="tab ${TAB===k?'on':''}" onclick="setTab('${k}')">${l}</div>`).join('')+(TAB==='feed'?`<span style="flex:1"></span>`+['all','trace','model','msg','dec'].map(f=>`<div class="tab ${feedFilter===f?'on':''}" onclick="setFeed('${f}')">${f}</div>`).join(''):''));
  setHTML('tabbody',TAB==='calls'?callsHTML():TAB==='prep'?prepHTML():TAB==='notes'?notesHTML():`<div class="feed">${feedHTML()}</div>`)}
 function frame(){replayTick();if(S&&SEL&&VIEW==='case'){setHTML('mapbox',mapSVG());setHTML('now',nowBanner());if(replay)render(true)}requestAnimationFrame(frame)}
