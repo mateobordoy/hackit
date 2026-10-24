@@ -1,14 +1,14 @@
-"""The buyer's fallback as a hard price ceiling. A frozen offer permits acceptance or an exact
-seller-package echo, never a newly invented proposal at that ceiling."""
+"""The buyer's fallback as a hard price ceiling: no sheet of ours is priced where C reaches the
+fallback's C, and a supplier whose last word is a deal we would refuse gets exactly one sheet at
+that ceiling before the close decides."""
 
 import copy
 
-import pytest
 from arena_kit.cost import complete_offer
 from arena_kit.sim import load_cases
 
 from hackit2 import pricing
-from hackit2.negotiation import ECHO, SETTLED, Negotiator
+from hackit2.negotiation import ECHO, Negotiator
 
 
 def s01_with_fallback(fallback_price):
@@ -52,8 +52,7 @@ def test_opening_and_follow_up_stay_below_a_low_fallback():
     assert follow_up is None or pricing.acceptable_cost(case, first_sheet(follow_up), {}) is not None
 
 
-@pytest.mark.parametrize("status", ["final_offer", "agreed"])
-def test_unacceptable_frozen_offer_never_gets_a_new_ceiling_proposal(status):
+def test_unacceptable_final_offer_gets_a_single_sheet_at_the_ceiling():
     case = s01_with_fallback(16.0)
     negotiator = Negotiator(case)
     supplier_id = case["suppliers"][0]
@@ -61,28 +60,16 @@ def test_unacceptable_frozen_offer_never_gets_a_new_ceiling_proposal(status):
     thread = negotiator.open_thread(supplier_id, events)
     opening = first_sheet(negotiator.next_message(supplier_id, {supplier_id: events}))
     negotiator.confirm_delivery(supplier_id)
-    events += [{"from": "buyer", "term_sheets": [{"terms": opening}]}, counter(16.5, status)]
+    events += [{"from": "buyer", "term_sheets": [{"terms": opening}]}, counter(16.5, "final_offer")]
     last_try = negotiator.next_message(supplier_id, {supplier_id: events})
-    assert last_try is None and thread.phase == SETTLED
-    assert negotiator.final_decision({supplier_id: events})["message"]["action"]["type"] == "walk_away"
-
-
-@pytest.mark.parametrize("status", ["final_offer", "agreed"])
-def test_frozen_offer_still_allows_exact_echo_of_a_cheaper_supplier_alternative(status):
-    case = s01_with_fallback(16.0)
-    negotiator = Negotiator(case)
-    supplier_id = case["suppliers"][0]
-    events = [counter(18.0)]
-    thread = negotiator.open_thread(supplier_id, events)
-    opening = first_sheet(negotiator.next_message(supplier_id, {supplier_id: events}))
+    assert last_try is not None and thread.phase == ECHO
+    sheet = first_sheet(last_try)
+    assert pricing.acceptable_cost(case, sheet, {}) is not None
+    assert sheet["unit_price"] == pricing.price_ceiling(case, thread.plan, {}, thread.valuation)
     negotiator.confirm_delivery(supplier_id)
-    final = counter(16.5, status)
-    alternative = {"unit_price": 14.0, "payment_days": 60}
-    final["term_sheets"].append({"term_sheet_id": "cheaper", "terms": alternative})
-    events += [{"from": "buyer", "term_sheets": [{"terms": opening}]}, final]
-    move = negotiator.next_message(supplier_id, {supplier_id: events})
-    assert move["message"]["term_sheets"] == [{"terms": alternative}]
-    assert thread.phase == ECHO
+    events += [{"from": "buyer", "term_sheets": [{"terms": sheet}]}, counter(16.5, "final_offer")]
+    # that one sheet is all: from here the close decides
+    assert negotiator.next_message(supplier_id, {supplier_id: events}) is None
 
 
 def test_relationship_ceiling_is_searched_inside_the_feasible_range():
