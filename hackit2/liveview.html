@@ -53,8 +53,12 @@ tr.click{cursor:pointer}tr.click:hover{background:#161a24}.detail pre{white-spac
 .find h3{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--llm)}.find ul{margin:0;padding-left:16px}.find li{margin:3px 0}
 .muted{color:var(--muted)}.btn{padding:4px 10px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;font-size:12px}
 .btn:hover{border-color:var(--us)}.flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn.on{border-color:var(--us);background:#141c2e}.tablewrap{overflow-x:auto}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:14px}
+.tile{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel2)}.tile .n{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.tile .l{color:var(--muted);font-size:12px}.num{text-align:right;font-variant-numeric:tabular-nums}td .sub{color:var(--muted);font-size:11px}
 </style></head><body>
-<header><div class="dot"></div><h1>hackit2 Live</h1><div class="stat" id="gstats"></div><div style="flex:1"></div><div class="stat" id="clock"></div></header>
+<header><div class="dot"></div><h1>hackit2 Live</h1><button class="btn" id="scoresBtn" onclick="showScores()">Scores · latest vs best</button><div class="stat" id="gstats"></div><div style="flex:1"></div><div class="stat" id="clock"></div></header>
 <div class="layout"><aside id="cases"></aside><main id="main"><div class="muted">Waiting for a case… start a run (sandbox or practice) and it appears here.</div></main></div>
 <script>
 const $=s=>document.querySelector(s), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -81,6 +85,7 @@ const ROLE_FROM={writer:'negotiation.engine',reply_reader:'reply_reader',debrief
 const nodeOf=label=>{if(!label)return null;let best=null;for(const k of Object.keys(NODES)){if(label===k||label.startsWith(k+'.')){if(!best||k.length>best.length)best=k}}return best};
 const roleNode=r=>ROLE_FROM[r]||'prep.briefing';
 let SEL=null, ARENA='https://arena.tacto.ai', S=null, CASES=[], replay=null, TAB='calls', openCalls={}, feedFilter='all';
+let VIEW='case', SCORES=null, scoresAt=0;  // VIEW 'scores': the comparison table instead of one case
 function fresh(){return {events:[],next:0,runStart:null,head:{},session:{},end:null,suppliers:[],msgs:[],states:{},calls:{},callOrder:[],prep:{stages:{},reports:{},strategy:{},brief:{}},
  feed:[],stack:{},open:{},active:{},flows:{},decisions:[]}}
 function touchNode(n,ms=1400){if(n)S.active[n]=performance.now()+ms}
@@ -115,18 +120,19 @@ function apply(e,animate){
 }
 async function poll(){
  try{const d=await (await fetch('/api/cases')).json();CASES=d.cases;ARENA=d.arena;renderCases(d);
-  if(!SEL&&CASES.length)select(CASES[0].case);
-  if(SEL&&!replay){const r=await (await fetch(`/api/events?case=${SEL}&from=${S.next}`)).json();
+  if(VIEW==='scores'){if(Date.now()-scoresAt>4000)await loadScores()}
+  else if(!SEL&&CASES.length)select(CASES[0].case);
+  if(VIEW==='case'&&SEL&&!replay){const r=await (await fetch(`/api/events?case=${SEL}&from=${S.next}`)).json();
    if(S.runStart&&r.run_start&&r.run_start!==S.runStart){S=fresh()}
    if(!S.runStart)S.runStart=r.run_start;
    const bulk=S.next===0;for(const e of r.events)apply(e,!bulk);S.next=r.next;render()}
  }catch(err){console.error(err)}
  setTimeout(poll,800)}
-function select(c){SEL=c;S=fresh();replay=null;render();document.querySelectorAll('.case').forEach(x=>x.classList.toggle('sel',x.dataset.c===c))}
+function select(c){VIEW='case';$('#scoresBtn').classList.remove('on');SEL=c;S=fresh();replay=null;render();document.querySelectorAll('.case').forEach(x=>x.classList.toggle('sel',x.dataset.c===c))}
 function renderCases(d){const done=d.cases.filter(c=>c.status==='done'),sc=done.filter(c=>c.score!=null);
  $('#gstats').innerHTML=`<b>${d.cases.filter(c=>c.status==='live').length}</b> live · <b>${done.length}</b> done · mean score <b>${sc.length?(100*sc.reduce((a,c)=>a+c.score,0)/sc.length).toFixed(1):'–'}</b> · model spend <b>€${fmt((d.spend||{}).eur)}</b> in ${(d.spend||{}).calls||0} calls`;
  $('#clock').textContent=new Date().toLocaleTimeString([], {hour12:false});
- $('#cases').innerHTML=d.cases.map(c=>`<div class="case ${c.case===SEL?'sel':''}" data-c="${esc(c.case)}" onclick="select('${esc(c.case)}')">
+ $('#cases').innerHTML=d.cases.map(c=>`<div class="case ${VIEW==='case'&&c.case===SEL?'sel':''}" data-c="${esc(c.case)}" onclick="select('${esc(c.case)}')">
   <div class="top"><b>${esc(c.case)}</b><span class="pill ${c.status}">${c.status==='done'?(c.score!=null?c.score.toFixed(3):'done'):c.status}</span></div>
   <div class="t">${esc(c.title||'')}</div><div class="t">${esc(c.type||'')} · ${esc(c.goal||'')} · ${c.suppliers.length} supplier(s) · ${c.model_calls} LLM calls</div></div>`).join('')||'<div class="muted">no live files yet</div>'}
 function nowBanner(){
@@ -211,7 +217,45 @@ function replayTick(){if(!replay)return;const el=(performance.now()-replay.wall)
  if(replay.i>=replay.all.length){replay=null}}
 let lastHTML={};
 function setHTML(id,html){if(lastHTML[id]!==html){const el=document.getElementById(id);if(el){const sc=el.scrollTop;el.innerHTML=html;el.scrollTop=sc}lastHTML[id]=html}}
-function render(force){if(!SEL||!S)return;const c=CASES.find(x=>x.case===SEL)||{};
+// --- Scores view: the latest run of each case against earlier runs, the team's best and the reference
+function showScores(){VIEW='scores';replay=null;$('#scoresBtn').classList.add('on');$('#main').dataset.case='';
+ document.querySelectorAll('.case').forEach(x=>x.classList.remove('sel'));
+ if(SCORES)renderScores();else $('#main').innerHTML='<div class="muted">reading the runs…</div>';loadScores()}
+async function loadScores(){scoresAt=Date.now();try{SCORES=await (await fetch('/api/scores')).json();if(VIEW==='scores')renderScores()}catch(err){console.error(err)}}
+const sc3=v=>v==null?'–':Number(v).toFixed(3);
+const hm=t=>{if(!t)return'';const d=new Date(t*1000),today=new Date().toDateString()===d.toDateString();
+ return (today?'':d.toLocaleDateString([], {weekday:'short'})+' ')+d.toLocaleTimeString([], {hour12:false,hour:'2-digit',minute:'2-digit'})};
+function delta(v){if(v==null)return '<span class="muted">–</span>';const col=v>0.0005?'var(--ok)':v<-0.0005?'var(--bad)':'var(--muted)';
+ return `<span style="color:${col}">${v>0.0005?'+':''}${v.toFixed(3)}</span>`}
+function runCell(r){return r?`<b>${sc3(r.score)}</b><div class="sub">${esc(hm(r.at))} · ${esc(r.source)}${r.deal===false?' · no deal':''}</div>`:'<span class="muted">not run</span>'}
+function historySVG(row){const h=row.history||[];if(!h.length)return '';const vals=[...h.map(r=>r.score),row.team].filter(v=>v!=null);
+ let lo=Math.min(...vals),hi=Math.max(...vals);if(hi-lo<0.02){lo-=0.01;hi+=0.01}
+ const W=150,H=30,P=4,x=i=>h.length<2?W/2:P+i*(W-2*P)/(h.length-1),y=v=>H-P-(v-lo)/(hi-lo)*(H-2*P);
+ let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">`;
+ if(row.team!=null)s+=`<line x1="0" x2="${W}" y1="${y(row.team)}" y2="${y(row.team)}" stroke="var(--ok)" stroke-dasharray="3 3" opacity=".75"><title>team best ${sc3(row.team)}</title></line>`;
+ if(h.length>1)s+=`<polyline fill="none" stroke="var(--us)" stroke-width="1.5" points="${h.map((r,i)=>x(i)+','+y(r.score)).join(' ')}"/>`;
+ s+=h.map((r,i)=>{const last=i===h.length-1;return `<circle cx="${x(i)}" cy="${y(r.score)}" r="${last?3.6:2.6}" fill="${last?'var(--us)':'#6b7488'}"><title>${sc3(r.score)} · ${esc(hm(r.at))} · ${esc(r.source)}</title></circle>`}).join('');
+ return s+'</svg>'}
+function teamCell(row){if(row.team==null)return '<span class="muted">–</span>';
+ const parts=[row.team_live!=null?`live ${sc3(row.team_live)}`:null,row.team_pulled!=null?`pulled ${sc3(row.team_pulled)}`:null].filter(Boolean).join(' · ');
+ return `<b>${sc3(row.team)}</b><div class="sub">${esc(parts)}</div>`}
+function tile(label,value,note){return `<div class="tile"><div class="l">${label}</div><div class="n">${value==null?'–':value.toFixed(1)}</div><div class="sub">${note||''}</div></div>`}
+function renderScores(){const d=SCORES;if(!d)return;const t=d.totals||{},team=d.team||{},p=team.practice||{};
+ const vsTeam=(a)=>a!=null&&t.team!=null?`${a-t.team>=0?'+':''}${(a-t.team).toFixed(1)} vs team best`:'';
+ const teamLine=team.offline?`offline: the team's best comes from the pulled sessions only (${team.pulled_cases} cases). Refresh them with <span class="chipc">uv run hackit2 pull --set practice</span>.`
+  :team.at?`team best read live from the arena at ${esc(new Date(team.at*1000).toLocaleTimeString([], {hour12:false}))}${p.left!=null?` · practice quota: ${p.used} used, ${p.left} left`:''}, merged with the pulled sessions (${team.pulled_cases} cases)`
+  :`reading the team's best from the arena…`;
+ const rows=(d.rows||[]).map(r=>{const atBest=r.gap!=null&&r.gap>-0.0005;const has=CASES.some(c=>c.case===r.case);
+  return `<tr class="${has?'click':''}" ${has?`onclick="select('${esc(r.case)}')"`:''}><td><b>${esc(r.case)}</b>${atBest?' <span title="the latest run equals the team best" style="color:var(--ok)">★</span>':''}</td>
+   <td>${runCell(r.latest)}</td><td>${runCell(r.previous)}</td><td class="num">${delta(r.change)}</td>
+   <td class="num">${sc3(r.best)}</td><td>${teamCell(r)}</td><td class="num">${delta(r.gap)}</td><td class="num">${sc3(r.reference)}</td><td>${historySVG(r)}</td></tr>`}).join('');
+ $('#main').innerHTML=`<div class="casehead"><h1>Scores · latest runs against earlier runs and the team's best</h1></div>
+  <div class="tiles">${tile('Latest runs',t.latest_score,vsTeam(t.latest_score))}${tile('Our best run',t.best,vsTeam(t.best))}${tile('Team best',t.team,'what the practice board counts')}${tile('Reference run',t.reference,vsTeam(t.reference))}</div>
+  <div class="card"><h2>Per case</h2><div class="muted" style="font-size:12px;margin-bottom:8px">${teamLine}${team.error&&!team.offline?` · <span class="bad">arena not reachable: ${esc(team.error)}</span>`:''}</div>
+  <div class="tablewrap"><table><thead><tr><th>Case</th><th>Latest run</th><th>Previous run</th><th class="num">Change</th><th class="num">Our best</th><th>Team best</th><th class="num">Latest vs team</th><th class="num">Reference</th><th>Runs (oldest → latest, dashed: team best)</th></tr></thead>
+  <tbody>${rows||'<tr><td colspan="9" class="muted">no finished runs yet</td></tr>'}</tbody></table></div>
+  <div class="muted" style="font-size:11.5px;margin-top:8px">Runs from the logs/runs folders of: ${esc((d.sources||[]).join(', ')||'–')}. Totals are board-style: the mean over the practice cases × 100, a case without a score counting 0. Click a case with a live file to open it.</div></div>`}
+function render(force){if(VIEW==='scores'||!SEL||!S)return;const c=CASES.find(x=>x.case===SEL)||{};
  if(!document.getElementById('mapbox')||$('#main').dataset.case!==SEL){
   $('#main').dataset.case=SEL;lastHTML={};
   $('#main').innerHTML=`<div class="casehead"><h1 id="ctitle"></h1><span id="cmeta" class="muted"></span><span style="flex:1"></span>
@@ -230,6 +274,6 @@ function render(force){if(!SEL||!S)return;const c=CASES.find(x=>x.case===SEL)||{
  const tabs=[['calls',`LLM calls (${S.callOrder.length})`],['prep','Preparation · what the team thinks'],['feed','Trace · every step']];
  setHTML('tabs',tabs.map(([k,l])=>`<div class="tab ${TAB===k?'on':''}" onclick="setTab('${k}')">${l}</div>`).join('')+(TAB==='feed'?`<span style="flex:1"></span>`+['all','trace','model','msg','dec'].map(f=>`<div class="tab ${feedFilter===f?'on':''}" onclick="setFeed('${f}')">${f}</div>`).join(''):''));
  setHTML('tabbody',TAB==='calls'?callsHTML():TAB==='prep'?prepHTML():`<div class="feed">${feedHTML()}</div>`)}
-function frame(){replayTick();if(S&&SEL){setHTML('mapbox',mapSVG());setHTML('now',nowBanner());if(replay)render(true)}requestAnimationFrame(frame)}
+function frame(){replayTick();if(S&&SEL&&VIEW==='case'){setHTML('mapbox',mapSVG());setHTML('now',nowBanner());if(replay)render(true)}requestAnimationFrame(frame)}
 poll();requestAnimationFrame(frame);setInterval(()=>{if(S&&SEL&&!replay)render(true)},1500);
 </script></body></html>

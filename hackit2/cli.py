@@ -102,7 +102,10 @@ def build_parser():
     run_cmd.add_argument("--cases", help="practice or sandbox: only these cases, e.g. P01,P08")
     pull_cmd = commands.add_parser("pull", help="save finished sessions with trace and back office to logs/sessions/")
     pull_cmd.add_argument("--set", default="practice", choices=["practice", "sandbox", "final"])
-    commands.add_parser("gui", help="serve the live watch UI only (watch runs started elsewhere)")
+    gui_cmd = commands.add_parser("gui", help="serve the live watch UI only (watch runs started elsewhere)")
+    gui_cmd.add_argument(
+        "--offline", action="store_true", help="never contact the arena: the team's best from pulled sessions only"
+    )
     return parser
 
 
@@ -116,7 +119,7 @@ def main(argv=None):
     args = build_parser().parse_args(argv)
     gui_port = getattr(args, "gui_port", settings.GUI_PORT)
     if args.command == "gui":
-        return liveview.serve(gui_port)
+        return liveview.serve(gui_port, offline=args.offline)
     if getattr(args, "no_gui", False):
         if getattr(args, "gui", False):
             raise SystemExit("--gui and --no-gui exclude each other")
@@ -124,7 +127,8 @@ def main(argv=None):
     elif getattr(args, "gui", False):
         if not settings.LIVE_TELEMETRY:
             raise SystemExit("--gui needs live telemetry: unset HACKIT_NO_GUI")
-        liveview.serve(gui_port, background=True)
+        # during the Live Final the UI reads no team scores from the arena
+        liveview.serve(gui_port, background=True, offline=getattr(args, "set", None) == "final")
         print("the watch UI closes when this run ends; `uv run hackit2 gui` keeps watching afterwards")
     no_llm = getattr(args, "no_llm", False)
     team = not getattr(args, "no_team", False)
