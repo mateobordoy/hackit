@@ -17,7 +17,8 @@ DEPARTMENTS = {
     "finance": r"\b(?:finance|financial|economist|economics|accounts|credit control)\b",
     "management": r"\b(?:management|managing director|pricing committee)\b",
     "engineering": r"\b(?:engineering|engineers?|technical team)\b",
-    "quality": r"\b(?:quality|quality assurance)\b",
+    "quality": r"\bquality (?:team|manager|department|assurance|colleagues)\b"
+    r"|(?:^|\n)\s*quality\s*:|\bquality (?:needs?|requires?|wants?|asks?|prefers?|insists?)\b",
     "logistics": r"\b(?:logistics|production planning|operations team|freight forwarder)\b",
 }
 

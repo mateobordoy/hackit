@@ -46,6 +46,12 @@ Subsequent v2 trials also support an unambiguous department paragraph, based on 
 The question and pricing gates were unchanged. v1 missed an inline finance priority; v2 captured
 `finance/earlier_payment` and `quality/quality_protection` in D02, but found no new cheaper trade.
 
+P11 ON also used v2. Its replay exposed a false Quality attribution: mentioning a *quality record*
+in a paragraph about faster payment is not a request from the Quality department. The frozen v3
+parser requires an explicit Quality team/manager/department, a labeled heading or a request verb.
+P10 and P05 ON use v3. This correction has a regression test. No question, price rule or pace was
+changed between these versions; the version changes still limit pooled comparisons.
+
 Repeated identical exchanges returned in roughly a second. This suggests server response caching;
 repeated runs must not be treated as independent stochastic samples. First-run timings also include
 server load, other agents' activity and attachment processing. They do not establish that the
@@ -76,11 +82,47 @@ six-session cohort: P11, P10 and P05, one OFF/ON pair each using the production 
 reply reader and writer. These are screening pairs, not statistical proof. Keep the default OFF
 unless gains justify further evaluation without worse must-have validity or clock reliability.
 
-Results and the final retention decision will be added after the authorized cohort completes.
+After the sandbox cohort ended, P05 ran alongside P11/P10, with at most two active practice sessions.
+Per-trial file locks and completed-result reuse prevented duplicate session starts when the main
+coordinator reached P05. The total remains six authorized practice sessions.
+
+| Case | OFF score | ON score | Delta (points) | OFF session | ON session |
+|---|---:|---:|---:|---|---|
+| P11 | 79.351 | 70.990 | -8.362 | `b4c9ebdd36a4d3f9` | `f455376de5c0f77b` |
+| P10 | 67.852 | 67.852 | 0 | `c4c6614c00a3d66b` | `8a82ce8195b2fe85` |
+| P05 | 82.185 | 82.185 | 0 | `57d08e13fdcf5203` | `f79757cf8e112f4e` |
+
+P11's first sheet was identical in both arms (41.36, 300 ppm, zero chargeback); final terms also
+matched except for price: 45.00 OFF and 45.50 ON. Its first counter was 46.50 OFF and 47.00 ON.
+However, the LLM lead chose different first-round evidence: OFF cited the forecast/index/history,
+ON cited quality/index/history. This preparation variance confounds attributing the score decrease
+solely to the adviser question. P10 had identical first sheets, evidence and counter (31.70).
+Neither pair generated a new cheaper need-based alternative. Both pairs closed valid deals without
+delivery timeouts. P11 took 268.927/258.926 seconds OFF/ON; P10 took 74.409/74.872 seconds.
+
+P05 closed the same deal in both arms (27.92 per unit, payment 14 days, lead time 35 days,
+24 months, DAP). The initial sheet for every bidder matched; evidence matched for the first two
+bidders, while the last bidder saw different rival-offer IDs because the preceding paths differed.
+Its first counters were 31.00/30.00/30.50 OFF and 31.00/30.50/30.50 ON. ON captured a Quality need;
+there was one cost-checked alternative event, without an improved final deal. Wall time was
+173.359/172.024 seconds, with one/zero delivery timeouts OFF/ON. All six practice sessions closed
+valid deals. Timeout results and elapsed times are observations from this small, partly concurrent
+cohort, not estimates of the question's isolated causal effect.
+
+## Decision
+
+**Do not enable or merge the feature into the production integration branch.** No tested case
+improved, P11's screening pair was worse, and the sandbox showed no benefit. The sample and
+preparation/version/cache confounders do not prove the idea can never help; they give no positive
+evidence for adopting it now. The complete opt-in implementation and this report are retained on
+`agent/codex` for review, with the flag default OFF. `burak` remains unchanged by this experiment.
+
+The authorized six-session practice cohort is complete and the `@arena-practice` claim has been
+released. No extra practice sessions or unrelated experiments were started.
 
 ## Checks
 
-`uv run pytest -q`: **103 passed, 3 skipped**, including 30 experiment tests. Ruff lint and format
+`uv run pytest -q`: **104 passed, 3 skipped**, including 31 experiment tests. Ruff lint and format
 checks passed. Tests cover optionality, delivery/undo/resume, final offers, attribution, negation,
 retractions, actual reply paragraph forms, supplier instruction isolation, buyer-cost and must-have
 gates, quality protection, and complete scored simulator sessions with the flag both OFF and ON.

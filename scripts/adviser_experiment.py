@@ -9,6 +9,7 @@ round-trip times, decision journals and a small metrics manifest stay in ignored
 """
 
 import argparse
+import fcntl
 import json
 import os
 import statistics
@@ -132,7 +133,13 @@ def main():
     if args.practice and not args.arm and args.pairs != 1:
         parser.error("Practice is bounded to one pair per case; increase only after coordinating a new quota.")
     if args.arm:
-        return worker(args, args.output)
+        args.output.mkdir(parents=True, exist_ok=True)
+        with (args.output / ".trial.lock").open("a+") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            if (args.output / "metrics.json").exists():
+                print(f"Reusing completed trial: {args.output}", flush=True)
+                return
+            return worker(args, args.output)
     root = args.output / f"{time.strftime('%Y%m%d-%H%M%S')}-{'practice-' if args.practice else ''}{args.mode}"
     rows = []
     for pair in range(args.pairs):
