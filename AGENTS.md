@@ -71,8 +71,12 @@ The live task board is **`../agents-hub/BOARD.md`** (generated). Read it before 
 | claude | Claude Code (subscription) | `/home/burak/Belgeler/hackathon/tacto/hackit-claude` | `agent/claude` |
 | codex | Codex CLI | `/home/burak/Belgeler/hackathon/tacto/hackit-codex` | `agent/codex` |
 | agy | agy, Gemini 4 | `/home/burak/Belgeler/hackathon/tacto/hackit-agy` | `agent/agy` |
+| claude2 | a second Claude Code session | `/home/burak/Belgeler/hackathon/tacto/hackit-claude2` | `agent/claude2` |
 | integration | Burak | `/home/burak/Belgeler/hackathon/tacto/hackit-v2` | `burak` |
 
+- **One session per agent name.** A second session of the same tool uses the `2` name (`claude2`,
+  `codex2`, `agy2`) and its own worktree (ask opencode to create it: `git worktree add -b agent/<name>
+  ../hackit-<name> burak`, symlink `.env`, `uv sync`). Never run two sessions under one name.
 - Work **only** inside your own worktree. Never edit files in another agent's worktree or in
   `hackit-v2` (the integration tree, branch `burak`, which pulls finished work).
 - Each worktree has its own `.venv` (`uv sync`) and a symlink to the shared `.env`.
