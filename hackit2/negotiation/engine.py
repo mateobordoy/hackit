@@ -497,7 +497,6 @@ class Negotiator(PackageDesk, ClosingDesk):
                     rows.append((ref.split("@")[-1], part, row["volume_per_year"], row.get("change_pct")))
         if not rows:
             return []
-        thread.files_sent.add("forecast")
         lines = ["month,part,volume_per_year,change_pct"] + [",".join(str(x) for x in row) for row in rows]
         content = base64.b64encode("\n".join(lines).encode()).decode()
         return [{"name": "forecast.csv", "type": "csv", "content_b64": content}]
@@ -520,6 +519,7 @@ class Negotiator(PackageDesk, ClosingDesk):
         }
         statements = mailer.binding_statements(self.case, thread, sheets)
         attachments = self.forecast_file(thread)
+        thread.in_flight["files"] = {"forecast"} if attachments else set()
         if thread.phase != ECHO:
             thread.our_prices.append(price)
             thread.gap_history.append(max(0.0, (counter - price) / counter) if counter else 0.0)
@@ -567,6 +567,12 @@ class Negotiator(PackageDesk, ClosingDesk):
     def safe_message(self, supplier_id, threads):
         """A template acknowledgement after a failed move; it never resends an unchanged binding offer."""
         thread = self.suppliers.get(supplier_id)
+        if thread and thread.in_flight:
+            self.undo_delivery(supplier_id, count_late=False)
+        if latest(threads[supplier_id]).get("status") in FROZEN:
+            if thread:
+                thread.phase = SETTLED
+            return None
         statements = []
         if thread and thread.last_primary_sent:
             statements = mailer.binding_statements(self.case, thread, [thread.last_primary_sent])
@@ -588,12 +594,14 @@ class Negotiator(PackageDesk, ClosingDesk):
             self.cited.update(flight["cited"])
             thread.used_topics.update(flight.get("families", set()))
             thread.shown_alternatives.update(flight.get("alternative_keys", set()))
+            thread.files_sent.update(flight.get("files", set()))
             if flight.get("primary"):
                 thread.last_primary_sent = flight["primary"]
             thread.in_flight = None
 
-    def undo_delivery(self, supplier_id):
-        """The message arrived too late (a timeout): the supplier never read it."""
+    def undo_delivery(self, supplier_id, *, count_late=True):
+        """Discard an unread proposal. Only an arena timeout consumes a late round; a local build
+        failure followed by a template reply does not."""
         thread = self.suppliers[supplier_id]
         flight = thread.in_flight
         if flight:
@@ -602,8 +610,9 @@ class Negotiator(PackageDesk, ClosingDesk):
                 thread.gap_history.pop()
             thread.phase = flight["phase"]
             thread.in_flight = None
-            thread.late_rounds += 1
-            self.log_event(supplier_id, "undo_delivery", late_rounds=thread.late_rounds)
+            if count_late:
+                thread.late_rounds += 1
+            self.log_event(supplier_id, "undo_delivery", late_rounds=thread.late_rounds, count_late=count_late)
 
     def log_event(self, supplier_id, event, **details):
         entry = {"at": round(time.time(), 1), "supplier": supplier_id, "event": event, **details}

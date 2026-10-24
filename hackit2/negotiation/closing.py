@@ -40,8 +40,8 @@ class ClosingDesk:
     def wrap_up(self, thread, sheets, events, counter, messages_left):
         """Its final word, its agreement, or our last message. If one of its alternative sheets costs
         us less than its standing sheet, send that sheet back so it becomes the standing one. If its
-        last word is a deal we would refuse, one sheet at the most we would accept costs nothing (a
-        refusal and a walk-away both leave us the alternative). Otherwise the thread is settled."""
+        last word freezes the offer, only its own sheets may be echoed. While it is still bargaining,
+        one sheet at the most we would accept can answer a deal we would refuse. Otherwise settle."""
         case, standard = self.case, thread.standard
         standing_cost = pricing.acceptable_cost(case, sheets[0]["terms"], standard, thread.valuation)
         alternatives = []
@@ -55,7 +55,12 @@ class ClosingDesk:
             if standing_cost is None or c < standing_cost - settings.MIRROR_MIN_SAVING_EUR:
                 thread.phase = ECHO
                 return self.dispatch(thread, [package], [], events, counter)
-        if standing_cost is None and messages_left > 0 and thread.our_prices:
+        if (
+            standing_cost is None
+            and messages_left > 0
+            and thread.our_prices
+            and latest(events).get("status") not in FROZEN
+        ):
             ceiling = pricing.price_ceiling(case, thread.plan, standard, thread.valuation)
             last = pricing.priced(thread.plan, min(counter, ceiling) if ceiling is not None else counter)
             acceptable = pricing.acceptable_cost(case, last, standard, thread.valuation) is not None
