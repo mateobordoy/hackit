@@ -10,9 +10,29 @@ import math
 from arena_kit.play import ENDED, latest, live_threads, standing
 
 from .. import pricing, settings, telemetry
-from .common import ACTIVE, ECHO, FROZEN, SETTLED, guarded
+from .common import ACTIVE, ECHO, FINISHED, FROZEN, SETTLED, guarded
 from .packages import same_offer
 from .thread import SupplierThread, quoted_standard_terms
+
+# The arena ends a thread at its third timeout in a row, or at any timeout after its last round
+# (brief "Limits"; the kit's simulator `_tick`). Each full minute a supplier waits for us is a
+# timeout and uses a round, even while we write to another bidder.
+TIMEOUTS_TO_END = 3
+
+
+def clock_state(left_messages, replied_at, silent_rounds, streak, now, clock_s=None):
+    """A waiting thread's clock as the arena counts it: (rounds left, timeouts in a row, seconds to
+    the next timeout). `left_messages`: our messages left by our own count; `silent_rounds`: timeouts
+    of earlier waits that our count does not hold; `streak`: timeouts in a row before this wait."""
+    clock_s = clock_s or settings.THREAD_CLOCK_S
+    age = max(0.0, now - replied_at)
+    waited = int(age // clock_s)  # timeouts during this wait
+    return left_messages - silent_rounds - waited, streak + waited, clock_s * (waited + 1) - age
+
+
+def ends_at_next_timeout(rounds_left, in_a_row):
+    """True when the thread's next timeout ends it: its last round is used, or two came in a row."""
+    return rounds_left <= 1 or in_a_row >= TIMEOUTS_TO_END - 1
 
 
 class ClosingDesk:
@@ -88,6 +108,80 @@ class ClosingDesk:
             if math.isfinite(lowest) and lowest >= best:
                 thread.phase, thread.outclassed = SETTLED, True
                 self.log_event(supplier_id, "outclassed", ours=round(lowest, 2), frozen=round(best, 2))
+
+    def rival_could_beat(self, threads, best_supplier, best_cost):
+        """Another bidder still bargaining that could end below `best_cost`, or None. A supplier does
+        not go below what we asked, so our latest sheets to it bound its best deal (as in
+        `retire_outclassed`); a bidder we have not offered anything yet could still beat it."""
+        for supplier_id, events in threads.items():
+            thread = self.suppliers.get(supplier_id)
+            if supplier_id == best_supplier or thread is None or thread.phase in FINISHED or thread.outclassed:
+                continue
+            if latest(events).get("status") in FROZEN | ENDED:
+                continue  # a frozen sheet no longer moves: best_standing_offer already compared it
+            ours = [m for m in events if m.get("from") == "buyer" and m.get("term_sheets")]
+            if not ours:
+                return supplier_id
+            lowest = min(
+                pricing.buyer_cost(self.case, sheet.get("terms") or {}, thread.standard, thread.valuation)
+                for sheet in ours[-1]["term_sheets"]
+            )
+            if lowest < best_cost:
+                return supplier_id
+        return None
+
+    def other_acceptable_sheet(self, threads, supplier_id):
+        """Does another live thread hold an acceptable standing sheet?"""
+        for other, events in threads.items():
+            if other == supplier_id or latest(events).get("status") in ENDED:
+                continue
+            offer_id, terms = standing(events)
+            if offer_id and guarded(functools.partial(self.standing_cost, other, events, terms)) is not None:
+                return True
+        return False
+
+    @telemetry.traced("negotiation.closing.insurance")
+    def insurance(self, threads, clocks, now, serve_s):
+        """RFQ insurance: the cheapest acceptable standing sheet must not die with its thread while we
+        bargain elsewhere. `clocks`: supplier -> (when its last reply came, timeouts of earlier waits
+        our count does not hold, timeouts in a row before this wait); `serve_s`: how long our next move
+        to another bidder takes (model plus round trip).
+
+        Acts only when that sheet's thread waits settled, its next timeout ends it, and the timeout
+        comes before we could serve the thread after one more move elsewhere. Then:
+        - ("accept", supplier) when no other bidder can still beat the sheet, or when no other
+          acceptable sheet stands (a bad deal beats no deal);
+        - ("keepalive", supplier) when a round is left: it restarts the clock (P05: the winning bidder
+          waited through two timeouts in a row while we bargained with the others);
+        - None otherwise: a rival can still beat the sheet and holds an acceptable sheet itself."""
+        best = self.best_standing_offer(threads)
+        if best is None:
+            return None
+        cost, supplier_id, offer_id = best
+        thread = self.suppliers.get(supplier_id)
+        if thread is None or thread.phase != SETTLED or supplier_id not in clocks:
+            return None  # a thread still bargaining is served by the loop itself
+        rounds_left, in_a_row, next_timeout_s = clock_state(
+            self.messages_left(thread, threads[supplier_id]), *clocks[supplier_id], now
+        )
+        if not ends_at_next_timeout(rounds_left, in_a_row) or next_timeout_s - settings.CLOCK_RESERVE_S > serve_s:
+            return None
+        details = {"offer": offer_id, "c": round(cost, 2), "rounds_left": rounds_left, "in_a_row": in_a_row}
+        rival = self.rival_could_beat(threads, supplier_id, cost)
+        if rival is None or (rounds_left < 1 and not self.other_acceptable_sheet(threads, supplier_id)):
+            why = "no other bidder can beat it" if rival is None else "no other acceptable sheet stands"
+            self.log_event(
+                supplier_id, "insurance_accept", reason=f"its thread ends at the next timeout; {why}", **details
+            )
+            return ("accept", supplier_id)
+        if rounds_left >= 1:
+            self.log_event(supplier_id, "insurance_keepalive", rival=rival, **details)
+            return ("keepalive", supplier_id)
+        noted = self.__dict__.setdefault("_insurance_skipped", set())
+        if offer_id not in noted:  # logged once, not on every turn of the loop
+            noted.add(offer_id)
+            self.log_event(supplier_id, "insurance_skipped", rival=rival, **details)
+        return None
 
     @telemetry.traced("negotiation.closing.best_standing_offer")
     def best_standing_offer(self, threads):

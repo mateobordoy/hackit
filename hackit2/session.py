@@ -51,6 +51,17 @@ def writing_budget(supplier_id, replied_at, live, round_trip_s, now):
     return min(settings.MODEL_TIMEOUT_S, *limits)
 
 
+def insurance(negotiator, threads, replied_at, silent_rounds, streak, round_trip_s):
+    """The negotiator's RFQ insurance for this turn (`ClosingDesk.insurance`): ("accept" | "keepalive",
+    supplier) or None. It never costs the turn: a failure is logged and the turn goes on."""
+    clocks = {s: (replied_at[s], silent_rounds[s], streak[s]) for s in threads}
+    try:
+        return negotiator.insurance(threads, clocks, time.monotonic(), settings.MODEL_TIMEOUT_S + round_trip_s)
+    except Exception:  # noqa: BLE001 - the insurance must never cost the turn
+        log.exception("insurance check failed")
+        return None
+
+
 def near_deadline(deadline, margin=90):
     cap = deadline() if callable(deadline) else deadline
     return bool(cap) and time.time() > cap - margin
@@ -119,6 +130,10 @@ def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
         publish_state(negotiator, supplier_id)
     failures = dict.fromkeys(threads, 0)
     replied_at = dict.fromkeys(threads, opened_at)
+    # the arena counts each full minute a thread waits as a timeout that uses a round, even while we
+    # write to another bidder; three in a row, or one after the last round, end it (T15)
+    silent_rounds = dict.fromkeys(threads, 0)  # timeouts of earlier waits that our message count lacks
+    streak = dict.fromkeys(threads, 0)  # timeouts in a row not yet reset by a delivered message
     round_trip_s = settings.FIRST_ROUND_TRIP_S  # the slowest send so far
     # round one goes out cheapest quote first: if a clock runs out, it is the least promising one's
     first_round_order = sorted(threads, key=lambda sid: negotiator.suppliers[sid].quote_at_plan or float("inf"))
@@ -140,6 +155,9 @@ def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
         queue = sorted(bargaining(), key=lambda s: (replied_at[s], rank[s]))
         if not queue:
             break
+        cover = insurance(negotiator, threads, replied_at, silent_rounds, streak, round_trip_s)
+        if cover and cover[0] == "accept":
+            break  # settle() accepts the cheapest acceptable standing sheet: the one whose thread ends next
         waiting = [
             s
             for s in threads
@@ -148,9 +166,12 @@ def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
             and is_live(s)
             and replied_at[s] < replied_at[queue[0]]
             and needs_keepalive(time.monotonic() - replied_at[s], round_trip_s, settings.MODEL_TIMEOUT_S)
-            and moves_left(case, threads[s]) - negotiator.suppliers[s].late_rounds > 0
+            and moves_left(case, threads[s]) - negotiator.suppliers[s].late_rounds - silent_rounds[s] > 0
         ]
-        if waiting:  # a settled bidder whose clock runs out first: keep it alive
+        if cover:  # the best acceptable sheet's thread would end before our next turn: keep it alive
+            supplier_id = cover[1]
+            message = keepalive_message(threads[supplier_id])
+        elif waiting:  # a settled bidder whose clock runs out first: keep it alive
             supplier_id = min(waiting, key=lambda s: replied_at[s])
             message = keepalive_message(threads[supplier_id])
         else:
@@ -181,6 +202,8 @@ def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
                 raise
             slowest_round = max(slowest_round, time.monotonic() - round_started)
             log.info("%s %s: %s", case_id, supplier_id, exc.detail)
+            thread = negotiator.suppliers.get(supplier_id)
+            late_before = thread.late_rounds if thread else 0
             negotiator.undo_delivery(supplier_id)  # it never got this message: our last offer stands
             telemetry.emit("delivery_failed", supplier=supplier_id, detail=str(exc.detail)[:300])
             reply = table.missed(supplier_id, exc)
@@ -189,8 +212,19 @@ def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
                 break
             threads[supplier_id].append(reply)
             publish_message(supplier_id, reply)
-            replied_at[supplier_id] = time.monotonic()
+            if "late" in str(exc.detail).lower():
+                # it counted timeouts instead of our message; its clock restarted at the last of them
+                waited = max(1, int((sent_at - replied_at[supplier_id]) // settings.THREAD_CLOCK_S))
+                late_counted = (thread.late_rounds if thread else 0) - late_before
+                silent_rounds[supplier_id] += max(0, waited - late_counted)
+                streak[supplier_id] += waited
+                replied_at[supplier_id] += waited * settings.THREAD_CLOCK_S
+            else:
+                replied_at[supplier_id] = time.monotonic()
             continue
+        # delivered: the timeouts of this wait used rounds, and the run of timeouts starts again
+        silent_rounds[supplier_id] += int((sent_at - replied_at[supplier_id]) // settings.THREAD_CLOCK_S)
+        streak[supplier_id] = 0
         negotiator.confirm_delivery(supplier_id)
         if "result" in reply:  # the reply ended the case, e.g. the last supplier walked away
             result = reply["result"]
