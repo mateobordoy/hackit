@@ -14,6 +14,7 @@ What the suppliers showed in sandbox and practice:
 - a large first concession means a deep floor: then we hold low instead of meeting it."""
 
 import base64
+import json
 import time
 
 from arena_kit.play import ENDED, latest, moves_left, standing
@@ -42,6 +43,7 @@ class Negotiator(PackageDesk, ClosingDesk):
         self.suppliers = {}
         self.cited = set()  # refs cited in this case (a rival quote: per supplier)
         self.journal = []  # every decision, for the run log
+        self.live_journal = None  # optional path: every decision is also appended there as it happens
         self.write_budget_s = settings.MODEL_TIMEOUT_S  # model time left for the move being built
 
     # --- opening a thread -----------------------------------------------------------------------
@@ -598,6 +600,12 @@ class Negotiator(PackageDesk, ClosingDesk):
     def log_event(self, supplier_id, event, **details):
         entry = {"at": round(time.time(), 1), "supplier": supplier_id, "event": event, **details}
         self.journal.append(entry)
+        if self.live_journal is not None:
+            try:
+                with open(self.live_journal, "a", encoding="utf-8") as handle:
+                    handle.write(json.dumps(entry, default=str, ensure_ascii=False) + "\n")
+            except OSError:  # a live view must never cost the move
+                pass
         log.info(
             "%s %s %s",
             self.case["case_id"],

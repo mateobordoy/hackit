@@ -32,6 +32,7 @@ from .prep import briefing
 
 log = logging.getLogger("hackit2")
 RUN_LOGS = Path("logs/runs")
+LIVE_LOGS = Path("logs/live")
 
 
 def needs_keepalive(age, round_trip_s, write_s):
@@ -72,6 +73,17 @@ def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True, 
         for message in events:
             read_attachments(table, case_id, message)
     negotiator = Negotiator(case, pkg, complete, briefs)
+    negotiator.live_journal = open_live_journal(case_id)
+    negotiator.log_event(
+        None,
+        "session",
+        session_id=getattr(table, "session_id", None),
+        title=case.get("title"),
+        type=case.get("type"),
+        goal=case["buyer"].get("category_goal"),
+        team=briefs is not None,
+        suppliers=list(threads),
+    )
     for supplier_id, events in threads.items():
         try:
             negotiator.open_thread(supplier_id, events)
@@ -161,6 +173,14 @@ def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True, 
             for message in events[-2:]:
                 read_attachments(table, case_id, message)
         result = settle(table, case_id, negotiator, threads)
+    negotiator.log_event(
+        result.get("supplier_id"),
+        "end",
+        session_id=table.session_id,
+        deal=result.get("deal"),
+        score=result.get("score"),
+        end_reason=result.get("end_reason"),
+    )
     write_run_log(table.session_id, case_id, negotiator, result)
     if learn and briefs is not None:
         try:
@@ -168,6 +188,16 @@ def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True, 
         except Exception:  # the case is closed: a failed debrief costs nothing
             log.exception("%s: debrief failed", case_id)
     return result
+
+
+def open_live_journal(case_id):
+    """The file a case's decisions stream into while it runs (`logs/live/case_<id>.jsonl`), for the
+    live dashboard; None when it cannot be created."""
+    try:
+        LIVE_LOGS.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return None
+    return LIVE_LOGS / f"case_{case_id.split(':')[-1]}.jsonl"
 
 
 def read_attachments(table, case_id, message):
