@@ -22,21 +22,20 @@ messages and docs are in **English**.
 
 ## 2. Where we are now (update this section when the state changes)
 
-- `hackit2` is a rewritten and restructured derivative of last edition's winner ProcureCabana, reused
-  under the hackathon's open-code terms (credit in `NOTICE`; never remove it, never hide the origin).
+- Third-party credit lives in `NOTICE`; keep that file intact. Do not add it anywhere else.
   Rule of the design: **code owns every number** (prices, terms, accept/walk); models only advise
   (clamped to fixed lists) and write one paragraph per e-mail.
-- Practice results (10 hosted cases, same setup as the original): run 1 **76.5**, run 2 **77.6**;
-  original **78.5**. Rounds 1 are identical in every case: the gap is LLM/bot variance, mostly P08.
+- Practice results (10 hosted cases): run 1 **76.5**, run 2 **77.6**; best reference run with the same
+  setup **78.5**. Rounds 1 are identical in every case: the gap is LLM/bot variance, mostly P08.
   Details: `logs/compare/digest.md` and `logs/compare/chats.html` (local only).
 - Known weak spots (tasks T2, T3, T9 on the board):
   - P08: the reply reader's `hold` tactic slowed round 2, the supplier ran out of patience one round
     earlier (0.538 vs 0.737).
   - P11 run 2: a prepared trade loosened `ppm_commitment` (300 -> 800); the supplier still stopped at
     the same price floor, so the looser term just cost us money (-0.038).
-  - P02, P18 (~0.63-0.73) are the hardest cases for both agents.
-- Done today: rewrite, 73 unit tests green, live telemetry + watch UI (`--gui`, `--no-gui`,
-  `hackit2 gui`), side-by-side comparison with the original.
+  - P02, P18 (~0.63-0.73) are the hardest cases.
+- Done today: hackit2 v2 code base, 73 unit tests green, live telemetry + watch UI (`--gui`,
+  `--no-gui`, `hackit2 gui`), side-by-side run comparison.
 - Team quota: practice sessions are scarce (limit 400 / rolling 24 h, ~270 left at 23:00 Sat). Model
   budget: EUR 30 hard cap, ~EUR 13.5 spent; shared spend file (see section 5).
 

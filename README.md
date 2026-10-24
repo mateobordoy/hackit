@@ -74,6 +74,6 @@ Environment variables (names only): `ARENA_URL`, `ARENA_API_KEY`, `ARENA_DATA`, 
 `LLM_MODEL`, `LLM_EFFORT`, `ANTHROPIC_API_KEY`, `LLM_BASE_URL`, `LLM_API_KEY`, `HACKIT_BUDGET_EUR`,
 `HACKIT_SPEND_FILE`.
 
-### Credits
+### Licences and third-party notices
 
 See `NOTICE`.
