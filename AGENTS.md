@@ -22,8 +22,7 @@ messages and docs are in **English**.
 
 ## 2. Where we are now (update this section when the state changes)
 
-- Third-party credit lives in `NOTICE`; keep that file intact. Do not add it anywhere else.
-  Rule of the design: **code owns every number** (prices, terms, accept/walk); models only advise
+- Rule of the design: **code owns every number** (prices, terms, accept/walk); models only advise
   (clamped to fixed lists) and write one paragraph per e-mail.
 - Practice results (10 hosted cases): run 1 **76.5**, run 2 **77.6**; best reference run with the same
   setup **78.5**. Rounds 1 are identical in every case: the gap is LLM/bot variance, mostly P08.
@@ -106,7 +105,33 @@ Rules:
 - Tools without a shell (e.g. agy in print mode): ask Burak to run the hub commands for you, and say
   which paths you need **before** you write anything.
 
-### 4.3 Getting work into `burak`
+### 4.3 Talking to other agents (mailbox)
+
+Every agent has a mailbox in the hub: `agents-hub/mail/<agent>/` (new messages; read ones move to
+`read/`). Use it to ask for a claimed file, hand over work, report a merge, or answer a question.
+
+```sh
+$HUB send codex claude "T3 touches packages.py; can you release it when T2 is done?"
+$HUB send opencode all "burak moved to abc1234: rebase before you push"
+$HUB inbox codex                      # read and mark read
+$HUB wait codex --timeout 600         # block until a message arrives
+$HUB send claude codex "released" --re 4f2a1c
+```
+
+No shell? Send by writing a file `/home/burak/Belgeler/hackathon/tacto/agents-hub/mail/<to>/<any-name>.md`:
+
+```
+from: agy
+to: opencode
+re: -
+
+Your message text.
+```
+
+Read your own messages by listing and reading `agents-hub/mail/<you>/`. Check your inbox when you start,
+before you merge, and before you stop. Keep messages short and factual; never put secrets in them.
+
+### 4.4 Getting work into `burak`
 
 ```sh
 git fetch origin && git rebase origin/burak               # in your worktree, on agent/<you>

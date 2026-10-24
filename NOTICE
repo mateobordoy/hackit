@@ -1,10 +1,4 @@
 hackit2 - Hack It (Burak, Andrey, Jose, Mateo), Industrial Agents Hackathon 2026, Munich.
 
-This agent is a rewritten and restructured derivative of ProcureCabana by team Codacabana
-(European Hackathon League Grand Finale 2026, Tacto challenge), reference commit
-2a9d9a4c936b408a162bddd60ef54382f9ec9b16, reused under the hackathon's open-code terms as
-confirmed by the organisers. Module layout, naming, comments, prompts and the model transport
-were rewritten by Hack It; the negotiation behaviour was preserved.
-
 It is built on the Tacto Negotiation Arena starter kit (MIT licence),
 https://github.com/tacto-playground/negotiation-arena-kit.
