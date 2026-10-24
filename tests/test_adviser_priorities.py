@@ -18,6 +18,7 @@ def opened(body="Our offer.", complete=None):
     events[0]["body"] = body
     negotiator = Negotiator(case, complete=complete)
     thread = negotiator.open_thread("sup:S", events)
+    thread.plan["payment_days"] = 60
     return negotiator, thread, events
 
 
@@ -26,14 +27,18 @@ def test_question_is_delivered_once_with_the_offer_even_without_a_model(monkeypa
     monkeypatch.setattr(settings, "SELLER_ADVISER_INQUIRY", True)
     negotiator, thread, events = opened(complete=complete)
     first = negotiator.next_message("sup:S", {"sup:S": events})["message"]
-    assert advisers.QUESTION in first["body"]
+    assert not advisers.was_asked(first["body"])
     assert first["term_sheets"]
-    assert first["body"].count("?") == 1
     assert not thread.adviser_inquiry_sent
+    negotiator.confirm_delivery("sup:S")
+    second = negotiator.dispatch(thread, [thread.plan], [], events, 15.88)["message"]
+    assert advisers.VALUE_QUESTION in second["body"]
+    assert "finance or credit control" in second["body"]
+    assert "engineering" not in second["body"] and "quality and logistics" not in second["body"]
     negotiator.confirm_delivery("sup:S")
     assert thread.adviser_inquiry_sent
     again = negotiator.dispatch(thread, [thread.plan], [], events, 15.88)["message"]
-    assert advisers.QUESTION not in again["body"]
+    assert not advisers.was_asked(again["body"])
 
 
 def test_flag_off_preserves_the_original_offer_and_question(monkeypatch):
@@ -45,22 +50,28 @@ def test_flag_off_preserves_the_original_offer_and_question(monkeypatch):
     assert advisers.QUESTION not in messages[0]["body"]
     assert messages[0]["term_sheets"] == messages[1]["term_sheets"]
     assert messages[0]["refs"] == messages[1]["refs"]
+    assert messages[0]["body"] == messages[1]["body"]
 
 
 def test_failed_delivery_does_not_spend_the_question(monkeypatch):
     monkeypatch.setattr(settings, "SELLER_ADVISER_INQUIRY", True)
     negotiator, thread, events = opened()
     negotiator.next_message("sup:S", {"sup:S": events})
+    negotiator.confirm_delivery("sup:S")
+    negotiator.dispatch(thread, [thread.plan], [], events, 15.88)
     negotiator.undo_delivery("sup:S")
     assert not thread.adviser_inquiry_sent
     retried = negotiator.next_message("sup:S", {"sup:S": events})["message"]
-    assert advisers.QUESTION in retried["body"]
+    assert advisers.VALUE_QUESTION in retried["body"]
 
 
 def test_resume_recovers_the_delivered_question_and_department_needs(monkeypatch):
     monkeypatch.setattr(settings, "SELLER_ADVISER_INQUIRY", True)
     negotiator, thread, events = opened()
     message = negotiator.next_message("sup:S", {"sup:S": events})["message"]
+    negotiator.confirm_delivery("sup:S")
+    events += [{"from": "buyer", **message}]
+    message = negotiator.dispatch(thread, [thread.plan], [], events, 15.88)["message"]
     events += [{"from": "buyer", **message}]
     reply = supplier_quote("open", {**LEVERAGE_QUOTE, "unit_price": 15.5}, offer="second")[0]
     reply["body"] = "Finance prefers earlier payment. Logistics needs delivery flexibility."
@@ -71,7 +82,7 @@ def test_resume_recovers_the_delivered_question_and_department_needs(monkeypatch
     assert restored.adviser_inquiry_sent
     assert {p["need"] for p in restored.adviser_priorities} == {"earlier_payment", "delivery_flexibility"}
     result = resumed.next_message("sup:S", {"sup:S": events})
-    assert result is None or advisers.QUESTION not in result["message"]["body"]
+    assert result is None or not advisers.was_asked(result["message"]["body"])
 
 
 @pytest.mark.parametrize("status", ["agreed", "final_offer"])
@@ -81,7 +92,7 @@ def test_no_inquiry_when_only_mirroring_a_final_sheet(monkeypatch, status):
     events[-1]["status"] = status
     thread.phase = ECHO
     message = negotiator.dispatch(thread, [thread.plan], [], events, 15.88)["message"]
-    assert advisers.QUESTION not in message["body"]
+    assert not advisers.was_asked(message["body"])
 
 
 @pytest.mark.parametrize(
@@ -167,8 +178,10 @@ def test_supplier_text_cannot_supply_prices_approvals_or_writer_instructions():
 def test_payment_need_reaches_existing_cost_gates_without_changing_valuation(monkeypatch):
     monkeypatch.setattr(settings, "SELLER_ADVISER_INQUIRY", True)
     negotiator, thread, _ = opened()
+    thread.our_prices = [14]
     thread.valuation["interest_rate"] = 0.5
     before = copy.deepcopy(thread.valuation)
+    thread.adviser_inquiry_sent = True
     negotiator.observe_adviser_priorities(thread, "Finance would prefer earlier payment.")
     assert thread.valuation == before
     assert "payment" in thread.requests
@@ -185,7 +198,7 @@ def test_payment_need_reaches_existing_cost_gates_without_changing_valuation(mon
     assert negotiator.need_alternatives(thread, main) == []
 
 
-def test_logistics_need_only_creates_an_allowed_cheaper_delivery_package(monkeypatch):
+def test_logistics_need_only_creates_an_allowed_cost_neutral_delivery_package(monkeypatch):
     monkeypatch.setattr(settings, "SELLER_ADVISER_INQUIRY", True)
     case = leverage_case()
     case["negotiable"].append("lead_time_days")
@@ -195,13 +208,15 @@ def test_logistics_need_only_creates_an_allowed_cheaper_delivery_package(monkeyp
     quote = {**LEVERAGE_QUOTE, "lead_time_days": 42}
     negotiator = Negotiator(case)
     thread = negotiator.open_thread("sup:S", supplier_quote("open", quote))
+    thread.our_prices = [14]
+    thread.adviser_inquiry_sent = True
     negotiator.observe_adviser_priorities(thread, "Logistics needs a longer lead time.")
-    main = pricing.complete_offer(case, {**quote, "lead_time_days": 14})
-    alternatives = negotiator.need_alternatives(thread, main)
+    main = pricing.complete_offer(case, {**quote, "unit_price": 14, "lead_time_days": 14})
+    alternatives = negotiator.value_discovery_alternatives(thread, main)
     assert alternatives and all(s["lead_time_days"] == 28 for s in alternatives)
     assert all(
         pricing.buyer_cost(case, s, thread.standard, thread.valuation)
-        < pricing.buyer_cost(case, main, thread.standard, thread.valuation)
+        <= pricing.buyer_cost(case, main, thread.standard, thread.valuation)
         for s in alternatives
     )
 
@@ -209,10 +224,113 @@ def test_logistics_need_only_creates_an_allowed_cheaper_delivery_package(monkeyp
 def test_quality_and_engineering_needs_never_authorize_weaker_terms(monkeypatch):
     monkeypatch.setattr(settings, "SELLER_ADVISER_INQUIRY", True)
     negotiator, thread, _ = opened()
+    thread.our_prices = [14]
     before = dict(thread.plan)
+    thread.adviser_inquiry_sent = True
     negotiator.observe_adviser_priorities(thread, "Quality needs lower chargebacks. Engineering requires drawings.")
     assert advisers.wanted_trades(thread.adviser_priorities) == set()
     assert thread.plan == before
+
+
+def test_no_question_for_quality_only_or_exhausted_commercial_levers():
+    case = leverage_case()
+    main = pricing.complete_offer(case, {"unit_price": 14, "payment_days": 14})
+    assert advisers.question(case, main) is None
+    case["negotiable"] = ["unit_price", "ppm_commitment", "chargeback_eur_per_complaint"]
+    case["fixed_terms"]["payment_days"] = 60
+    assert advisers.question(case, {"unit_price": 14}) is None
+
+
+def test_question_only_names_departments_with_an_actual_allowed_lever():
+    case = leverage_case()
+    main = pricing.complete_offer(case, {"unit_price": 14, "payment_days": 60})
+    question = advisers.question(case, main)
+    assert "finance or credit control" in question
+    assert all(name not in question for name in ("engineering", "quality", "logistics", "management"))
+    case["buyer"]["must_haves"] = [{"field": "payment_days", "op": ">=", "value": 60}]
+    assert advisers.question(case, main) is None
+
+
+def test_value_discovery_can_probe_a_trade_the_old_valuation_did_not_favor(monkeypatch):
+    monkeypatch.setattr(settings, "SELLER_ADVISER_INQUIRY", True)
+    negotiator, thread, _ = opened()
+    thread.our_prices = [14]
+    thread.valuation["interest_rate"] = 0.01
+    thread.adviser_inquiry_sent = True
+    negotiator.observe_adviser_priorities(thread, "Finance needs earlier payment.")
+    main = pricing.complete_offer(negotiator.case, {"unit_price": 14, "payment_days": 60})
+    assert negotiator.need_alternatives(thread, main) == []
+    alternatives = negotiator.value_discovery_alternatives(thread, main)
+    assert alternatives
+    base = pricing.buyer_cost(negotiator.case, main, thread.standard, thread.valuation)
+    for sheet in alternatives:
+        assert sheet["payment_days"] < 60
+        assert pricing.acceptable_cost(negotiator.case, sheet, thread.standard, thread.valuation) is not None
+        assert pricing.buyer_cost(negotiator.case, sheet, thread.standard, thread.valuation) <= base
+        assert set(k for k in main if main[k] != sheet[k]) <= {"unit_price", "payment_days"}
+    thread.shown_alternatives.update(negotiator.alternative_keys([main, *alternatives]))
+    assert negotiator.value_discovery_alternatives(thread, main) == []
+
+
+def test_value_discovery_respects_must_haves_and_the_latest_quote_bound(monkeypatch):
+    monkeypatch.setattr(settings, "SELLER_ADVISER_INQUIRY", True)
+    negotiator, thread, _ = opened()
+    thread.our_prices = [14]
+    thread.requests = ["payment"]
+    thread.last_seen_reply = {"body": "Finance needs earlier payment."}
+    main = pricing.complete_offer(negotiator.case, {"unit_price": 14, "payment_days": 60})
+    thread.last_counter_terms = {"unit_price": 12, "payment_days": 30}
+    assert negotiator.value_discovery_alternatives(thread, main) == []
+    thread.last_counter_terms = dict(LEVERAGE_QUOTE)
+    negotiator.case["buyer"]["must_haves"] = [{"field": "payment_days", "op": ">=", "value": 60}]
+    assert negotiator.value_discovery_alternatives(thread, main) == []
+
+
+def test_value_discovery_finds_the_safe_root_when_relationship_cost_is_convex(monkeypatch):
+    monkeypatch.setattr(settings, "SELLER_ADVISER_INQUIRY", True)
+    negotiator, thread, _ = opened()
+    thread.requests = ["payment"]
+    thread.last_seen_reply = {"body": "Finance needs earlier payment."}
+    main = pricing.complete_offer(negotiator.case, {"unit_price": 14, "payment_days": 60})
+
+    def convex_cost(case, terms, standard=None, valuation=None):
+        return (terms["unit_price"] - 12) ** 2 + (terms["payment_days"] != 60)
+
+    monkeypatch.setattr(pricing, "buyer_cost", convex_cost)
+    alternatives = negotiator.value_discovery_alternatives(thread, main)
+    assert alternatives and all(12 < s["unit_price"] < 14 for s in alternatives)
+    assert all(convex_cost(negotiator.case, s) <= convex_cost(negotiator.case, main) for s in alternatives)
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+def test_engine_keeps_existing_need_alternatives_before_the_adviser_question(monkeypatch, enabled):
+    monkeypatch.setattr(settings, "SELLER_ADVISER_INQUIRY", enabled)
+    negotiator, thread, events = opened()
+    thread.our_prices = [14]
+    cheaper = pricing.complete_offer(negotiator.case, {"unit_price": 13.5, "payment_days": 30})
+    monkeypatch.setattr(negotiator, "need_alternatives", lambda t, main: [cheaper])
+
+    def unexpected_probe(*args):
+        raise AssertionError("A value probe was attempted before a delivered adviser question")
+
+    monkeypatch.setattr(negotiator, "value_discovery_alternatives", unexpected_probe)
+    message = negotiator.next_message("sup:S", {"sup:S": events})["message"]
+    assert message["term_sheets"][1] == {"terms": cheaper}
+
+
+def test_repeated_primary_can_still_replan_onto_a_legacy_need_trade(monkeypatch):
+    monkeypatch.setattr(settings, "SELLER_ADVISER_INQUIRY", True)
+    negotiator, thread, events = opened()
+    thread.our_prices = [14]
+    thread.adviser_inquiry_sent = True
+    thread.last_primary_sent = pricing.priced(thread.plan, 14)
+    cheaper = pricing.complete_offer(negotiator.case, {"unit_price": 13.5, "payment_days": 30})
+    monkeypatch.setattr(negotiator, "next_offer_price", lambda t, c: (14, 0))
+    monkeypatch.setattr(negotiator, "need_alternatives", lambda t, main: [cheaper])
+    monkeypatch.setattr(negotiator, "value_discovery_alternatives", lambda *args: [])
+    message = negotiator.next_message("sup:S", {"sup:S": events})["message"]
+    assert message["term_sheets"] == [{"terms": cheaper}]
+    assert thread.plan == cheaper
 
 
 @pytest.mark.parametrize("enabled", [False, True])

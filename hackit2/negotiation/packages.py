@@ -5,6 +5,7 @@ switching to a cheaper package the supplier quoted, and the guards against repea
 `self.price_at_plan` and `self.log_event`."""
 
 import json
+import math
 import re
 
 from .. import adviser_priorities, pricing, settings, telemetry
@@ -62,6 +63,96 @@ def alternative_key(field, value):
 
 
 class PackageDesk:
+    def value_discovery_alternatives(self, thread, main, blocked_fields=(), limit=None):
+        """Discover a stated need's value without assuming what the seller would pay for it.
+
+        Candidate terms stay in the case's allowed grid; code prices them on the upper boundary
+        of our current buyer cost, then verifies the rounded sheet costs no more and is acceptable.
+        This never changes our valuation or primary plan, and never trades away quality terms.
+        """
+        case = self.case
+        available = adviser_priorities.lever_options(case, main, thread.standard)
+        wanted = adviser_priorities.wanted_trades(thread.adviser_priorities)
+        wanted.update(adviser_priorities.stated_trades((thread.last_seen_reply or {}).get("body")))
+        seen_fields = {json.loads(key)[0] for key in thread.shown_alternatives}
+        base_cost = pricing.buyer_cost(case, main, thread.standard, thread.valuation)
+        if not math.isfinite(base_cost):
+            return []
+        found = []
+        for field, _ in sorted(wanted):
+            if field not in available or field in seen_fields or field in blocked_fields:
+                continue
+            candidates = []
+            for value in available[field]:
+                terms = {**main, field: value}
+
+                def cost_at(price, terms=terms):
+                    return pricing.buyer_cost(case, pricing.priced(terms, price), thread.standard, thread.valuation)
+
+                # Relationship costs can be convex rather than monotonic. First locate the minimum,
+                # then bisect its rising side just as price_ceiling does, never across the wrong root.
+                upper = max(main["unit_price"], 1.0) * 3
+                a, b = 0.01, upper
+                for _ in range(60):
+                    x, y = a + (b - a) / 3, b - (b - a) / 3
+                    if cost_at(x) <= cost_at(y):
+                        b = y
+                    else:
+                        a = x
+                low, high = (a + b) / 2, upper
+                if cost_at(low) > base_cost or cost_at(high) <= base_cost:
+                    continue
+                for _ in range(50):
+                    mid = (low + high) / 2
+                    if cost_at(mid) <= base_cost:
+                        low = mid
+                    else:
+                        high = mid
+                terms = pricing.exact_package(case, pricing.priced(terms, math.floor(low * 100) / 100), thread.standard)
+                if terms is None:
+                    continue
+                cost = pricing.acceptable_cost(case, terms, thread.standard, thread.valuation)
+                if cost is None or cost > base_cost:
+                    continue
+                # The last standing quote is the reference, not the higher opening quote. Our
+                # conversion is an estimate; a matching exact supplier sheet takes precedence.
+                worth = pricing.supplier_worth(case, thread.last_counter_terms, thread.valuation)
+                quoted = pricing.price_for_worth(case, terms, thread.valuation, worth)
+                exact_quotes = []
+                for sheet in (thread.last_seen_reply or {}).get("term_sheets") or []:
+                    package = pricing.exact_package(case, sheet.get("terms") or {}, thread.standard)
+                    if package and all(package.get(k) == v for k, v in terms.items() if k != "unit_price"):
+                        exact_quotes.append(package["unit_price"])
+                if exact_quotes:
+                    quoted = min(exact_quotes)
+                if (
+                    not settings.TRADE_PRICE_MIN_SHARE * quoted
+                    <= terms["unit_price"]
+                    < (settings.TRADE_PRICE_MAX_SHARE * quoted)
+                ):
+                    continue
+                candidates.append((cost, terms, field, value, quoted))
+            if candidates:
+                found.append(min(candidates, key=lambda row: (row[0], repr(row[3]))))
+        limit = settings.NEED_TRADES_MAX if limit is None else limit
+        chosen = sorted(found, key=lambda row: (row[0], row[2]))[:limit]
+        thread.need_trades += [
+            {"field": field, "value": value, "why": "the need you stated; please quote what it is worth to you"}
+            for _, _, field, value, _ in chosen
+        ]
+        for cost, terms, field, value, quoted in chosen:
+            self.log_event(
+                thread.supplier_id,
+                "value_probe",
+                field=field,
+                value=value,
+                terms=terms,
+                main_cost=round(base_cost, 4),
+                buyer_cost=round(cost, 4),
+                quoted=round(quoted, 4),
+            )
+        return [row[1] for row in chosen]
+
     def alternative_keys(self, sheets):
         """Keys of the one-term alternatives among `sheets` (all but the first), so they are never
         offered twice, including after a resumed session."""
@@ -238,8 +329,6 @@ class PackageDesk:
             wanted.add(("volume_per_year", "higher"))
         if "capacity_full" in traits:
             wanted.update({("lead_time_days", "higher"), ("contract_months", "higher")})
-        if settings.SELLER_ADVISER_INQUIRY:
-            wanted.update(adviser_priorities.wanted_trades(thread.adviser_priorities))
         if not wanted:
             thread.need_trades = []
             return []

@@ -203,7 +203,7 @@ class Negotiator(PackageDesk, ClosingDesk):
         counter = None
         for message in events:
             if message.get("from") == "buyer":
-                if adviser_priorities.QUESTION in (message.get("body") or ""):
+                if adviser_priorities.was_asked(message.get("body")):
                     thread.adviser_inquiry_sent = True
                 refs = message.get("refs") or []
                 self.cited.update(refs)
@@ -312,13 +312,13 @@ class Negotiator(PackageDesk, ClosingDesk):
             facts.append(f"we adjusted the package in response to {why}; explain the commercial terms clearly")
         if thread.mood in MOOD_HINTS:
             facts.append(MOOD_HINTS[thread.mood])
-        if settings.SELLER_ADVISER_INQUIRY:
+        if settings.SELLER_ADVISER_INQUIRY and not first:
             facts += adviser_priorities.writer_facts(thread.adviser_priorities)
         return facts
 
     def observe_adviser_priorities(self, thread, body):
         """Supplier text provides directions to evaluate, never prices, commitments or approvals."""
-        if not settings.SELLER_ADVISER_INQUIRY:
+        if not settings.SELLER_ADVISER_INQUIRY or not thread.our_prices or not thread.adviser_inquiry_sent:
             return
         previous = thread.adviser_priorities
         thread.adviser_priorities = adviser_priorities.update(previous, body)
@@ -415,10 +415,21 @@ class Negotiator(PackageDesk, ClosingDesk):
             self.log_event(supplier_id, "capped_at_alternative", ceiling=ceiling, price=price)
         arguments = self.choose_arguments(thread, argument_count, threads)
         sheets = [pricing.priced(thread.plan, price)]
+        probes = []
         if not thread.our_prices and thread.prep_trades:
             sheets += guarded(lambda: self.prepared_alternatives(thread, sheets[0]), [])[: settings.PREP_TRADES_SHOWN]
         elif thread.our_prices:
             sheets += guarded(lambda: self.need_alternatives(thread, sheets[0]), [])[: settings.NEED_TRADES_MAX]
+            slots = settings.NEED_TRADES_MAX - len(sheets) + 1
+            if settings.SELLER_ADVISER_INQUIRY and thread.adviser_inquiry_sent and slots > 0:
+                covered = {
+                    field
+                    for sheet in sheets[1:]
+                    for field in self.case["negotiable"]
+                    if field != "unit_price" and sheet.get(field) != sheets[0].get(field)
+                }
+                probes = guarded(lambda: self.value_discovery_alternatives(thread, sheets[0], covered, slots), [])
+                sheets += probes
         if not arguments and len(sheets) == 1 and counters_stalled(events):
             standing_sheets = latest(events).get("term_sheets") or []
             if any(
@@ -434,6 +445,12 @@ class Negotiator(PackageDesk, ClosingDesk):
             if len(sheets) == 1:
                 thread.phase = SETTLED
                 self.log_event(supplier_id, "no_progress", reason="unchanged price and terms")
+                return None
+            if sheets[1] in probes:
+                # A probe is not evidence the supplier selected that package. Never replan merely
+                # to force an extra sheet out after our primary price has stopped progressing.
+                thread.phase = SETTLED
+                self.log_event(supplier_id, "probe_not_adopted", reason="unchanged primary; no seller selection")
                 return None
             # never resend the old main sheet: move the thread onto the best new package, which costs us
             # less at the same estimated worth to the supplier
@@ -537,11 +554,14 @@ class Negotiator(PackageDesk, ClosingDesk):
             "families": families,
             "primary": dict(sheets[0]),
             "alternative_keys": self.alternative_keys(sheets),
-            "adviser_inquiry": bool(
-                settings.SELLER_ADVISER_INQUIRY
+            "adviser_inquiry": (
+                adviser_priorities.question(self.case, sheets[0], thread.standard)
+                if settings.SELLER_ADVISER_INQUIRY
+                and len(thread.our_prices) == 1
                 and not thread.adviser_inquiry_sent
                 and thread.phase == ACTIVE
                 and latest(events).get("status") not in FROZEN
+                else None
             ),
         }
         statements = mailer.binding_statements(self.case, thread, sheets)

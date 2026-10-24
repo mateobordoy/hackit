@@ -4,7 +4,7 @@ and factual and never mentions urgency, a budget, the absence of an alternative 
 from arena_kit.cost import closing_terms
 from arena_kit.play import latest
 
-from . import adviser_priorities, telemetry, transcript
+from . import telemetry, transcript
 
 SIGNATURE = ["Kind regards,", "Hollerau Pumpenwerke, Purchasing"]
 
@@ -85,7 +85,7 @@ def compose_email(
         lines.append("On this basis we propose one of the following packages:")
         lines += [f"- Option {chr(65 + i)}: {describe_sheet(case, sheet)}" for i, sheet in enumerate(sheets)]
     if ask_advisers:
-        lines += ["", adviser_priorities.QUESTION]
+        lines += ["", ask_advisers]
     elif first and not paragraph:
         lines += ["", OPEN_QUESTION]
     lines += ["", *SIGNATURE]

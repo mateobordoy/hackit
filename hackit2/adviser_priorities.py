@@ -7,6 +7,10 @@ sentence become hints; no hidden data, numerical valuation or permission is infe
 
 import re
 
+from . import pricing
+
+# The ending identifies a delivered v4 inquiry on crash resume without repeating it.
+VALUE_QUESTION = "If we can meet those needs, which price could you offer us in return?"
 QUESTION = (
     "If you are comfortable sharing, could you outline the priorities of your finance adviser "
     "and your management, engineering, quality and logistics colleagues for this agreement? "
@@ -50,6 +54,67 @@ LABELS = {
     "approval": "internal approval",
     "index_protection": "protection against material price changes",
 }
+
+LEVER_DIRECTIONS = {
+    "payment_days": "lower",
+    "volume_per_year": "higher",
+    "lead_time_days": "higher",
+    "contract_months": "higher",
+}
+LEVER_DEPARTMENTS = {
+    "payment_days": "finance or credit control",
+    "volume_per_year": "management or production planning",
+    "lead_time_days": "logistics or production planning",
+    "contract_months": "management or production planning",
+}
+
+
+def lever_options(case, main, standard=None):
+    """Only remaining allowed, must-have-valid changes that can meet a supplier need."""
+    available = {}
+    for field, direction in LEVER_DIRECTIONS.items():
+        if field not in case["negotiable"] or field in case.get("fixed_terms", {}):
+            continue
+        current = main.get(field)
+        if current is None:
+            continue
+        values = []
+        for value in case.get("term_options", {}).get(field) or []:
+            if direction == "lower" and value >= current or direction == "higher" and value <= current:
+                continue
+            if field == "volume_per_year" and value > case["buyer"]["need_per_year"]:
+                continue
+            if pricing.exact_package(case, {**main, field: value}, standard) is not None:
+                values.append(value)
+        if values:
+            available[field] = values
+    return available
+
+
+def question(case, main, standard=None):
+    departments = list(dict.fromkeys(LEVER_DEPARTMENTS[field] for field in lever_options(case, main, standard)))
+    if not departments:
+        return None
+    teams = ", ".join(departments)
+    return (
+        f"If you are comfortable sharing, what would your {teams} colleagues need from this agreement? "
+        + VALUE_QUESTION
+    )
+
+
+def was_asked(body):
+    return VALUE_QUESTION in (body or "") or QUESTION in (body or "")
+
+
+def stated_trades(body):
+    """Sales may relay a concrete need without naming its department; attribution is optional here."""
+    directions = set()
+    for clause in re.split(r"[.!?;\n]+", body or ""):
+        if NEGATED.search(clause):
+            continue
+        needs = [{"need": need} for need, pattern in NEEDS.items() if re.search(pattern, clause, re.I)]
+        directions.update(wanted_trades(needs))
+    return directions
 
 
 def department_clauses(text):
