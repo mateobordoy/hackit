@@ -139,11 +139,11 @@ async function poll(){
 function navOn(id){for(const b of ['scoresBtn','historyBtn'])$('#'+b).classList.toggle('on',b===id)}
 function select(c){VIEW='case';PINNED=null;PINRUN=null;navOn(null);SEL=c;S=fresh();replay=null;$('#main').dataset.case='';render();document.querySelectorAll('.case').forEach(x=>x.classList.toggle('sel',x.dataset.c===c))}
 function renderCases(d){const done=d.cases.filter(c=>c.status==='done'),sc=done.filter(c=>c.score!=null);
- $('#gstats').innerHTML=`<b>${d.cases.filter(c=>c.status==='live').length}</b> live · <b>${done.length}</b> done · mean score <b>${sc.length?(100*sc.reduce((a,c)=>a+c.score,0)/sc.length).toFixed(1):'–'}</b> · model spend <b>€${fmt((d.spend||{}).eur)}</b> in ${(d.spend||{}).calls||0} calls`;
+ $('#gstats').innerHTML=`<b>${d.cases.filter(c=>c.status==='live').length}</b> live · <b>${d.running||0}</b> running on the arena · <b>${done.length}</b> done · mean score <b>${sc.length?(100*sc.reduce((a,c)=>a+c.score,0)/sc.length).toFixed(1):'–'}</b> · model spend <b>€${fmt((d.spend||{}).eur)}</b> in ${(d.spend||{}).calls||0} calls`;
  $('#clock').textContent=new Date().toLocaleTimeString([], {hour12:false});
  $('#cases').innerHTML=d.cases.map(c=>`<div class="case ${VIEW==='case'&&!PINNED&&c.case===SEL?'sel':''}" data-c="${esc(c.case)}" onclick="select('${esc(c.case)}')">
   <div class="top"><b>${esc(c.case)}</b><span class="pill ${c.status}">${c.status==='done'?(c.score!=null?c.score.toFixed(3):'done'):c.status}</span></div>
-  <div class="t">${esc(c.title||'')}</div><div class="t">${esc(c.type||'')} · ${esc(c.goal||'')} · ${c.suppliers.length} supplier(s) · ${c.model_calls} LLM calls</div></div>`).join('')||'<div class="muted">no live files yet</div>'}
+  <div class="t">${esc(c.title||'')}</div><div class="t">${esc(c.type||'')} · ${esc(c.goal||'')} · ${c.suppliers.length} supplier(s) · ${c.model_calls} LLM calls${c.source?' · in '+esc(c.source):''}</div></div>`).join('')||'<div class="muted">no live files yet</div>'}
 function nowBanner(){
  const opens=Object.values(S.open).sort((a,b)=>a.call-b.call);const deep=opens[opens.length-1];
  const llm=Object.values(S.calls).filter(c=>c.status==='running');
@@ -253,7 +253,7 @@ function renderHistory(){const runs=(HIST&&HIST.runs)||[];
  const badge=(on,label,tip)=>on?`<span class="badge" title="${tip}">${label}</span>`:'';
  const untimed=runs.filter(r=>!r.at).length;
  const rows=shown.map(r=>`<tr class="click" onclick="openRun('${esc(r.session)}')"><td>${r.at?esc(when(r.at)):'<span class="muted">–</span>'}</td><td><b>${esc(r.case)}</b></td>
-  <td class="muted">${esc(r.title||'')}</td><td>${esc(r.set||'')}</td><td>${esc(r.source||'')}</td><td class="num">${r.score==null?'–':sc3(r.score)}</td>
+  <td class="muted">${esc(r.title||'')}</td><td>${esc(r.set||'')}</td><td>${esc(r.source||'')}</td><td class="num">${r.running?'<span class="pill live">running</span>':r.score==null?'–':sc3(r.score)}</td>
   <td>${r.deal===false?'<span class="bad">no deal</span>':r.deal?'deal':'<span class="muted">–</span>'}</td>
   <td>${badge(r.has_live,'live','full telemetry: module map, LLM calls, preparation')}${badge(r.has_journal,'journal','our decisions with their times')}${badge(r.has_arena,'arena','both sides\' e-mails, claim checks, the supplier\'s back office, the result')}</td>
   <td class="muted" style="font:11px ui-monospace,monospace">${esc(r.session)}</td></tr>`).join('');
@@ -265,7 +265,7 @@ function renderHistory(){const runs=(HIST&&HIST.runs)||[];
 function case_cmp(a,b){const k=c=>[c[0]==='P'?0:c[0]==='D'?1:2,parseInt(c.replace(/\D/g,''))||0];const x=k(a),y=k(b);return x[0]-y[0]||x[1]-y[1]}
 async function openRun(session){replay=null;
  let r;try{r=await (await fetch('/api/run?session='+encodeURIComponent(session))).json()}catch(err){console.error(err);return}
- if(!r.found){alert('This run is no longer recorded.');return}
+ if(!r.found){alert('No local record of this run yet: it is running on the arena in a harness that writes no live files. It appears here once its live file exists or after hackit2 pull.');return}
  VIEW='case';PINNED=session;PINRUN=r.run;navOn(null);SEL=r.run.case;S=fresh();
  for(const e of r.events)apply(e,false);S.next=r.events.length;S.runStart=r.events.length?r.events[0].at:null;
  document.querySelectorAll('.case').forEach(x=>x.classList.remove('sel'));$('#main').dataset.case='';render(true)}

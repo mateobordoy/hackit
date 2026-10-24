@@ -96,16 +96,38 @@ def case_summary(path):
     }
 
 
+def live_files():
+    """{case key: (path, source)} for every live file: this UI's own folder (key "P05") and the
+    `logs/live` folders of the sibling worktrees (key "P05@codex"), so a run started in any worktree
+    shows up while it runs."""
+    files, own = {}, CONFIG["live"]
+    here = source_name(Path.cwd().resolve())
+    if own.is_dir():
+        for path in own.glob("case_*.jsonl"):
+            files[path.stem.replace("case_", "")] = (path, here)
+    own_folder = own.resolve() if own.is_dir() else None
+    for root in CONFIG["roots"] or checkouts():
+        folder = root / "logs" / "live"
+        if not folder.is_dir() or folder.resolve() == own_folder:
+            continue
+        for path in folder.glob("case_*.jsonl"):
+            files[f"{path.stem.replace('case_', '')}@{source_name(root)}"] = (path, source_name(root))
+    return files
+
+
 def all_cases():
-    folder = CONFIG["live"]
-    if not folder.is_dir():
-        return []
-    cases = [case_summary(p) for p in folder.glob("case_*.jsonl")]
+    cases = [{**case_summary(path), "case": key, "source": source} for key, (path, source) in live_files().items()]
     return sorted(cases, key=lambda c: (c["status"] != "live", -(c["last"] or 0)))
 
 
+def running_sessions():
+    """The team's arena sessions that are still open, from the session list read once a minute
+    (`read_team_best`); {} offline."""
+    return {sid: s for sid, s in _team.get("sessions", {}).items() if s.get("status") not in ("ended", None)}
+
+
 def case_events(case, start):
-    path = CONFIG["live"] / f"case_{case}.jsonl"
+    path = (live_files().get(case) or (CONFIG["live"] / f"case_{case}.jsonl", None))[0]
     if not path.is_file():
         return {"events": [], "next": 0, "run_start": None}
     run = latest_run(read_events(path))
@@ -305,11 +327,14 @@ def read_team_best():
         me = client.me()
         best = {short_case(k): v for k, v in (me.get("best") or {}).items() if v is not None}
         _team.update(best=best, practice=me.get("practice") or {}, at=time.time(), error=None)
-        created = _team.setdefault("created", {})
+        created, sessions = _team.setdefault("created", {}), {}
         for case_set in ("practice", "sandbox"):
             for item in client.sessions(case_set) or []:
                 if item.get("session_id") and item.get("created_at"):
                     created[item["session_id"]] = item["created_at"]
+                if item.get("session_id"):
+                    sessions[item["session_id"]] = {**item, "set": case_set}
+        _team["sessions"] = sessions
     except Exception as exc:  # noqa: BLE001 - no network or key: the view shows the pulled sessions only
         _team["error"] = str(exc)[:160]
 
@@ -409,8 +434,23 @@ def run_summary(run):
 
 def history():
     """Every recorded run, newest first (runs without a known start time last)."""
-    runs = recorded_runs(CONFIG["roots"] or checkouts()).values()
-    ordered = sorted(runs, key=lambda run: (run["at"] is None, -(run["at"] or 0)))
+    runs = recorded_runs(CONFIG["roots"] or checkouts())
+    for session, item in running_sessions().items():  # open on the arena: running now, maybe in no local file
+        run = runs.get(session)
+        if run is None:
+            case = short_case(item.get("case_id"))
+            blank = dict.fromkeys(("title", "type", "goal", "score", "deal"))
+            run = runs[session] = {
+                "session": session,
+                "case": case,
+                **blank,
+                "live": None,
+                "journal": None,
+                "arena": None,
+            }
+            run.update(set=item.get("set"), at=item.get("created_at"), source="team")
+        run["running"] = True
+    ordered = sorted(runs.values(), key=lambda run: (not run.get("running"), run["at"] is None, -(run["at"] or 0)))
     return {"runs": [run_summary(run) for run in ordered], "offline": CONFIG["offline"], "now": time.time()}
 
 
@@ -574,7 +614,13 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         query = parse_qs(url.query)
         if url.path == "/api/cases":
-            payload = {"cases": all_cases(), "spend": spend(), "arena": CONFIG["arena"], "now": time.time()}
+            payload = {
+                "cases": all_cases(),
+                "running": len(running_sessions()),
+                "spend": spend(),
+                "arena": CONFIG["arena"],
+                "now": time.time(),
+            }
         elif url.path == "/api/events":
             case = (query.get("case") or [""])[0]
             start = int((query.get("from") or ["0"])[0] or 0)
