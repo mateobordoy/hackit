@@ -135,6 +135,9 @@ class FakeArena:
             raise self.answer
         return self.answer
 
+    def sessions(self, case_set):
+        return [{"session_id": f"{case_set}-1", "created_at": 1_000.0}, {"session_id": "no-time"}]
+
 
 def test_team_best_is_read_from_a_faked_arena_and_an_error_keeps_the_last_reading(monkeypatch):
     import arena_kit.client
@@ -144,6 +147,8 @@ def test_team_best_is_read_from_a_faked_arena_and_an_error_keeps_the_last_readin
     liveview.read_team_best()
     assert liveview._team["best"] == {"P11": 0.81} and liveview._team["practice"]["left"] == 270
     assert liveview._team["error"] is None and liveview._team["at"]
+    # the sessions' start times for the History view, practice and sandbox
+    assert liveview._team["created"] == {"practice-1": 1_000.0, "sandbox-1": 1_000.0}
     monkeypatch.setattr(FakeArena, "answer", RuntimeError("no network"))
     liveview.read_team_best()
     assert liveview._team["best"] == {"P11": 0.81} and "no network" in liveview._team["error"]

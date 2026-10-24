@@ -46,6 +46,7 @@ def pull_sessions(client, case_set):
             state["backoffice"] = client.backoffice(item["session_id"])
         except ArenaError:
             state["backoffice"] = None
+        state.setdefault("created_at", item.get("created_at"))  # the session state lacks it; History sorts by it
         path.write_text(json.dumps(state, indent=2, ensure_ascii=False))
         saved += 1
     print(f"{saved} new sessions in {folder}")
