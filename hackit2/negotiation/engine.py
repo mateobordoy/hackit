@@ -59,7 +59,6 @@ class Negotiator(PackageDesk, ClosingDesk):
         if not offer_id or quote.get("unit_price") is None:
             thread.phase = GONE
             return thread
-        thread.last_counter_terms = quote
         parts = case.get("parts") or []
         # a bundle has no should-cost: one component's cost is not the price unit of the case
         full_cost, own_plant = (None, False)
@@ -356,7 +355,6 @@ class Negotiator(PackageDesk, ClosingDesk):
             )
             thread.their_prices.append(self.price_at_plan(thread, counter_terms))
             self.tighten_full_cost(thread, counter_terms)
-            thread.last_counter_terms = counter_terms
             thread.last_seen_reply = last
             thread.requests = detect_requests(last.get("body"))
             self.absorb_traits(thread, last.get("body"))

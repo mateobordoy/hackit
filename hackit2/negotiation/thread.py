@@ -63,7 +63,6 @@ class SupplierThread:
         self.valuation = {}  # `pricing.build_valuation`
         self.plan = {}  # our planned terms; `unit_price` is a placeholder
         self.quote_at_plan = None  # its opening quote converted to our planned terms
-        self.last_counter_terms = {}  # its previous standing terms
         self.late_rounds = 0  # our messages the arena counted although they arrived too late
         self.opening_price = None
         self.sweet_spot = None  # relationship goals: the price with the lowest C

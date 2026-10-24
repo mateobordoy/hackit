@@ -1,4 +1,4 @@
-"""Live telemetry for the watch UI (`tools/live_view.py`).
+"""Live telemetry for the watch UI (`liveview.py`, `hackit2 gui`).
 
 While a case runs, everything worth seeing is appended as JSON lines to its live file
 (`logs/live/case_<id>.jsonl`): the engine's decisions, every model call with its role, prompt excerpt,

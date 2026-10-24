@@ -7,6 +7,8 @@ A profile is a dict: ownership, country, category, traits (sorted list), money_r
 
 import re
 
+from . import settings
+
 # One or two stock phrases per trait in the generated texts, widened to the word forms that occur
 # across the whole package.
 TRAIT_PATTERNS = {
@@ -37,7 +39,6 @@ TRAIT_PATTERNS = {
 # founder-run job shops 12-17 %); a cash need adds to it.
 MONEY_RATE = {"group": 0.05, "private": 0.07, "family": 0.075, "founder": 0.12}
 MONEY_RATE_DEFAULT = 0.07
-CASH_NEED_BONUS = 0.05
 SKONTO_RATE_CAP = 0.2
 WARM_OWNERSHIPS = (None, "family", "founder", "private")
 
@@ -94,7 +95,7 @@ def build_profile(pkg, supplier_id):
     ownership = intel[0]["owner_type"] if intel else None
     rate = MONEY_RATE.get(ownership, MONEY_RATE_DEFAULT)
     if "cash_need" in traits:
-        rate += CASH_NEED_BONUS
+        rate += settings.CASH_NEED_RATE_BONUS
     if vendor and vendor[0].get("skonto_pct") and vendor[0].get("skonto_days"):
         # a cash discount of s % for paying d days early is worth s / d * 360 % a year to it
         days_early = max(1, 30 - int(vendor[0]["skonto_days"]))
