@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "arena-data": {
+      "command": "uv",
+      "args": ["run", "arena", "mcp", "--data", "data/package"]
+    }
+  }
+}
