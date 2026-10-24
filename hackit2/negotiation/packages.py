@@ -157,6 +157,22 @@ class PackageDesk:
             price = max(price, floor or 0.0)
         if not pricing.must_haves_ok(case, pricing.priced(terms, price), thread.standard):
             return
+        without_price = max(thread.plan["unit_price"], floor or 0.0)
+        c_without = pricing.buyer_cost(
+            case, pricing.priced(thread.plan, without_price), thread.standard, thread.valuation
+        )
+        c_with = pricing.buyer_cost(case, pricing.priced(terms, price), thread.standard, thread.valuation)
+        margin = max(settings.CHEAPER_PACKAGE_MIN_EUR, settings.CHEAPER_PACKAGE_MIN_SHARE * c_without)
+        if not c_with < c_without - margin:
+            self.log_event(
+                thread.supplier_id,
+                "index_clause_skipped",
+                clause=clause,
+                c_with=round(c_with, 2),
+                c_without=round(c_without, 2),
+                price=round(price, 2),
+            )
+            return
         thread.plan = pricing.priced(terms, price)
         thread.opening_price = thread.plan["unit_price"]
         thread.sweet_spot = floor or thread.sweet_spot
