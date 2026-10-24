@@ -93,3 +93,5 @@ class SupplierThread:
         self.tactic = None  # steady | hold | argue
         self.tactic_log = []  # every tactic played, for the debrief
         self.matched_argument = 0  # 1-based expected argument its last e-mail made, 0 for none
+        self.adviser_inquiry_sent = False  # committed only after delivery; reconstructed on resume
+        self.adviser_priorities = []  # seller-stated needs, never verified facts or numeric authority

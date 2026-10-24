@@ -7,7 +7,7 @@ switching to a cheaper package the supplier quoted, and the guards against repea
 import json
 import re
 
-from .. import pricing, settings, telemetry
+from .. import adviser_priorities, pricing, settings, telemetry
 
 # Why we changed a term, as the e-mail writer may explain it
 NEED_REASONS = {
@@ -238,6 +238,8 @@ class PackageDesk:
             wanted.add(("volume_per_year", "higher"))
         if "capacity_full" in traits:
             wanted.update({("lead_time_days", "higher"), ("contract_months", "higher")})
+        if settings.SELLER_ADVISER_INQUIRY:
+            wanted.update(adviser_priorities.wanted_trades(thread.adviser_priorities))
         if not wanted:
             thread.need_trades = []
             return []

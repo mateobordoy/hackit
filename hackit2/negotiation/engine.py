@@ -18,7 +18,7 @@ import time
 
 from arena_kit.play import ENDED, latest, moves_left, standing
 
-from .. import mailer, model, pricing, reply_reader, settings, telemetry, transcript
+from .. import adviser_priorities, mailer, model, pricing, reply_reader, settings, telemetry, transcript
 from ..evidence import EvidenceBank, live_rival_offer
 from ..supplier_profile import build_profile, neutral_profile, traits_in
 from .closing import ClosingDesk
@@ -203,6 +203,8 @@ class Negotiator(PackageDesk, ClosingDesk):
         counter = None
         for message in events:
             if message.get("from") == "buyer":
+                if adviser_priorities.QUESTION in (message.get("body") or ""):
+                    thread.adviser_inquiry_sent = True
                 refs = message.get("refs") or []
                 self.cited.update(refs)
                 thread.used_topics.update(
@@ -216,6 +218,10 @@ class Negotiator(PackageDesk, ClosingDesk):
                     thread.our_prices.append(price)
                     thread.gap_history.append(max(0.0, (counter - price) / counter) if counter else 0.0)
             else:
+                if settings.SELLER_ADVISER_INQUIRY:
+                    thread.adviser_priorities = adviser_priorities.update(
+                        thread.adviser_priorities, message.get("body")
+                    )
                 sheets = message.get("term_sheets") or []
                 if sheets and sheets[0].get("terms", {}).get("unit_price") is not None:
                     counter = self.price_at_plan(thread, sheets[0]["terms"])
@@ -306,7 +312,20 @@ class Negotiator(PackageDesk, ClosingDesk):
             facts.append(f"we adjusted the package in response to {why}; explain the commercial terms clearly")
         if thread.mood in MOOD_HINTS:
             facts.append(MOOD_HINTS[thread.mood])
+        if settings.SELLER_ADVISER_INQUIRY:
+            facts += adviser_priorities.writer_facts(thread.adviser_priorities)
         return facts
+
+    def observe_adviser_priorities(self, thread, body):
+        """Supplier text provides directions to evaluate, never prices, commitments or approvals."""
+        if not settings.SELLER_ADVISER_INQUIRY:
+            return
+        previous = thread.adviser_priorities
+        thread.adviser_priorities = adviser_priorities.update(previous, body)
+        hinted = adviser_priorities.requests(thread.adviser_priorities)
+        thread.requests = [kind for kind in reply_reader.REQUEST_KINDS if kind in thread.requests or kind in hinted]
+        if previous != thread.adviser_priorities:
+            self.log_event(thread.supplier_id, "adviser_priorities", priorities=thread.adviser_priorities)
 
     def price_at_plan(self, thread, terms):
         """Its sheet converted to a price at our planned terms (same worth to the supplier)."""
@@ -362,6 +381,7 @@ class Negotiator(PackageDesk, ClosingDesk):
             self.absorb_traits(thread, last.get("body"))
             if self.briefs is not None and status not in FROZEN:
                 self.consult_reader(thread, last.get("body"))
+            self.observe_adviser_priorities(thread, last.get("body"))
             changed = (
                 thread.plan != plan_before or thread.valuation != valuation_before or thread.standard != standard_before
             )
@@ -517,6 +537,12 @@ class Negotiator(PackageDesk, ClosingDesk):
             "families": families,
             "primary": dict(sheets[0]),
             "alternative_keys": self.alternative_keys(sheets),
+            "adviser_inquiry": bool(
+                settings.SELLER_ADVISER_INQUIRY
+                and not thread.adviser_inquiry_sent
+                and thread.phase == ACTIVE
+                and latest(events).get("status") not in FROZEN
+            ),
         }
         statements = mailer.binding_statements(self.case, thread, sheets)
         attachments = self.forecast_file(thread)
@@ -535,13 +561,21 @@ class Negotiator(PackageDesk, ClosingDesk):
             latest(events).get("body"),
             facts,
             tone,
-            first,
+            first and not thread.in_flight["adviser_inquiry"],
             [thread.prep_notes, thread.reader_notes],
             history=transcript.build(self.case, events),
         )
         paragraph = model.write_paragraph(self.complete, prompt, self.write_budget_s, supplier_id=thread.supplier_id)
         body = mailer.compose_email(
-            self.case, sheets, arguments, statements, first=first, moved=moved, warm=warm, paragraph=paragraph
+            self.case,
+            sheets,
+            arguments,
+            statements,
+            first=first,
+            moved=moved,
+            warm=warm,
+            paragraph=paragraph,
+            ask_advisers=thread.in_flight["adviser_inquiry"],
         )
         self.log_event(
             thread.supplier_id,
@@ -585,6 +619,9 @@ class Negotiator(PackageDesk, ClosingDesk):
         thread = self.suppliers[supplier_id]
         flight = thread.in_flight
         if flight:
+            if flight.get("adviser_inquiry"):
+                thread.adviser_inquiry_sent = True
+                self.log_event(supplier_id, "adviser_inquiry_sent")
             self.cited.update(flight["cited"])
             thread.used_topics.update(flight.get("families", set()))
             thread.shown_alternatives.update(flight.get("alternative_keys", set()))

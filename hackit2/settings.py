@@ -5,6 +5,9 @@ on this module and the whole agent follows."""
 
 import os
 
+# Opt-in until hosted A/B evidence supports keeping this negotiation experiment enabled.
+SELLER_ADVISER_INQUIRY = os.environ.get("HACKIT_SELLER_ADVISERS", "").strip().lower() in ("1", "true", "yes")
+
 # --- Negotiation pace -------------------------------------------------------------------------
 
 # Share of the remaining gap to the supplier's counter that one of our sheets closes.
