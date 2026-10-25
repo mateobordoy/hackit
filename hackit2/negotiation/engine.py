@@ -33,6 +33,25 @@ MOOD_HINTS = {
 }
 
 
+def index_in_first_round(evidence, hedged):
+    """Make sure a verified index fall is among the first-round claims: without one the first counter
+    started higher (P11: 47.00 vs 46.50; P08: 5.57 vs 5.52). A hedged supplier rejects its raw-material
+    index ("covered at fixed prices") but accepts producer-price/energy series, so those go first."""
+    if hedged:
+        evidence = sorted(
+            evidence, key=lambda a: 0 if a["topic"] != "index" or any("idx:PPI" in r for r in a["refs"]) else 1
+        )
+    first = settings.CLAIMS_FIRST_ROUND
+    if any(a["topic"] == "index" for a in evidence[:first]):
+        return evidence
+    indices = [a for a in evidence if a["topic"] == "index"]
+    if not indices or first < 1:
+        return evidence
+    best = indices[0]
+    rest = [a for a in evidence if a is not best]
+    return rest[: first - 1] + [best] + rest[first - 1 :]
+
+
 class Negotiator(PackageDesk, ClosingDesk):
     def __init__(self, case, pkg=None, complete=None, briefs=None):
         """`briefs`: the preparation team's brief per supplier (`prep.briefing.prepare_briefs`); None
@@ -106,6 +125,7 @@ class Negotiator(PackageDesk, ClosingDesk):
         opening = quoted_price * share
         planned = guarded(lambda: pricing.cheapest_terms(case, thread.standard, thread.valuation, quote, opening))
         thread.plan = planned[0] if planned else pricing.complete_offer(case, pricing.priced(quote, opening))
+        guarded(lambda: self.ask_needed_lead_time(thread))
         thread.opening_price = thread.plan["unit_price"]
         thread.quote_at_plan = guarded(
             lambda: round(
@@ -133,6 +153,7 @@ class Negotiator(PackageDesk, ClosingDesk):
         thread.evidence = guarded(lambda: self.evidence_bank.for_supplier(supplier_id, quoted_price), [])
         order = brief.get("argument_order") or []  # arguments the lead expects this supplier to accept, first
         thread.evidence.sort(key=lambda a: order.index(a["topic"]) if a["topic"] in order else len(order))
+        thread.evidence = index_in_first_round(thread.evidence, "hedged" in thread.profile["traits"])
         self.log_event(
             supplier_id,
             "open_thread",
@@ -149,6 +170,27 @@ class Negotiator(PackageDesk, ClosingDesk):
             evidence=[a["sentence"] for a in thread.evidence],
         )
         return thread
+
+    def ask_needed_lead_time(self, thread):
+        """A plan that volunteers a lead time beyond our need pays the late-delivery charge for sure, on
+        the guess that the supplier would price a faster delivery up (P10: 56 days planned against a
+        42-day need, EUR 33.6k late cost). Ask for the needed lead time at the same price instead and
+        offer the slower one as a prepared, cost-neutral alternative, so the supplier can still pick it."""
+        case = self.case
+        need = case["buyer"].get("need_lead_time_days")
+        options = (case.get("term_options") or {}).get("lead_time_days") or []
+        planned = thread.plan.get("lead_time_days")
+        if "lead_time_days" not in case.get("negotiable", []) or need not in options or planned is None:
+            return
+        if planned <= need:
+            return
+        terms = {**thread.plan, "lead_time_days": need}
+        if not pricing.must_haves_ok(case, terms, thread.standard):
+            return
+        thread.plan = terms
+        trade = {"field": "lead_time_days", "value": planned, "why": "your capacity constraint"}
+        thread.prep_trades = [trade] + [t for t in thread.prep_trades if t.get("field") != "lead_time_days"]
+        self.log_event(thread.supplier_id, "lead_time_asked", need=need, instead_of=planned)
 
     def apply_brief(self, thread, brief):
         """The preparation team's brief: prepared trades wait for our opening sheet, the playbook for
@@ -440,7 +482,10 @@ class Negotiator(PackageDesk, ClosingDesk):
         last = thread.our_prices[-1]
         prices = thread.their_prices
         first_drop = (prices[-2] - counter) / prices[-2] if len(prices) > 1 else 0.0
-        share = settings.STEP_SHARE * (settings.HOLD_FACTOR if thread.tactic == "hold" else 1.0)
+        # "hold" slows us only from our third sheet on: almost every first counter reads firm, and a slower
+        # second step made the supplier run out of patience a round early (P08 0.538 vs 0.737, P18)
+        holding = thread.tactic == "hold" and len(thread.our_prices) >= 2
+        share = settings.STEP_SHARE * (settings.HOLD_FACTOR if holding else 1.0)
         price = next_step_price(
             last,
             counter,

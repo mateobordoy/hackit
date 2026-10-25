@@ -16,7 +16,10 @@ def next_step_price(last, counter, first_drop, first_round, share, patience, pat
         closing = 0.0
     remaining = max(0.0, patience - patience_used)
     new_gap = min(gap * (1 - closing), remaining / 2)
-    if patience < settings.PATIENCE_TOUCHY:  # a touchy supplier: small, steady gaps
+    # a touchy supplier: small, steady gaps - but not on our first concession, where jumping to within
+    # TOUCHY_MAX_GAP of its counter gave away most of the room in one step (P10: 29.95 -> 31.22 against
+    # 31.70, final offer next round; P02 T19: 351.23 -> 368.27). The patience budget above still holds.
+    if patience < settings.PATIENCE_TOUCHY and not first_round:
         new_gap = min(new_gap, settings.TOUCHY_MAX_GAP)
     price = counter * (1 - new_gap)
     price = max(price, last * (1 + settings.MIN_STEP))

@@ -61,6 +61,18 @@ def alternative_key(field, value):
     return json.dumps([field, value], sort_keys=True, separators=(",", ":"))
 
 
+def loosens_quality(plan, package):
+    """True when `package` commits to more defects or a lower chargeback than our plan. Such a package
+    is never adopted as the new plan: a round-1 price spread does not show whether the supplier's floor
+    differs, and the looser term then costs us for nothing (P11 run 2, -0.038). The close still compares
+    every standing sheet by its exact C."""
+    for field, worse in (("ppm_commitment", 1), ("chargeback_eur_per_complaint", -1)):
+        ours, theirs = plan.get(field), package.get(field)
+        if ours is not None and theirs is not None and (theirs - ours) * worse > 0:
+            return True
+    return False
+
+
 class PackageDesk:
     def alternative_keys(self, sheets):
         """Keys of the one-term alternatives among `sheets` (all but the first), so they are never
@@ -201,6 +213,8 @@ class PackageDesk:
             package = pricing.exact_package(case, sheet["terms"], thread.standard)
             if package is None or all(package.get(k) == v for k, v in thread.plan.items() if k != "unit_price"):
                 continue
+            if loosens_quality(thread.plan, package):
+                continue  # P11 run 2: ppm 300 -> 800 looked cheaper in round 1, the floor was the same
             c = pricing.acceptable_cost(case, package, thread.standard, thread.valuation)
             if c is not None and c < planned_cost - margin:
                 candidates.append((c, package))

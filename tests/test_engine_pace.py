@@ -149,9 +149,19 @@ def test_holding_reply_answers_a_known_request_without_a_term_sheet():
 def test_reader_tactic_slows_the_step_or_adds_an_argument():
     negotiator = Negotiator(leverage_case())
     thread = negotiator.open_thread("sup:S", supplier_quote("open", LEVERAGE_QUOTE))
-    thread.our_prices, thread.their_prices, thread.gap_history = [12.0], [15.88, 15.5], [0.2]
+    thread.our_prices, thread.their_prices, thread.gap_history = [12.0, 12.6], [15.88, 15.6, 15.5], [0.2, 0.15]
     steady_price, argument_count = negotiator.next_offer_price(thread, 15.5)
     thread.tactic = "hold"
     assert negotiator.next_offer_price(thread, 15.5)[0] < steady_price
     thread.tactic = "argue"
     assert negotiator.next_offer_price(thread, 15.5) == (steady_price, argument_count + 1)
+
+
+def test_hold_does_not_slow_our_second_sheet():
+    """Almost every first counter reads firm: a slower second step cost patience (P08, P18)."""
+    negotiator = Negotiator(leverage_case())
+    thread = negotiator.open_thread("sup:S", supplier_quote("open", LEVERAGE_QUOTE))
+    thread.our_prices, thread.their_prices, thread.gap_history = [12.0], [15.88, 15.5], [0.2]
+    steady_price, _ = negotiator.next_offer_price(thread, 15.5)
+    thread.tactic = "hold"
+    assert negotiator.next_offer_price(thread, 15.5)[0] == steady_price
