@@ -144,6 +144,28 @@ def test_real_package_database_discovery_never_queries_the_shared_connection(sql
     assert tools.query("SELECT count(*) AS n FROM notes")[0]["n"] == 1
 
 
+def test_schema_discovery_uses_its_own_connection_and_honors_deadline(sql_tools):
+    def shared_tables():
+        raise AssertionError("schema must not issue PRAGMA on the shared connection")
+
+    sql_tools.pkg.tables = shared_tables
+    assert sql_tools.schema() == {"notes": {"columns": ["id TEXT", "body TEXT"], "rows": 1}}
+    sql_tools.deadline = time.monotonic() - 1
+    with pytest.raises(TimeoutError):
+        sql_tools.schema()
+
+
+def test_synthesis_has_one_complete_json_contract_including_the_playbook():
+    calls = []
+    alpha.prepare(leverage_case(), SundayReleasePackage(), discovery_model(calls), budget_s=5)
+    prompt = next(system for system, _ in calls if "lead researcher" in system)
+    contract = json.loads(prompt.split("COMPLETE JSON EXAMPLE:\n", 1)[1])
+    assert {"trades", "argument_order", "tone", "notes", "reason", "arguments", "answers", "raise", "wants"} == set(
+        contract
+    )
+    assert contract["answers"][0]["to"] == 1
+
+
 def test_discovery_rejects_paths_deduplicates_lookups_and_enforces_budget(monkeypatch):
     tools = ResearchTools(SundayReleasePackage(), time.monotonic() + 2, "sup:S")
     assert "error" in tools.call({"tool": "document", "args": {"ref": "/tmp/.env"}})

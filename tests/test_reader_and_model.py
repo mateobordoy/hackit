@@ -9,6 +9,24 @@ from conftest import WILD_ANSWERS, failing_model, leverage_case, scripted_model
 from hackit2 import model, reply_reader
 
 
+def test_expired_helper_is_marked_unused_even_if_its_answer_arrives_later(tmp_path):
+    from concurrent.futures import Future
+
+    from hackit2 import telemetry
+
+    future = Future()
+    future.telemetry_call = 99
+    path = tmp_path / "deadline.jsonl"
+    token = telemetry.bind(path)
+    try:
+        assert model.collect_json(future, 0) is None
+        future.set_result('{"tone":"warm"}')
+    finally:
+        telemetry.unbind(token)
+    events = [json.loads(line) for line in path.read_text().splitlines()]
+    assert [(e["event"], e["call"], e["status"]) for e in events] == [("model_outcome", 99, "timeout")]
+
+
 def test_reader_only_returns_values_from_its_lists():
     reading = reply_reader.read_reply(
         scripted_model, leverage_case(), "Which volume can you commit to?", [], [15.88], ["Wages rose."]

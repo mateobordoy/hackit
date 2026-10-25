@@ -288,6 +288,8 @@ def collect_json(future, timeout=None):
     timeout = settings.MODEL_TIMEOUT_S if timeout is None else timeout
     if future is None or timeout <= 0:
         _count("helper.unavailable")
+        if future is not None:
+            _outcome(future, "timeout")
         return None
     _count("helper.attempted")
     try:

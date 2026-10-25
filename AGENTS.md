@@ -22,6 +22,10 @@ messages and docs are in **English**.
 
 ## 2. Where we are now (update this section when the state changes)
 
+- Preparation now defaults to **eight experts + Scout**, followed by one synthesis lead.
+  Scout uses bounded read-only package tools. `--research-mode baseline` retains the original
+  four-expert pipeline. The numerical negotiation and acceptance policies remain unchanged.
+  See `docs/analysis/alpha-main-validation.md` for promotion evidence and limitations.
 - Rule of the design: **code owns every number** (prices, terms, accept/walk); models only advise
   (clamped to fixed lists) and write one paragraph per e-mail.
 - Practice results (10 hosted cases): run 1 **76.5**, run 2 **77.6**; best reference run with the same
@@ -38,10 +42,12 @@ messages and docs are in **English**.
   T18 index-clause guard (P02 0.488 vs 0.735, reverted).
 - The Live Final persists preparation briefs in `logs/briefs/final-<host>-<date>/` so a restart does
   not prepare again (`hackit2 run --set final`).
-- Done today: hackit2 v2 code base, 73 unit tests green, live telemetry + watch UI (`--gui`,
-  `--no-gui`, `hackit2 gui`), side-by-side run comparison.
-- Team quota: practice sessions are scarce (limit 400 / rolling 24 h, ~270 left at 23:00 Sat). Model
-  budget: EUR 30 hard cap, ~EUR 13.5 spent; shared spend file (see section 5).
+- Current validation: the integrated nine-agent UI build passed three hosted cases (P08/P10/P11),
+  all deals and all three research strategies applied. Mean 70.21 matches their historical main
+  reference; this is not evidence of a score improvement. Tests and post-run fixes are in the report.
+- Team quota: practice sessions remain scarce (limit 400 / rolling 24 h). Burak authorized a model
+  run cap of 100, supplied explicitly through `HACKIT_BUDGET_EUR=100`, preserving the shared spend
+  ledger. Never silently override a smaller explicit configuration. See section 5.
 
 The live task board is **`../agents-hub/BOARD.md`** (generated). Read it before you start.
 
@@ -192,7 +198,8 @@ uv run hackit2 pull --set practice                  # finished sessions into log
 | `hackit2/pricing.py` | C, supplier worth, term planning, price ceiling, relationship sweet spot |
 | `hackit2/evidence.py` | citable arguments in the exact form the arena verifies |
 | `hackit2/supplier_profile.py` | ownership, traits, cost of money from the data package |
-| `hackit2/prep/briefing.py`, `prep/sparring.py` | preparation team (4 specialists, lead, sparring) before the first e-mail |
+| `hackit2/prep/alpha.py`, `prep/alpha_roles.py`, `prep/research_tools.py` | default eight experts, Scout discovery and synthesis before the first e-mail |
+| `hackit2/prep/briefing.py`, `prep/sparring.py` | strategy clamps and selectable original four-specialist preparation |
 | `hackit2/reply_reader.py`, `mailer.py`, `transcript.py` | reading replies, writing e-mails, conversation evidence |
 | `hackit2/model.py` | LLM transports (Anthropic with spend cap, OpenAI-compatible), timeouts, the text guard |
 | `hackit2/lessons.py`, `lessons.jsonl` | cross-case memory (committed, the final starts with it) |

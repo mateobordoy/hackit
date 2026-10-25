@@ -70,7 +70,31 @@ class ResearchTools:
             connection.close()
 
     def schema(self):
-        return self.pkg.tables() if self.pkg is not None and hasattr(self.pkg, "tables") else {}
+        """Inspect schema without PRAGMA calls on the package's shared connection."""
+        if time.monotonic() >= self.deadline:
+            raise TimeoutError("research deadline reached")
+        if not self.db_path:
+            return self.pkg.tables() if self.pkg is not None and hasattr(self.pkg, "tables") else {}
+        until = min(self.deadline, time.monotonic() + settings.ALPHA_SQL_TIMEOUT_S)
+        connection = sqlite3.connect(f"file:{self.db_path}?mode=ro", uri=True)
+        try:
+            connection.execute("PRAGMA query_only = ON")
+            connection.set_progress_handler(lambda: int(time.monotonic() >= until), 500)
+            names = [
+                r[0] for r in connection.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+            ]
+            result = {}
+            for name in names:
+                if time.monotonic() >= until:
+                    raise TimeoutError("schema lookup deadline reached")
+                quoted = '"' + name.replace('"', '""') + '"'
+                result[name] = {
+                    "columns": [f"{c[1]} {c[2]}".strip() for c in connection.execute(f"PRAGMA table_info({quoted})")],
+                    "rows": connection.execute(f"SELECT count(*) FROM {quoted}").fetchone()[0],
+                }
+            return result
+        finally:
+            connection.close()
 
     def document(self, ref, offset=0):
         if not isinstance(ref, str) or ":" not in ref or self.pkg is None or not self.pkg.lookup(ref):
