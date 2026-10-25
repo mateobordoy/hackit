@@ -264,7 +264,7 @@ This is a preparation playbook, never a transcript of an actual seller conversat
         leaders[sid] = model.start(complete, system, user, "lead:synthesis", sid)
     briefs = {}
     for sid, future in leaders.items():
-        raw = model.collect_json(future, min(settings.PREP_STAGE_S, max(0, end - time.monotonic())))
+        raw = model.collect_json(future, max(0, end - time.monotonic()))
         if raw is None:
             continue
         ctx = contexts[sid]

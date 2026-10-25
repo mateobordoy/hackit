@@ -105,3 +105,8 @@ score, deals and late messages across repeated runs. More agents alone are not e
 - A real-model P02 research-only trial was attempted. The existing shared hard model budget rejected
   all calls: EUR 30.11 recorded against a EUR 30 cap. No cap was changed and no arena session opened.
   Therefore live research latency, finding quality and negotiation score gain remain unmeasured.
+
+The user subsequently authorized a budget of 100 and ten hosted practice cases. That batch,
+its preparation reliability failures, the fixes and two successful real-model research-only
+checks are recorded in [the practice report](alpha-practice-20261025.md). The follow-up fixes
+remove shared-connection database discovery and let synthesis use the remaining overall budget.

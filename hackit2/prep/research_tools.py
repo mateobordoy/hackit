@@ -9,6 +9,7 @@ import json
 import sqlite3
 import threading
 import time
+from pathlib import Path
 
 from .. import settings, telemetry
 
@@ -19,8 +20,15 @@ class ResearchTools:
         self.sources, self.calls, self._cache = {}, [], {}
         self._lock = threading.Lock()
         self.db_path = None
-        if pkg is not None and getattr(pkg, "db", None) is not None:
-            self.db_path = pkg.db.execute("PRAGMA database_list").fetchone()[2]
+        root = getattr(pkg, "root", None)
+        if root is not None:
+            # Never run PRAGMA on the shared connection while other cases query it.
+            # Match DataPackage's deterministic database selection using its public root.
+            databases = sorted(Path(root).rglob("*.sqlite")) + sorted(Path(root).rglob("*.db"))
+            self.db_path = str(databases[0]) if databases else None
+        elif pkg is not None and getattr(pkg, "db", None) is not None:
+            row = pkg.db.execute("PRAGMA database_list").fetchone()
+            self.db_path = row[2] if row else None
 
     def source(self, label, value, **provenance):
         """Register exact retrieved data; a source ID proves retrieval, not an analyst's inference."""

@@ -89,6 +89,18 @@ def test_unknown_citations_and_unstructured_findings_cannot_become_evidence():
     assert report["evidence"][0]["confidence"] == "low"
 
 
+def test_synthesis_can_use_the_remaining_budget_instead_of_the_legacy_stage_cap(monkeypatch):
+    monkeypatch.setattr(settings, "PREP_STAGE_S", 0.005)
+
+    def complete(system, user):
+        if "lead researcher" in system:
+            time.sleep(0.03)
+            return '{"tone":"warm"}'
+        return "{}"
+
+    assert alpha.prepare(leverage_case(), None, complete, budget_s=1)["sup:S"]["tone"] == "warm"
+
+
 @pytest.fixture
 def sql_tools(tmp_path):
     path = tmp_path / "research.sqlite"
@@ -118,6 +130,18 @@ def test_sql_is_read_only_and_expensive_queries_are_interrupted(sql_tools, monke
         sql_tools.query("WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c) SELECT sum(x) FROM c")
     assert time.monotonic() - started < 0.5
     assert sql_tools.query("SELECT count(*) AS n FROM notes")[0]["n"] == 1
+
+
+def test_real_package_database_discovery_never_queries_the_shared_connection(sql_tools):
+    from pathlib import Path
+
+    class BusyConnection:
+        def execute(self, *args):
+            raise AssertionError("shared database connection must not be queried for discovery")
+
+    package = type("Package", (), {"root": Path(sql_tools.db_path).parent, "db": BusyConnection()})()
+    tools = ResearchTools(package, time.monotonic() + 1, "sup:S")
+    assert tools.query("SELECT count(*) AS n FROM notes")[0]["n"] == 1
 
 
 def test_discovery_rejects_paths_deduplicates_lookups_and_enforces_budget(monkeypatch):
