@@ -8,6 +8,8 @@ buyer practice --repeat 2          every hosted practice case N times (practice 
 buyer sandbox                      the free sandbox cases D01, D02
 buyer final                        the Live Final: waits for each wave, plays it, never stops early
 buyer report                       scores from logs/runs next to the ProcureCabana reference
+buyer gui [--offline]              the watch UI on http://127.0.0.1:8790 (any play command: --gui)
+--no-live                          write no live files for the UI (play, practice, sandbox, final)
 """
 
 import argparse
@@ -79,8 +81,26 @@ def main(argv=None):
     f.add_argument("--parallel", type=int, default=10)
     r = sub.add_parser("report")
     r.add_argument("--set", default="practice")
+    g = sub.add_parser("gui")
+    g.add_argument("--port", type=int, default=8790)
+    g.add_argument("--offline", action="store_true", help="never contact the arena")
+    for x in (p, pr, sb, f):
+        x.add_argument("--gui", action="store_true", help="serve the watch UI next to the agent")
+        x.add_argument("--no-live", action="store_true", help="write no live files for the watch UI")
     args = ap.parse_args(argv)
     setup_logging(args.verbose)
+    if getattr(args, "no_live", False):
+        os.environ["BUYER_LIVE"] = "0"
+    if args.cmd == "gui":
+        from .liveview import serve
+
+        serve(args.port, offline=args.offline)
+        return
+    if getattr(args, "gui", False):
+        from .liveview import serve
+
+        # the Live Final: no arena call from the UI at all
+        serve(8790, offline=args.cmd == "final", background=True)
 
     if args.cmd == "report":
         from .records import report

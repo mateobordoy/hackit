@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from arena_kit.client import ArenaError
 from arena_kit.play import ENDED, RemoteTable, fetch_documents, latest, moves_left, quota_used_up
 
-from . import config, llm, memory, records, writer
+from . import config, llm, memory, records, telemetry, writer
 from .datapkg import load_package
 from .policy import Negotiator
 from .thread import Thread
@@ -63,6 +63,8 @@ def play_case(table, case_id, pkg=None, deadline=None):
     for events in threads.values():
         for m in events:
             fetch(table, m)
+    telemetry.bind(case_id)
+    telemetry.case_start(case, getattr(table, "session_id", None), threads)
     neg = Negotiator(case, pkg)
     neg.prefetch(threads)  # the reader agent reads every supplier at once
     for sid, events in threads.items():
@@ -121,6 +123,7 @@ def play_case(table, case_id, pkg=None, deadline=None):
                 continue
             message = move["message"]
         t0 = time.monotonic()
+        telemetry.message_out(sid, message)
         try:
             reply = table.send(sid, message)
             send_s = max(send_s, time.monotonic() - t0)
@@ -140,9 +143,11 @@ def play_case(table, case_id, pkg=None, deadline=None):
             log.info("%s %s: %s", case_id, sid, e.detail)
             neg.rollback(sid)
             reply = table.missed(sid, e)
+            telemetry.emit("timeout", supplier=sid, detail=str(e.detail))
             if "result" in reply:
                 result = reply["result"]
                 break
+            telemetry.message_in(sid, reply)
             threads[sid].append(reply)
             replied[sid] = time.monotonic()
             continue
@@ -151,6 +156,7 @@ def play_case(table, case_id, pkg=None, deadline=None):
             result = reply["result"]
             break
         fetch(table, reply)
+        telemetry.message_in(sid, reply)
         threads[sid] += [{**message, "from": "buyer"}, reply]
         replied[sid] = time.monotonic()
     if result is None:
@@ -158,6 +164,8 @@ def play_case(table, case_id, pkg=None, deadline=None):
             for m in events[-2:]:
                 fetch(table, m)
         result = close(table, case_id, neg, threads)
+    telemetry.emit("end", result={k: (result or {}).get(k) for k in records.KEEP})
+    telemetry.unbind()
     records.save(table.session_id, case, neg, result)
     try:
         memory.record(case, neg, result)  # where these suppliers stopped: the next case of its type learns
@@ -194,6 +202,7 @@ def close(table, case_id, neg, threads):
     for _ in range(config.CLOSE_TRIES):
         decision = neg.close(threads)
         sid = decision["supplier_id"]
+        telemetry.message_out(sid, decision["message"])
         try:
             return table.close(sid, decision["message"])
         except ArenaError as e:

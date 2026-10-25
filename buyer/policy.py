@@ -20,7 +20,7 @@ import time
 from arena_kit.docs import quote_terms, standard_terms
 from arena_kit.play import ENDED, latest, moves_left, standing
 
-from . import config, llm, memory, planner, reader, supplier, writer
+from . import config, llm, memory, planner, reader, supplier, telemetry, writer
 from . import economics as eco
 from .belief import AGREED, FINAL, OPEN, Belief
 from .datapkg import CaseData
@@ -99,6 +99,7 @@ class Negotiator:
         self.notes = []
         self.started = time.time()
         self.prefetched = {}
+        self.reader_text = {}  # what the reader agent was given, for the watch UI
 
     # -- setup -------------------------------------------------------------------------------
     def prefetch(self, threads):
@@ -109,9 +110,20 @@ class Negotiator:
             first = latest(events).get("body") or ""
             text = "\n\n---\n\n".join([*(x for x in texts if x), f"ITS QUOTE E-MAIL:\n{first}"])
             self.prefetched[sid] = reader.submit("our data about the supplier and its quote e-mail", text)
+            self.reader_text[sid] = text
 
     def absorb(self, t, found, where):
         """Labels the reader agent found, added to what the phrase lists found. Returns the new signals."""
+        if reader.enabled():
+            telemetry.emit(
+                "llm",
+                supplier=t.sid,
+                role="reader",
+                where=where,
+                prompt=telemetry.clip(self.reader_text.get(t.sid)),
+                answer=found,
+                outcome="ok" if found else "none",
+            )
         if not found:
             return []
         if where == "setup":  # an opening quote has no stance yet
@@ -312,6 +324,7 @@ class Negotiator:
         standing_terms = sheets[0]["terms"]
         status = last.get("status")
         reading = reader.submit("supplier e-mail in the negotiation", last.get("body")) if reader_s > 0 else None
+        self.reader_text[t.sid] = last.get("body")
         t0 = time.monotonic()
         terms_before = dict(t.terms)
         self.learn_rate(t, sheets)
@@ -855,7 +868,18 @@ class Negotiator:
         if llm.enabled() and writer_s >= config.LLM_MIN_S:
             notes = [f"they asked about: {', '.join(t.asks)}"] if t.asks else []
             notes.append("what our proposal contains: " + "; ".join(self.contents(t, sheets, claims, first)))
-            para = llm.paragraph(llm.prompt(case, t.prof, latest(events).get("body"), notes, t.reader), writer_s)
+            prompt = llm.prompt(case, t.prof, latest(events).get("body"), notes, t.reader)
+            t0 = time.monotonic()
+            para = llm.paragraph(prompt, writer_s)
+            telemetry.emit(
+                "llm",
+                supplier=t.sid,
+                role="writer",
+                prompt=telemetry.clip(prompt),
+                answer=para,
+                seconds=round(time.monotonic() - t0, 2),
+                outcome="ok" if para else "none",
+            )
         if mirror:
             body = writer.accept_last_sheet_email(case, sheets[0])
         else:
@@ -968,4 +992,5 @@ class Negotiator:
     def note(self, sid, what, **kw):
         entry = {"t": round(time.time() - self.started, 1), "supplier": sid, "what": what, **kw}
         self.notes.append(entry)
+        telemetry.emit("note", **entry)
         log.info("%s %s %s", self.case.get("case_id"), sid, {k: v for k, v in entry.items() if k not in ("std",)})
