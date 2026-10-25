@@ -135,7 +135,166 @@ def case_events(case, start):
         return {"events": [], "next": 0, "run_start": None}
     run = latest_run(read_events(path))
     run_start = run[0].get("at") if run else None
-    return {"events": run[start:], "next": len(run), "run_start": run_start}
+    return {"events": flow_events(run)[start:], "next": len(run), "run_start": run_start}
+
+
+FLOW_MODULES = (
+    "prep.briefing",
+    "negotiation.engine",
+    "negotiation.closing",
+    "negotiation.packages",
+    "negotiation.concession",
+    "reply_reader",
+    "mailer",
+    "evidence",
+    "pricing",
+    "lessons",
+    "session",
+)
+
+
+def flow_module(label):
+    """Map an actual recorded function to its diagram module; never invent a caller."""
+    return next((name for name in FLOW_MODULES if label == name or str(label).startswith(name + ".")), None)
+
+
+def flow_events(events):
+    """Attach inspectable exchanges to copies of recorded events. Trace values are summaries,
+    model prompts are logged excerpts, and data context is the recorded analyst input. This reader
+    never executes a query, calls a model, or uses seller back-office notes as buyer context."""
+    calls, models, output = {}, {}, []
+    roles = {"writer": "negotiation.engine", "reply_reader": "reply_reader", "debrief": "lessons"}
+    for index, original in enumerate(events):
+        event = dict(original)
+        transfers = []
+        kind, phase = event.get("event"), event.get("phase")
+        key = (event.get("thread"), event.get("call"))
+
+        def record(
+            source,
+            target,
+            label,
+            request,
+            response=None,
+            *,
+            complete=False,
+            summary=False,
+            supplier=None,
+            event=event,
+            index=index,
+        ):
+            return {
+                "id": f"{event.get('event')}:{index}:{event.get('call', '')}",
+                "from": source,
+                "to": target,
+                "label": label,
+                "at": event.get("at"),
+                "supplier": supplier or event.get("supplier"),
+                "request": request,
+                "response": response,
+                "complete": complete,
+                "summary": summary,
+            }
+
+        if kind == "trace":
+            if phase == "start":
+                calls[key] = event
+            start = event if phase == "start" else calls.get(key, {})
+            source, target = flow_module(start.get("parent")), flow_module(event.get("fn"))
+            args = start.get("args") or {}
+            result = {"error": event.get("error")} if phase == "error" else event.get("result")
+            if source and target and source != target:
+                row = record(
+                    source,
+                    target,
+                    event.get("fn"),
+                    args if start else None,
+                    result,
+                    complete=phase != "start",
+                    summary=True,
+                    supplier=args.get("supplier"),
+                )
+                row["id"] = f"trace:{key}"
+                transfers.append(row)
+            if event.get("fn") == "prep.briefing.data_slice":
+                row = record(
+                    "prep.briefing",
+                    "data",
+                    "Supplier data lookup · recorded summary",
+                    {"supplier": args.get("arg2"), "analyst": args.get("arg3")},
+                    result,
+                    complete=phase != "start",
+                    summary=True,
+                    supplier=args.get("arg2"),
+                )
+                row["id"] = f"data:{key}"
+                transfers.append(row)
+        elif kind == "model_call":
+            role = event.get("role") or ""
+            source = roles.get(role, "prep.briefing")
+            row = record(source, "model", role, {"system": event.get("system"), "user": event.get("user")})
+            row["id"] = f"model:{key}"
+            models[event.get("call")] = row
+            transfers.append(dict(row))
+            if role.startswith("specialist:") and event.get("user"):
+                transfers.append(
+                    record(
+                        "data",
+                        "prep.briefing",
+                        "Data supplied to " + role,
+                        {"recorded_analyst_input": event["user"]},
+                        complete=True,
+                    )
+                )
+        elif kind == "model_done" and event.get("call") in models:
+            row = dict(models[event["call"]])
+            row.update(
+                at=event.get("at"),
+                complete=True,
+                response={k: event.get(k) for k in ("status", "answer", "error", "seconds")},
+            )
+            models[event["call"]] = row
+            transfers.append(row)
+        elif kind == "model_outcome" and event.get("call") in models:
+            row = {**models[event["call"]], "at": event.get("at"), "outcome": event.get("status")}
+            models[event["call"]] = row
+            transfers.append(row)
+        elif kind in ("message_in", "message_out"):
+            source, target = ("arena", "session") if kind == "message_in" else ("session", "arena")
+            payload = {k: v for k, v in event.items() if k not in ("event", "thread")}
+            transfers.append(
+                record(
+                    source, target, "Seller email" if kind == "message_in" else "Buyer message", payload, complete=True
+                )
+            )
+        elif kind == "prep_brief":
+            transfers.append(
+                record(
+                    "prep.briefing",
+                    "session",
+                    "Prepared brief" + (" · cached" if event.get("frozen") else ""),
+                    event.get("brief"),
+                    complete=True,
+                )
+            )
+        elif kind == "prep_stage" and event.get("lessons"):
+            transfers.append(
+                record("lessons", "prep.briefing", "Earlier negotiation outcomes", event["lessons"], complete=True)
+            )
+        elif kind == "thread_state":
+            transfers.append(
+                record(
+                    "negotiation.engine",
+                    "session",
+                    "Recorded supplier state",
+                    {k: v for k, v in event.items() if k not in ("event", "thread")},
+                    complete=True,
+                )
+            )
+        if transfers:
+            event["transfers"] = transfers
+        output.append(event)
+    return output
 
 
 def spend():
@@ -609,7 +768,7 @@ def run_events(session):
     if not any(e.get("event") == "session" for e in events):
         events.insert(1, {"event": "session", "at": first, "session_id": session, "suppliers": suppliers})
     events.sort(key=lambda e: e.get("at") or first)
-    return {"found": True, "run": run_summary(run), "events": events}
+    return {"found": True, "run": run_summary(run), "events": flow_events(events)}
 
 
 class Handler(BaseHTTPRequestHandler):

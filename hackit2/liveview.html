@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>hackit2 Live</title><link rel="icon" href="data:,">
+<title>Hollerau · Negotiation control room</title><link rel="icon" href="data:,">
 <style>
 :root{--bg:#0b0d12;--panel:#12151d;--panel2:#181c26;--line:#262b38;--text:#e8eaf0;--muted:#8b93a7;
 --us:#5b8cff;--them:#ff9a4d;--ok:#3ddc97;--warn:#ffcc4d;--bad:#ff5d6c;--llm:#b48cff;--code:#4dd2ff;--glow:0 0 0 2px rgba(91,140,255,.35),0 0 24px rgba(91,140,255,.45)}
@@ -59,30 +59,70 @@ tr.click{cursor:pointer}tr.click:hover{background:#161a24}.detail pre{white-spac
 .tile .l{color:var(--muted);font-size:12px}.num{text-align:right;font-variant-numeric:tabular-nums}td .sub{color:var(--muted);font-size:11px}
 select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:12px}
 .runlink{cursor:pointer}.runlink:hover b{color:var(--us);text-decoration:underline}
+
+/* Clear system boundaries, generous spacing and an evidence-first connection inspector. */
+:root{--bg:#10151f;--panel:#18202e;--panel2:#202a3a;--line:#354157;--text:#f1f5fc;--muted:#adbad0}
+html,body{font-size:14px}header{padding:15px 22px;gap:14px;min-height:64px;background:#151d2b;flex-wrap:wrap}
+header h1{font-size:17px}.brand-sub{font-weight:400;color:var(--muted);font-size:13px}.layout{height:calc(100vh - 66px);grid-template-columns:260px minmax(0,1fr)}
+aside{background:#131b28;padding:14px}main{padding:22px 26px 50px;scroll-behavior:smooth}.card{padding:20px;margin-bottom:20px;border-radius:16px}
+.card h2{color:var(--text);font-size:14px;letter-spacing:.25px;text-transform:none}.case{padding:13px;margin-bottom:12px}.case .top{margin-bottom:5px}.case .t{line-height:1.7}
+.btn,.tab{padding:7px 12px;min-height:34px}.btn:focus-visible,.tab:focus-visible,select:focus-visible{outline:2px solid var(--code);outline-offset:3px}
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:var(--code)}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.section-heading h2{font-size:22px;letter-spacing:-.4px;margin:5px 0}.section-heading p{margin:5px 0 12px;font-size:13px}
+.case-overview{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:0 0 20px}.case-overview>div{padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;gap:6px}
+.case-overview span{font-size:11px;color:var(--muted)}.case-overview b{font-size:15px}.architecture-card{padding-bottom:0;overflow:hidden}
+.map-legend{display:flex;gap:20px;align-items:center;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:12px 0 0;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.legend-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}.legend-dot.buyer{background:var(--code)}.legend-dot.seller{background:var(--them)}.legend-dot.data{background:var(--ok)}.legend-dot.llm{background:var(--llm)}
+.map-scroll{overflow-x:auto;margin:0 -10px}.system-map{width:100%;min-width:1000px;height:auto;display:block}.buyer-boundary{fill:#172437;stroke:#49658c;stroke-width:1.4;stroke-dasharray:7 5}
+svg .group-title{fill:#b4d3ff;font-size:14px;font-weight:750;letter-spacing:1.3px}svg .group-note{fill:#a1b6d1;font-size:11px}svg .outside-title,svg .lane-title{fill:#99abc5;font-size:10px;letter-spacing:1px;font-weight:600}
+.node{cursor:pointer}.node rect{fill:#243249;stroke:#526988;stroke-width:1.2}.node .node-title{font-size:14px;font-weight:650;fill:#f3f7ff}.node .sub{font-size:10.5px;fill:#b5c5dd}
+.node.ext rect{fill:#342d29;stroke:#bc8b60}.node.data rect{fill:#1b3530;stroke:#5caa94}.node.llm rect{fill:#2b2641;stroke:#8e73c1}
+.node:hover rect,.node.focused rect,.node:focus-visible rect{stroke:white;stroke-width:2}.node:focus-visible{outline:none}
+.edge{stroke:#64758e;stroke-width:1.6;pointer-events:none;opacity:.6}.edge-hit{fill:none;stroke:transparent;stroke-width:18;pointer-events:stroke;cursor:pointer}
+.connection{cursor:pointer}.connection:hover .edge,.connection:focus-visible .edge{stroke:#dcecff;stroke-width:3;opacity:1}.connection:focus-visible{outline:none}
+.connection:not(.observed) .edge{stroke-dasharray:4 6;opacity:.35}.connection.observed .edge{opacity:.95}.connection.selected .edge{stroke:#fff;stroke-width:3.2;opacity:1}.connection.ext .edge{stroke:#dd9d6d}.connection.data .edge{stroke:#6abd9d}.connection.llm .edge{stroke:#a98dd5}
+.edge.flow{opacity:1;stroke:var(--code)}.flow-inspector{border-top:1px solid var(--line);margin:0 -20px;padding:20px 24px;background:#141d2b;min-height:100px}
+.flow-empty{display:flex;gap:16px;align-items:center}.inspect-icon{font-size:28px;color:var(--code);border:1px solid var(--line);border-radius:12px;padding:4px 15px}.flow-empty p{margin:5px 0 0;color:var(--muted);font-size:12px}
+.inspector-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.inspector-head h3{font-size:17px;margin:5px 0}.flow-meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:12px;margin:10px 0}
+.flow-scope{font-size:11.5px;color:var(--muted);margin:8px 0 15px}.payload-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}.payload{min-width:0;background:#1b2637;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.payload h4{font-size:12px;margin:0;padding:10px 12px;background:#26364d}.payload pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:330px;overflow:auto;font:12px/1.65 ui-monospace,monospace;padding:12px;margin:0;color:#d9e9ff}.payload p{padding:0 12px}
+.recent-transfers,.connection-list{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px}.recent-transfers .btn{font-size:11px}.chat{max-height:720px}.msg{padding:15px;line-height:1.6}.msg pre{font-size:13px;line-height:1.7}.find{padding:15px}.find li{margin:7px 0}.kv{gap:6px 12px}th,td{padding:10px 12px}th{background:#202c3e}
+@media(max-width:1050px){.layout{grid-template-columns:210px minmax(0,1fr)}main{padding:16px}.brand-sub{display:none}.case-overview{grid-template-columns:repeat(3,1fr)}.payload-grid{grid-template-columns:1fr}header .stat{font-size:11px}}
+@media(max-width:680px){.layout{display:block;height:auto}aside{max-height:230px;border-bottom:1px solid var(--line)}main{overflow:visible}header{gap:8px}header h1{width:100%}.case-overview{grid-template-columns:repeat(2,1fr)}.section-heading h2{font-size:18px}.section-heading>.pill{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important}}
+
 </style></head><body>
-<header><div class="dot"></div><h1>hackit2 Live</h1><button class="btn" id="scoresBtn" onclick="showScores()">Scores · latest vs best</button><button class="btn" id="historyBtn" onclick="showHistory()">History · all recorded runs</button><div class="stat" id="gstats"></div><div style="flex:1"></div><div class="stat" id="clock"></div></header>
+<header><div class="dot"></div><h1>Hollerau <span class="brand-sub">/ Negotiation control room</span></h1><button class="btn" id="scoresBtn" onclick="showScores()">Scores</button><button class="btn" id="historyBtn" onclick="showHistory()">Run history</button><div class="stat" id="gstats"></div><div style="flex:1"></div><div class="stat" id="clock"></div></header>
 <div class="layout"><aside id="cases"></aside><main id="main"><div class="muted">Waiting for a case… start a run (sandbox or practice) and it appears here.</div></main></div>
 <script>
 const $=s=>document.querySelector(s), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=(v,d=2)=>v==null||isNaN(v)?'–':Number(v).toFixed(d), tm=t=>t?new Date(t*1000).toLocaleTimeString([], {hour12:false}):'';
 const TELEMETRY=new Set(['case_start','trace','model_call','model_done','model_outcome','model_skipped','prep_stage','prep_report','prep_strategy','prep_brief','message_in','message_out','thread_state','delivery_failed']);
-const NODES={arena:{x:100,y:230,label:'Arena API',sub:'supplier bots',cls:'ext'},
- session:{x:280,y:230,label:'session.py',sub:'case loop · clocks'},
- 'prep.briefing':{x:450,y:70,label:'prep.briefing',sub:'research team'},
- lessons:{x:450,y:150,label:'lessons.py',sub:'memory'},
- 'negotiation.engine':{x:450,y:300,label:'negotiation.engine',sub:'Negotiator'},
- 'negotiation.closing':{x:450,y:400,label:'negotiation.closing',sub:'accept / walk'},
- reply_reader:{x:690,y:150,label:'reply_reader.py',sub:'mood · tactic'},
- mailer:{x:690,y:230,label:'mailer.py',sub:'e-mail'},
- evidence:{x:690,y:310,label:'evidence.py',sub:'claims'},
- 'negotiation.packages':{x:690,y:400,label:'negotiation.packages',sub:'alternatives'},
- 'negotiation.concession':{x:910,y:310,label:'concession.py',sub:'next price'},
- pricing:{x:910,y:400,label:'pricing.py',sub:'C · worth · ceiling'},
- model:{x:930,y:110,label:'LLM (Claude)',sub:'',cls:'llm',w:190,h:120}};
-const EDGES=[['arena','session'],['session','prep.briefing'],['session','negotiation.engine'],['session','negotiation.closing'],['session','lessons'],
- ['prep.briefing','lessons'],['prep.briefing','model'],['negotiation.engine','reply_reader'],['reply_reader','model'],['negotiation.engine','mailer'],
- ['negotiation.engine','model'],['negotiation.engine','evidence'],['negotiation.engine','negotiation.packages'],['negotiation.engine','negotiation.concession'],
- ['negotiation.engine','pricing'],['negotiation.packages','pricing'],['negotiation.closing','pricing'],['negotiation.engine','negotiation.closing'],['lessons','model']];
+const NODES={
+ data:{x:115,y:170,w:210,h:104,label:'Data',sub:'documents · news · records',cls:'data',desc:'Local arena data package. Supplier IDs and fixed queries retrieve company records, notes, news, contracts and cost evidence.'},
+ arena:{x:115,y:455,w:210,h:116,label:'Seller',sub:'supplier bots via Arena API',cls:'ext',desc:'External suppliers. Only messages, quoted term sheets and permitted API responses cross the buyer boundary.'},
+ session:{x:440,y:455,label:'Session manager',sub:'session.py · clocks & delivery',desc:'Runs the case, schedules supplier turns, sends messages, handles deadlines and resumes sessions.'},
+ 'prep.briefing':{x:440,y:170,label:'Research team',sub:'prep.briefing · four analysts',desc:'Code gathers the data; LLM analysts and the lead prepare findings, possible trades and writer context before negotiation.'},
+ lessons:{x:735,y:170,label:'Memory',sub:'lessons.py · earlier outcomes',desc:'Retrieves similar earlier negotiations for preparation. Learning stays disabled in the final.'},
+ evidence:{x:1030,y:170,label:'Evidence',sub:'evidence.py · citable facts',desc:'Builds numerical arguments and source references from recorded data.'},
+ model:{x:1320,y:170,w:232,h:106,label:'Language model',sub:'Claude · interpretation & writing',cls:'llm',desc:'Analysts, reply reader and email writer use bounded model calls. Code retains numerical decisions.'},
+ 'negotiation.engine':{x:735,y:455,label:'Negotiator',sub:'negotiation.engine · next move',desc:'Coordinates each supplier thread: the current plan, arguments, alternatives and delivery bookkeeping.'},
+ reply_reader:{x:1030,y:340,label:'Reply reader',sub:'reply_reader.py · mood & requests',desc:'Interprets the latest email, detects requests and suggests a tactic from a fixed list.'},
+ mailer:{x:1030,y:525,label:'Email builder',sub:'mailer.py · words & exact terms',desc:'Combines guarded model prose with code-written facts, binding statements and term sheets.'},
+ pricing:{x:1320,y:455,label:'Cost & value',sub:'pricing.py · C & price ceiling',desc:'Calculates buyer total cost, estimated supplier worth, allowed terms and the price ceiling.'},
+ 'negotiation.packages':{x:1320,y:710,label:'Offer packages',sub:'negotiation.packages · alternatives',desc:'Evaluates complete packages and cost-checked trade-offs, preserving mandatory terms.'},
+ 'negotiation.concession':{x:735,y:710,label:'Price step',sub:'concession.py · next price',desc:'Computes the next price using the gap, previous concessions and estimated remaining patience.'},
+ 'negotiation.closing':{x:1030,y:710,label:'Closing desk',sub:'negotiation.closing · accept / walk',desc:'Selects the cheapest acceptable standing deal, echoes supplier packages and protects offers from expiry.'}
+};
+const EDGES=[['data','prep.briefing'],['data','evidence'],['arena','session'],
+ ['session','prep.briefing'],['session','negotiation.engine'],['session','negotiation.closing'],['session','lessons'],
+ ['prep.briefing','lessons'],['prep.briefing','model'],['negotiation.engine','reply_reader'],['reply_reader','model'],
+ ['negotiation.engine','mailer'],['negotiation.engine','model'],['negotiation.engine','evidence'],
+ ['negotiation.engine','negotiation.packages'],['negotiation.engine','negotiation.concession'],
+ ['negotiation.engine','pricing'],['negotiation.packages','pricing'],['negotiation.closing','pricing'],
+ ['negotiation.engine','negotiation.closing'],['lessons','model']];
+const edgeKey=(a,b)=>[a,b].sort().join('|');
+let FLOW=null, FLOW_ITEM=null, MAP_NODE=null;
 const ROLE_FROM={writer:'negotiation.engine',reply_reader:'reply_reader',debrief:'lessons'};
 const nodeOf=label=>{if(!label)return null;let best=null;for(const k of Object.keys(NODES)){if(label===k||label.startsWith(k+'.')){if(!best||k.length>best.length)best=k}}return best};
 const roleNode=r=>ROLE_FROM[r]||'prep.briefing';
@@ -91,11 +131,15 @@ let VIEW='case', SCORES=null, scoresAt=0;  // VIEW 'scores' | 'history': a table
 // PINNED: the session of a recorded run open in the case view (no live polling); HIST: /api/history
 let PINNED=null, PINRUN=null, HIST=null, histAt=0, HF={case:'',set:'',source:''}, booted=false;
 function fresh(){return {events:[],next:0,runStart:null,head:{},session:{},end:null,suppliers:[],msgs:[],states:{},calls:{},callOrder:[],prep:{stages:{},reports:{},strategy:{},brief:{}},
- feed:[],stack:{},open:{},active:{},flows:{},decisions:[],notes:[]}}
+ feed:[],stack:{},open:{},active:{},flows:{},links:{},decisions:[],notes:[]}}
 function touchNode(n,ms=1400){if(n)S.active[n]=performance.now()+ms}
 function touchFlow(a,b,cls='',ms=1300){if(a&&b){S.flows[a+'>'+b]={until:performance.now()+ms,cls}}}
 function apply(e,animate){
  const k=e.event; S.events.push(e);
+ for(const transfer of e.transfers||[]){const key=edgeKey(transfer.from,transfer.to);
+  const rows=S.links[key]||(S.links[key]=[]),i=rows.findIndex(r=>r.id===transfer.id);
+  if(i>=0)rows.splice(i,1);rows.push(transfer);if(rows.length>16)rows.shift();
+  if(animate){touchNode(transfer.from);touchNode(transfer.to);touchFlow(transfer.from,transfer.to)}}
  if(k==='case_start'){S.head=e}
  else if(k==='session'){S.session=e;for(const s of e.suppliers||[])if(!S.suppliers.includes(s))S.suppliers.push(s)}
  else if(k==='end'){S.end=e}
@@ -137,7 +181,7 @@ async function poll(){
  }catch(err){console.error(err)}
  setTimeout(poll,800)}
 function navOn(id){for(const b of ['scoresBtn','historyBtn'])$('#'+b).classList.toggle('on',b===id)}
-function select(c){VIEW='case';PINNED=null;PINRUN=null;navOn(null);SEL=c;S=fresh();replay=null;$('#main').dataset.case='';render();document.querySelectorAll('.case').forEach(x=>x.classList.toggle('sel',x.dataset.c===c))}
+function select(c){FLOW=null;FLOW_ITEM=null;MAP_NODE=null;VIEW='case';PINNED=null;PINRUN=null;navOn(null);SEL=c;S=fresh();replay=null;$('#main').dataset.case='';render();document.querySelectorAll('.case').forEach(x=>x.classList.toggle('sel',x.dataset.c===c))}
 function renderCases(d){const done=d.cases.filter(c=>c.status==='done'),sc=done.filter(c=>c.score!=null);
  $('#gstats').innerHTML=`<b>${d.cases.filter(c=>c.status==='live').length}</b> live · <b>${d.running||0}</b> running on the arena · <b>${done.length}</b> done · mean score <b>${sc.length?(100*sc.reduce((a,c)=>a+c.score,0)/sc.length).toFixed(1):'–'}</b> · model spend <b>€${fmt((d.spend||{}).eur)}</b> in ${(d.spend||{}).calls||0} calls`;
  $('#clock').textContent=new Date().toLocaleTimeString([], {hour12:false});
@@ -158,19 +202,61 @@ function mapSVG(){
  const llmBusy=Object.values(S.calls).filter(c=>c.status==='running');
  if(llmBusy.length){opNodes.add('model');for(const c of llmBusy)S.flows[roleNode(c.role)+'>model']={until:now+300,cls:'llm'}}
  if(Object.keys(S.open).length)opNodes.add('session');
- const W=1100,H=460,box=(n)=>({w:NODES[n].w||170,h:NODES[n].h||46});
- let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`;
- for(const [a,b] of EDGES){const A=NODES[a],B=NODES[b];const f=S.flows[a+'>'+b]||S.flows[b+'>'+a];const on=f&&f.until>now;
-  const mx=(A.x+B.x)/2;s+=`<path class="edge ${on?'flow '+(f.cls||''):''}" d="M${A.x},${A.y} C${mx},${A.y} ${mx},${B.y} ${B.x},${B.y}"/>`}
- for(const [id,n] of Object.entries(NODES)){const {w,h}=box(id);const act=(S.active[id]||0)>now||opNodes.has(id);
-  let sub=n.sub;if(id==='model'){const roles={};for(const c of llmBusy)roles[c.role]=(roles[c.role]||0)+1;
-   const total=Object.keys(S.calls).length;sub=llmBusy.length?Object.entries(roles).map(([r,c])=>`${r}×${c}`).join(' '):(S.head.observer?'calls not observed':`${total} calls so far`)}
-  s+=`<g class="node ${n.cls||''} ${act?'active':''}"><rect x="${n.x-w/2}" y="${n.y-h/2}" width="${w}" height="${h}" rx="10"/>
-   <text x="${n.x}" y="${n.y-(id==='model'?18:3)}" text-anchor="middle" font-weight="600">${esc(n.label)}</text>
-   <text class="sub" x="${n.x}" y="${n.y+(id==='model'?4:13)}" text-anchor="middle">${esc(sub)}</text>`;
-  if(id==='model'){const recent=S.callOrder.slice(-3).map(i=>S.calls[i]);recent.forEach((c,i)=>{s+=`<text class="sub" x="${n.x}" y="${n.y+24+i*13}" text-anchor="middle">${esc(c.role)} · ${esc(c.status)}${c.seconds!=null?' '+c.seconds+'s':''}</text>`})}
-  s+=`</g>`}
- return s+'</svg>'}
+ let s=`<svg class="system-map" viewBox="0 0 1480 825" role="group" aria-label="Buyer system, external sellers and data; select a connection to inspect its latest recorded exchange">
+ <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1L9 5L0 9" fill="none" stroke="context-stroke" stroke-width="1.6"/></marker></defs>
+ <rect class="buyer-boundary" x="290" y="20" width="1180" height="790" rx="22"/>
+ <text class="group-title" x="320" y="58">BUYER · HOLLERAU PUMPENWERKE</text><text class="group-note" x="320" y="80">Our research, negotiation and decision system</text>
+ <text class="outside-title" x="15" y="72">OUTSIDE THE BUYER</text>
+ <text class="lane-title" x="320" y="112">01 / PREPARE &amp; RESEARCH</text>
+ <text class="lane-title" x="320" y="285">02 / READ, CALCULATE &amp; REPLY</text>
+ <text class="lane-title" x="320" y="645">03 / EVALUATE &amp; CLOSE</text>
+ <text class="group-note" x="320" y="790">Numbers and binding actions are decided by code. Models provide interpretation and language.</text>`;
+ for(const [a,b] of EDGES){const A=NODES[a],B=NODES[b],key=edgeKey(a,b),rows=S.links[key]||[],last=rows[rows.length-1];
+  const f=S.flows[a+'>'+b]||S.flows[b+'>'+a],on=f&&f.until>now,selected=FLOW===key;
+  const aw=A.w||235,ah=A.h||68,bw=B.w||235,bh=B.h||68;
+  let ax=A.x,ay=A.y,bx=B.x,by=B.y;
+  if(Math.abs(bx-ax)>Math.abs(by-ay)){ax+=Math.sign(bx-ax)*aw/2;bx-=Math.sign(bx-ax)*bw/2}
+  else{ay+=Math.sign(by-ay)*ah/2;by-=Math.sign(by-ay)*bh/2}
+  let path;
+  if(a==='session'&&b==='prep.briefing')path='M322.5,430 C306,430 306,170 322.5,170';
+  else if(a==='session'&&b==='negotiation.closing')path='M440,489 V590 Q440,620 470,620 H860 Q885,620 885,650 V685 Q885,710 912.5,710';
+  else if(a==='negotiation.engine'&&b==='negotiation.packages')path='M852.5,455 C885,455 885,570 885,600 Q885,625 910,625 H1160 Q1180,625 1180,650 V685 Q1180,710 1202.5,710';
+  else if(a==='negotiation.engine'&&b==='model')path='M852.5,430 C880,430 875,280 900,280 H1160 Q1180,280 1180,260 V220 Q1180,200 1204,200';
+  else if(a==='lessons'&&b==='model')path='M852.5,170 C885,110 1150,110 1204,155';
+  else if(a==='data'&&b==='evidence')path=`M${ax},${ay} C240,235 980,235 ${bx},${by}`;
+  else if(b==='model'&&a!=='prep.briefing')path=`M${ax},${ay} C${ax+85},${ay-150} ${bx-60},${by+155} ${bx},${by}`;
+  else if(a==='prep.briefing'&&b==='model')path=`M${ax},${ay} C${ax},95 ${bx},95 ${bx},${by}`;
+  else{const mx=(ax+bx)/2;path=`M${ax},${ay} C${mx},${ay} ${mx},${by} ${bx},${by}`}
+  const cls=a==='arena'?'ext':a==='data'?'data':b==='model'?'llm':'';
+  s+=`<g class="connection ${selected?'selected':''} ${last?'observed':''} ${cls}" role="button" tabindex="0" aria-label="Inspect ${esc(A.label)} and ${esc(B.label)} connection" onclick="selectFlow('${a}','${b}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectFlow('${a}','${b}')}">
+   <title>${esc(A.label)} ↔ ${esc(B.label)} · ${last?'recorded exchange at '+tm(last.at):'no exchange captured'} · click to inspect</title>
+   <path class="edge-hit" d="${path}"/><path class="edge ${selected?'chosen':''} ${on?'flow '+cls:''}" d="${path}" marker-start="url(#arrow)" marker-end="url(#arrow)"/></g>`;
+ }
+ for(const [id,n] of Object.entries(NODES)){const w=n.w||235,h=n.h||68,act=(S.active[id]||0)>now||opNodes.has(id);
+  let sub=n.sub;if(id==='model')sub=llmBusy.length?`${llmBusy.length} calls in flight`:(S.head.observer?'Model calls not observed':`${S.callOrder.length} recorded calls`);
+  s+=`<g class="node ${n.cls||''} ${act?'active':''} ${MAP_NODE===id?'focused':''}" role="button" tabindex="0" aria-label="About ${esc(n.label)}" onclick="selectNode('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectNode('${id}')}">
+   <title>${esc(n.desc)}</title><rect x="${n.x-w/2}" y="${n.y-h/2}" width="${w}" height="${h}" rx="12"/>
+   <text x="${n.x}" y="${n.y-5}" text-anchor="middle" class="node-title">${esc(n.label)}</text>
+   <text class="sub" x="${n.x}" y="${n.y+17}" text-anchor="middle">${esc(sub)}</text></g>`;
+ }
+ return s+'</svg>';
+}
+function selectFlow(a,b){FLOW=edgeKey(a,b);FLOW_ITEM=null;MAP_NODE=null;setHTML('flowdetail',flowHTML());setHTML('mapbox',mapSVG());document.getElementById('flowdetail')?.scrollIntoView({block:'nearest',behavior:'smooth'})}
+function selectNode(id){MAP_NODE=id;FLOW=null;FLOW_ITEM=null;setHTML('flowdetail',flowHTML());setHTML('mapbox',mapSVG())}
+function inspectTransfer(id){FLOW_ITEM=id;setHTML('flowdetail',flowHTML())}
+function flowHTML(){
+ if(MAP_NODE){const n=NODES[MAP_NODE];return `<div class="inspector-head"><div><span class="eyebrow">MODULE GUIDE</span><h3>${esc(n.label)}</h3></div><span class="chipc">${esc(MAP_NODE)}</span></div><p>${esc(n.desc)}</p><div class="connection-list">${EDGES.filter(([a,b])=>a===MAP_NODE||b===MAP_NODE).map(([a,b])=>`<button class="btn" onclick="selectFlow('${a}','${b}')">${esc(NODES[a].label)} ↔ ${esc(NODES[b].label)}</button>`).join('')}</div>`}
+ if(!FLOW)return `<div class="flow-empty"><span class="inspect-icon">↗</span><div><b>Follow the conversation inside the buyer.</b><p>Select an arrow to inspect its latest recorded input and output. Select a module for a plain-language explanation.</p></div></div>`;
+ const [a,b]=FLOW.split('|'),all=S.links[FLOW]||[],rows=all.slice().reverse(),r=rows.find(x=>x.id===FLOW_ITEM)||rows[0];
+ const head=`<div class="inspector-head"><div><span class="eyebrow">CONNECTION INSPECTOR</span><h3>${esc(NODES[a].label)} <span class="muted">↔</span> ${esc(NODES[b].label)}</h3></div><span class="pill ${r?'done':'stalled'}">${r?'recorded':'not captured'}</span></div>`;
+ if(!r)return head+`<p class="muted">No exchange was captured on this connection in the selected run. The line shows an architectural relationship; historical journals and observer runs may contain no function-level telemetry.</p>`;
+ const block=(title,value)=>`<div class="payload"><h4>${title}</h4><pre>${esc(typeof value==='string'?value:JSON.stringify(value,null,2)??'No value recorded')}</pre></div>`;
+ const requests=block(`${esc(NODES[r.from].label)} → ${esc(NODES[r.to].label)} · ${r.label.startsWith('Data supplied')?'analyst context':'input'}`,r.request);
+ const response=r.response!=null?block(`${esc(NODES[r.to].label)} → ${esc(NODES[r.from].label)} · result`,r.response):`<div class="payload"><h4>${r.complete?'Recording scope':'Awaiting a result'}</h4><p class="muted">${r.complete?'This event records a message or snapshot, not a paired function return.':'No result has been recorded for this call yet.'}</p></div>`;
+ return head+`<div class="flow-meta"><span>${esc(r.label)}</span><span>${tm(r.at)}</span>${r.supplier?`<span class="chipc">${esc(r.supplier)}</span>`:''}<span>${r.summary?'Recorded argument / result summary':'Recorded message or prompt excerpt'}</span>${r.outcome?`<span class="pill ${r.outcome==='used'?'done':'live'}">Handling: ${esc(r.outcome)}</span>`:''}</div>
+ <p class="flow-scope">${r.summary?'Function traces contain compact summaries. Full arguments were not captured.':'Content is taken from this run’s telemetry. Model prompts and answers may be truncated at recording time.'}</p>
+ <div class="payload-grid">${requests}${response}</div>${rows.length>1?`<div class="recent-transfers"><span class="eyebrow">RECENT ON THIS CONNECTION</span>${rows.slice(0,8).map(x=>`<button class="btn ${x.id===r.id?'on':''}" onclick="inspectTransfer(${esc(JSON.stringify(x.id))})">${tm(x.at)} · ${esc(x.label)}${x.supplier?' · '+esc(x.supplier):''}</button>`).join('')}</div>`:''}`;
+}
 function sheetChip(t,i,n){if(!t)return'';const keys=['payment_days','contract_months','volume_per_year','lead_time_days','incoterm','index_clause','ppm_commitment'];
  const extra=keys.filter(k=>t[k]!=null&&t[k]!=='').map(k=>k==='index_clause'?(t[k]?'index '+t[k].series:'fixed price'):`${k.replace(/_/g,' ')} ${t[k]}`).join(' · ');
  return `<div class="sheet">${n>1?'Option '+String.fromCharCode(65+i)+': ':''}<b>€${fmt(t.unit_price)}</b> <span class="muted">${esc(extra)}</span></div>`}
@@ -227,7 +313,7 @@ function replayTick(){if(!replay)return;const el=(performance.now()-replay.wall)
  while(replay.i<replay.all.length&&replay.all[replay.i].at-replay.t0<=el){apply(replay.all[replay.i],true);replay.i++}
  if(replay.i>=replay.all.length){replay=null}}
 let lastHTML={};
-function setHTML(id,html){if(lastHTML[id]!==html){const el=document.getElementById(id);if(el){const sc=el.scrollTop;el.innerHTML=html;el.scrollTop=sc}lastHTML[id]=html}}
+function setHTML(id,html){if(lastHTML[id]!==html){const el=document.getElementById(id);if(el){const sc=el.scrollTop,focused=el.contains(document.activeElement)?document.activeElement.getAttribute('aria-label'):null;el.innerHTML=html;el.scrollTop=sc;if(focused){const next=[...el.querySelectorAll('[aria-label]')].find(n=>n.getAttribute('aria-label')===focused);next?.focus({preventScroll:true})}}lastHTML[id]=html}}
 // --- Scores view: the latest run of each case against earlier runs, the team's best and the reference
 function showScores(){VIEW='scores';PINNED=null;replay=null;navOn('scoresBtn');$('#main').dataset.case='';
  document.querySelectorAll('.case').forEach(x=>x.classList.remove('sel'));
@@ -263,7 +349,7 @@ function renderHistory(){const runs=(HIST&&HIST.runs)||[];
   <div class="tablewrap"><table><thead><tr><th>Started</th><th>Case</th><th>Title</th><th>Set</th><th>Played in</th><th class="num">Score</th><th>Deal</th><th>Recorded</th><th>Session</th></tr></thead>
   <tbody>${rows||'<tr><td colspan="9" class="muted">no recorded runs</td></tr>'}</tbody></table></div></div>`}
 function case_cmp(a,b){const k=c=>[c[0]==='P'?0:c[0]==='D'?1:2,parseInt(c.replace(/\D/g,''))||0];const x=k(a),y=k(b);return x[0]-y[0]||x[1]-y[1]}
-async function openRun(session){replay=null;
+async function openRun(session){FLOW=null;FLOW_ITEM=null;MAP_NODE=null;replay=null;
  let r;try{r=await (await fetch('/api/run?session='+encodeURIComponent(session))).json()}catch(err){console.error(err);return}
  if(!r.found){alert('No local record of this run yet: it is running on the arena in a harness that writes no live files. It appears here once its live file exists or after hackit2 pull.');return}
  VIEW='case';PINNED=session;PINRUN=r.run;navOn(null);SEL=r.run.case;S=fresh();
@@ -304,20 +390,24 @@ function render(force){if(VIEW!=='case'||!SEL||!S)return;const c=CASES.find(x=>x
   $('#main').dataset.case=SEL;lastHTML={};
   $('#main').innerHTML=`<div class="casehead"><h1 id="ctitle"></h1><span id="cmeta" class="muted"></span><span style="flex:1"></span>
    <span class="flex">${PINNED?`<button class="btn" onclick="showHistory()">← History</button>`:''}<button class="btn" onclick="startReplay(4)">▶ replay ×4</button><button class="btn" onclick="startReplay(12)">▶ ×12</button><button class="btn" onclick="replay=null;select(SEL)">⟳ live</button></span></div>
-   <div class="now" id="now"></div><div class="card"><h2>Module map · code paths and data flow</h2><div id="mapbox"></div>
-   <div class="muted" style="font-size:11.5px">Blue glow: Python function running now · purple: LLM call in flight · orange: e-mail to / from the arena. Arrows animate when data moves between modules.</div></div>
-   <div class="grid2"><div class="card"><h2>Negotiation · live e-mail thread</h2><div class="chat" id="chat"></div></div><div class="card"><h2>Supplier state · price paths</h2><div id="states"></div></div></div>
+   <div class="now" id="now"></div><div id="caseoverview" class="case-overview"></div>
+   <div class="card architecture-card"><div class="section-heading"><div><span class="eyebrow">SYSTEM EXPLORER</span><h2>One buyer. A connected negotiation system.</h2><p class="muted">See how supplier messages and our data become a checked offer. Every connection is inspectable.</p></div><span class="pill done">read-only view</span></div>
+   <div class="map-legend"><span><i class="legend-dot buyer"></i>Buyer code</span><span><i class="legend-dot seller"></i>Seller / Arena</span><span><i class="legend-dot data"></i>Data</span><span><i class="legend-dot llm"></i>Language model</span><span class="muted">Moving = recent activity · dotted = not captured · click for details</span></div>
+   <div class="map-scroll"><div id="mapbox"></div></div><div id="flowdetail" class="flow-inspector" aria-live="polite"></div></div>
+   <div class="grid2"><div class="card"><h2>Conversation · Buyer ↔ Seller</h2><div class="chat" id="chat"></div></div><div class="card"><h2>Offer comparison · Prices &amp; current terms</h2><div id="states"></div></div></div>
    <div class="card"><div class="tabs" id="tabs"></div><div id="tabbody"></div></div>`}
  const title=S.head.title||S.session.title||c.title||'';$('#ctitle').textContent=`${SEL} · ${title}`;
  const sid=S.session.session_id||c.session_id;
  $('#cmeta').innerHTML=`${esc(S.head.type||c.type||'')} · goal ${esc(S.head.goal||c.goal||'')} · ${S.suppliers.length} supplier(s)${S.end?` · <b style="color:var(--ok)">score ${fmt(S.end.score,3)}</b>`:''}${sid?` · <a href="${esc(ARENA)}/replay/${esc(sid)}" target="_blank">arena replay</a>`:''}${replay?' · <span class="live">replaying</span>':''}${PINNED&&PINRUN?` · <span class="done">recorded run</span> ${esc(PINRUN.at?when(PINRUN.at):'')} · played in ${esc(PINRUN.source||'')}`:''}`;
- setHTML('now',nowBanner());setHTML('mapbox',mapSVG());
+ setHTML('now',nowBanner());setHTML('mapbox',mapSVG());setHTML('flowdetail',flowHTML());
  const chatEl=document.getElementById('chat');const atBottom=chatEl&&chatEl.scrollHeight-chatEl.scrollTop-chatEl.clientHeight<60;
  setHTML('chat',chatHTML());if(chatEl&&atBottom)chatEl.scrollTop=chatEl.scrollHeight;
  setHTML('states',statesHTML());
- const tabs=[['calls',S.head.observer?'LLM calls (not observed)':`LLM calls (${S.callOrder.length})`],['prep','Preparation · what the team thinks'],['notes',`Supplier back office (${S.notes.length})`],['feed','Trace · every step']];
+ const lastIn=[...S.msgs].reverse().find(m=>m.event==='message_in'),lastOut=[...S.msgs].reverse().find(m=>m.event==='message_out');
+ setHTML('caseoverview',`<div><span>Run</span><b>${S.end?(S.end.deal?'Deal reached':'Closed'):PINNED?'Recorded':'In progress'}</b></div><div><span>Suppliers</span><b>${S.suppliers.length}</b></div><div><span>Last seller message</span><b>${lastIn?tm(lastIn.at):'Not recorded'}</b></div><div><span>Last buyer message</span><b>${lastOut?tm(lastOut.at):'Not recorded'}</b></div><div><span>Model activity</span><b>${S.head.observer?'Not observed':S.callOrder.length+' calls'}</b></div>`);
+ const tabs=[['calls',S.head.observer?'LLM calls (not observed)':`LLM calls (${S.callOrder.length})`],['prep','Research & preparation'],['notes',`Supplier back office (${S.notes.length})`],['feed','Activity & function trace']];
  setHTML('tabs',tabs.map(([k,l])=>`<div class="tab ${TAB===k?'on':''}" onclick="setTab('${k}')">${l}</div>`).join('')+(TAB==='feed'?`<span style="flex:1"></span>`+['all','trace','model','msg','dec'].map(f=>`<div class="tab ${feedFilter===f?'on':''}" onclick="setFeed('${f}')">${f}</div>`).join(''):''));
  setHTML('tabbody',TAB==='calls'?callsHTML():TAB==='prep'?prepHTML():TAB==='notes'?notesHTML():`<div class="feed">${feedHTML()}</div>`)}
 function frame(){replayTick();if(S&&SEL&&VIEW==='case'){setHTML('mapbox',mapSVG());setHTML('now',nowBanner());if(replay)render(true)}requestAnimationFrame(frame)}
-poll();requestAnimationFrame(frame);setInterval(()=>{if(S&&SEL&&!replay)render(true)},1500);
+if(typeof document!=='undefined'){poll();requestAnimationFrame(frame);setInterval(()=>{if(S&&SEL&&!replay)render(true)},1500)}
 </script></body></html>
