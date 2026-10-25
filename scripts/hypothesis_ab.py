@@ -6,9 +6,13 @@
    the same frozen briefs and make no other model call (reply reader and writer fall back to their
    templates), so the hypothesis logic is the only difference between the arms. The simulator's
    bots ignore e-mail text but react to term sheets, which is exactly what a played trade changes.
-No practice session, no arena call, no lesson write.
+With --set practice the same pairs run as hosted practice sessions (team quota: only with Burak's
+OK and the @arena-practice claim). Practice bots read the e-mail text, so there the arms use the real
+model for the reply reader and the writer (production mode); the research is still the same frozen
+brief in both arms. No lesson write in either set.
 
     uv run python scripts/hypothesis_ab.py --cases S01 S02 S03 --repeats 2
+    uv run python scripts/hypothesis_ab.py --set practice --cases P08 P10 P18 --out logs/hypothesis-ab-practice
 """
 
 import argparse
@@ -48,24 +52,33 @@ def serve(sim):
     return server, f"http://127.0.0.1:{port}"
 
 
-def play(case_id, cases, pkg, arm, out):
-    """One case on a fresh simulator with a frozen clock (no timeouts): result plus what the
-    hypotheses did, from the run journal."""
+def play(case_id, cases, pkg, arm, out, practice=None, complete=frozen_only):
+    """One case: on a fresh simulator with a frozen clock (no timeouts), or as a practice session
+    with `practice` (an ArenaClient). Result plus what the hypotheses did, from the run journal."""
     settings.HYPOTHESES = arm == "on"
-    server, url = serve(Sim(load_cases(), clock=lambda: 1_000_000.0))
+    server = None
     try:
-        key = ArenaClient(url).register(f"ab-{secrets.token_hex(3)}", "sim")["api_key"]
-        table = session.PrefetchedTable(ArenaClient(url, key, rate=1000), cases[case_id])
+        if practice is None:
+            server, url = serve(Sim(load_cases(), clock=lambda: 1_000_000.0))
+            key = ArenaClient(url).register(f"ab-{secrets.token_hex(3)}", "sim")["api_key"]
+            client = ArenaClient(url, key, rate=1000)
+        else:
+            client = practice
+        table = session.PrefetchedTable(client, cases[case_id])
         session.RUN_LOGS = out / f"runs-{arm}"
-        result = session.run_case(table, case_id, pkg, complete=frozen_only, team=True, learn=False)
-        journal = json.loads(next((session.RUN_LOGS).glob(f"*{table.session_id}.json")).read_text())["journal"]
+        result = session.run_case(table, case_id, pkg, complete=complete, team=True, learn=False)
+        # the file name carries the case: every fresh simulator numbers its sessions sim1, sim2...
+        run_file = session.RUN_LOGS / f"{case_id.split(':')[-1]}_{table.session_id}.json"
+        journal = json.loads(run_file.read_text())["journal"]
     finally:
-        server.should_exit = True
+        if server is not None:
+            server.should_exit = True
     played = [e for e in journal if e["event"] == "hypothesis_played"]
     updates = [e for e in journal if e["event"] == "hypothesis_update"]
     return {
         "case": case_id,
         "arm": arm,
+        "session": table.session_id,
         "score": result.get("score"),
         "deal": result.get("deal"),
         "c_deal": result.get("c_deal"),
@@ -78,6 +91,7 @@ def play(case_id, cases, pkg, arm, out):
 def main(argv=None):
     load_env()
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--set", choices=("sim", "practice"), default="sim", help="practice uses team quota")
     parser.add_argument("--cases", nargs="+", default=["S01", "S02", "S03"])
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--data", default=os.environ.get("ARENA_DATA", "../package"))
@@ -91,8 +105,11 @@ def main(argv=None):
     os.environ["HACKIT_RESEARCH_MODE"] = "alpha"
     args.out.mkdir(parents=True, exist_ok=True)
     pkg = open_package(args.data)
-    cases = load_cases()
+    practice = ArenaClient() if args.set == "practice" else None
+    cases = {c["case_id"]: c for c in practice.cases("practice")} if practice else load_cases()
     ids = [c if c.startswith("case:") else f"case:{c}" for c in args.cases]
+    # practice bots read the text: there both arms use the real reader and writer (production mode)
+    arm_model = model.connect() if practice else frozen_only
     if not args.no_freeze:
         complete = model.connect()
         for case_id in ids:
@@ -103,7 +120,7 @@ def main(argv=None):
     for repeat in range(args.repeats):
         for case_id in ids:
             for arm in ("off", "on"):
-                row = play(case_id, cases, pkg, arm, args.out)
+                row = play(case_id, cases, pkg, arm, args.out, practice, arm_model)
                 row["repeat"] = repeat + 1
                 rows.append(row)
                 print(json.dumps(row), flush=True)
@@ -115,7 +132,7 @@ def main(argv=None):
             on = next(r for r in rows if r["case"] == case_id and r["repeat"] == repeat and r["arm"] == "on")
             diff = (on["score"] or 0) - (off["score"] or 0)
             print(
-                f"{case_id} | {repeat} | {off['score']:.3f} | {on['score']:.3f} | {diff:+.3f} | "
+                f"{case_id} | {repeat} | {off['score'] or 0:.3f} | {on['score'] or 0:.3f} | {diff:+.3f} | "
                 f"{'; '.join(on['played']) or '-'} / {'; '.join(on['updates']) or '-'}"
             )
 

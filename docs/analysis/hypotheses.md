@@ -1,6 +1,6 @@
 # Hypothesis learning (branch `feature/hypothesis-learning`)
 
-Off by default. Switch on with `--hypotheses on` or `HACKIT_HYPOTHESES=1`. No practice session was run and nothing was pushed to `main`.
+Off by default. Switch on with `--hypotheses on` or `HACKIT_HYPOTHESES=1`. Nothing was pushed to `main`.
 
 ## What it does
 
@@ -60,8 +60,25 @@ Off by default. Switch on with `--hypotheses on` or `HACKIT_HYPOTHESES=1`. No pr
   - Hypotheses whose term was already our plan were correctly marked not playable.
   - This shows the mechanics work; it says nothing about value.
 - **First design correction:** "the counter falls by 1 %" was supported almost every round, because suppliers concede anyway. It now has to beat the supplier's own previous step.
-- **Not run yet: real frozen research.** The shared model spend is EUR 42.42 against the `.env` cap of 30, so freezing research with the real model needs Burak to raise the cap. Command:
-  `HACKIT_BUDGET_EUR=<cap> uv run python scripts/hypothesis_ab.py --cases S01 S02 S03 --repeats 2`
+- **Simulator, real frozen research** (25 Oct ~04:20, cap 50 for this run; research cost about EUR 1.70):
+  - The nine agents produced 7 hypotheses for S01, 18 for S02 (two suppliers) and 9 for S03.
+  - Off and on scored **identically** in all three cases and both repeats:
+
+    | Case | Off | On |
+    |---|---|---|
+    | S01 | 0.845 | 0.845 |
+    | S02 | 0.945 | 0.945 |
+    | S03 | 0.761 | 0.761 |
+
+  - The played moves were payment 30 days, lead time 21/28 days, FCA, a 12-month contract, and "lead with forecast".
+  - The simulator bots took none of the offered alternatives, so every `takes_term` verdict stayed ambiguous.
+  - Several `price_drop` hypotheses on cited topics were refuted (for example 0.4 to 0.125): the counter did not beat its own pace.
+  - Simulator bots are simple and deterministic: this shows no gain and no harm.
+- **Practice (Burak's OK), stopped:** the Anthropic API account ran out of credit during the run ("credit balance is too low"), so no research could be frozen for P08/P10/P18 and every model call fell back. I stopped after three sessions:
+  - P08 off 114763d78cc0549e 0.693, P08 on 2b313e93387cbc5a 0.693, P10 off 095bfc1671fb8050 0.679;
+  - all without briefs or hypotheses, so they say nothing about the feature.
+  - Rerun once credit is restored: `HACKIT_BUDGET_EUR=<cap> uv run python scripts/hypothesis_ab.py --set practice --cases P08 P10 P18 --out logs/hypothesis-ab-practice`
+- **Harness fix:** every fresh simulator numbers its sessions sim1, sim2…, so the per-case run log is now looked up by case and session.
 
 ## Limits to keep in mind
 
