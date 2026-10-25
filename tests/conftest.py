@@ -10,10 +10,16 @@ import uvicorn
 from arena_kit.client import ArenaClient
 from arena_kit.sim import Sim, create_app, load_cases
 
-from buyer import records
+from buyer import config, records
 from buyer.datapkg import load_package
 
 FIXTURES = Path(__file__).parent / "fixtures"
+
+
+@pytest.fixture(autouse=True)
+def isolated_memory(monkeypatch, tmp_path):
+    """Every test starts with no learned memory and writes none to the real logs."""
+    monkeypatch.setattr(config, "LOG_DIR", tmp_path / "logs")
 
 
 @contextlib.contextmanager

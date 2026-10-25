@@ -20,7 +20,7 @@ import time
 from arena_kit.docs import quote_terms, standard_terms
 from arena_kit.play import ENDED, latest, moves_left, standing
 
-from . import config, llm, planner, reader, supplier, writer
+from . import config, llm, memory, planner, reader, supplier, writer
 from . import economics as eco
 from .belief import AGREED, FINAL, OPEN, Belief
 from .datapkg import CaseData
@@ -203,6 +203,9 @@ class Negotiator:
             safe(lambda: self.clause_trade(t, quote, signals))
         t.theirs = [t.q0]
         mean, sd = supplier.floor_prior(case, t.prof, t.near_cost)
+        mean, sd, learned = memory.adjust(case, mean, sd)
+        if learned:
+            self.note(sid, "memory", **learned, prior=(round(mean, 4), round(sd, 4)))
         if own_plant and full_cost:
             cost_share = eco.price_for_value(case, t.terms, t.est, full_cost) / t.q0
             mean = max(mean, min(0.995, cost_share - 0.01))

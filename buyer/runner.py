@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from arena_kit.client import ArenaError
 from arena_kit.play import ENDED, RemoteTable, fetch_documents, latest, moves_left, quota_used_up
 
-from . import config, llm, records, writer
+from . import config, llm, memory, records, writer
 from .datapkg import load_package
 from .policy import Negotiator
 from .thread import Thread
@@ -159,6 +159,10 @@ def play_case(table, case_id, pkg=None, deadline=None):
                 fetch(table, m)
         result = close(table, case_id, neg, threads)
     records.save(table.session_id, case, neg, result)
+    try:
+        memory.record(case, neg, result)  # where these suppliers stopped: the next case of its type learns
+    except Exception:  # noqa: BLE001 - learning must never cost the result
+        log.exception("%s: memory not recorded", case_id)
     return result
 
 

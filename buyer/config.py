@@ -154,3 +154,11 @@ READER_TIMEOUT_S = 20  # one call, client side [eng]
 READER_SETUP_S = 10  # wait at the case start, all suppliers read in parallel [eng]
 READER_REPLY_S = 8  # wait per supplier reply, taken from the writer's budget [eng]
 READER_MAX_CHARS = 12000
+
+# --- Learning between cases (buyer/memory.py) ----------------------------------------------------
+# Pseudo-count of the factory prior: with N0 observed stops the set weighs as much as practice. [eng]
+MEMORY_N0 = 4
+# The most the learned population may move a floor prior, as a share of the quote: practice type
+# means sat 0.84 to 0.975, a few points either way is a different population, more is noise. [eng]
+MEMORY_MAX_SHIFT = 0.03
+MEMORY_MAX_SD = 0.08
