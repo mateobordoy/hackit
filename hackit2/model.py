@@ -44,6 +44,34 @@ UNSAFE_TEXT = re.compile(
     r"no\s+(?:room|scope)\s+for\s+(?:a\s+)?(?:further\s+)?(?:price\s+)?(?:cut|reduction)",
     re.I,
 )
+# Names that contain a digit but carry no figure: the supplier's "8D report" (P11 lost two paragraphs to it).
+SAFE_NAMES = re.compile(r"\b8D\b", re.I)
+SENTENCE_END = re.compile(r"(?<!\bMr)(?<!\bMs)(?<!\bDr)(?<!\bMrs)(?<!e\.g)(?<!i\.e)[.!?](?=\s|$)")
+
+
+def unsafe(text):
+    """True when the writer's text carries a figure, a data ID or a phrase that weakens our position."""
+    return bool(UNSAFE_TEXT.search(SAFE_NAMES.sub("", text)))
+
+
+def fit_paragraph(text):
+    """The paragraph cut after its last full sentence within PARAGRAPH_MAX_CHARS, or None when not even
+    the first sentence fits (P18 lost a 912-character paragraph whole)."""
+    if len(text) <= settings.PARAGRAPH_MAX_CHARS:
+        return text
+    ends = [m.end() for m in SENTENCE_END.finditer(text) if m.end() <= settings.PARAGRAPH_MAX_CHARS]
+    return text[: ends[-1]].strip() if ends else None
+
+
+def first_json(text):
+    """The first complete JSON value in `text` (a model may add a second, unfinished block after it:
+    P04's lead brief was lost that way)."""
+    start = text.index("{")
+    try:
+        return json.JSONDecoder().raw_decode(text, start)[0]
+    except ValueError:
+        return json.loads(text[start : text.rindex("}") + 1])
+
 
 WRITER_SYSTEM = """You are a senior buyer at Hollerau Pumpenwerke, a German pump manufacturer, replying to a supplier.
 Write ONLY the middle paragraph of our e-mail: two to four sentences of plain text, with no greeting,
@@ -280,7 +308,7 @@ def collect_json(future, timeout=None):
         log.warning("helper failed: %r", exc)
         return None
     try:
-        answer = json.loads(text[text.index("{") : text.rindex("}") + 1])
+        answer = first_json(text)
     except (ValueError, TypeError, AttributeError):
         _count("helper.invalid")
         _outcome(future, "invalid")
@@ -336,11 +364,12 @@ def write_paragraph(complete, prompt, timeout=None, supplier_id=None):
         _outcome(future, "error")
         log.warning("paragraph failed after %.1fs: %s", time.monotonic() - started, exc)
         return None
-    text = " ".join(text.split())
-    if not text or len(text) > settings.PARAGRAPH_MAX_CHARS or UNSAFE_TEXT.search(text):
+    written = " ".join(text.split())
+    text = fit_paragraph(written)
+    if not text or unsafe(text):
         _count("paragraph.rejected")
         _outcome(future, "rejected by the guard")
-        log.warning("paragraph dropped: %r", text[:200])
+        log.warning("paragraph dropped: %r", written[:200])
         return None
     _count("paragraph.success")
     _outcome(future, "used")
