@@ -46,8 +46,9 @@ TRADE_PRICE_MAX_SHARE = 0.995
 NEED_TRADES_MAX = 2  # supplier-need alternatives shown next to the main sheet
 PREP_TRADES_SHOWN = 2  # prepared alternatives shown next to the opening sheet
 # Cite our order history only after every other argument (docs/analysis/robustness-audit.md: no
-# practice supplier ever took it into account). Off until a practice comparison shows it helps.
-ORDER_HISTORY_LAST = os.environ.get("HACKIT_ORDER_HISTORY_LAST", "").strip().lower() in ("1", "true", "yes", "on")
+# practice supplier ever took it into account; P10 0.679 and P03 0.933 with it, at main's best).
+# HACKIT_ORDER_HISTORY_LAST=0 switches it off.
+ORDER_HISTORY_LAST = os.environ.get("HACKIT_ORDER_HISTORY_LAST", "1").strip().lower() not in ("0", "false", "no", "off")
 SWEET_SPOT_FLOOR_SHARE = 0.85  # relationship search starts at this share of the full cost
 RELATIONSHIP_SEARCH_STEPS = 200
 CHEAPER_PACKAGE_MIN_EUR = 1.0  # a quoted package must save at least this much ...

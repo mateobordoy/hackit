@@ -115,3 +115,26 @@ Five of ten cases change in round 1 only, including the weak P10 and P18. Prices
 accept/walk gate do not change. Order history is still cited in later rounds when nothing else is
 left. Proposed test: practice A/B on P03, P10, P11, P18, or on the new 08:00 cases, which is the
 better held-out test.
+
+## 5. Result: order history last (T38), now on by default
+
+`settings.ORDER_HISTORY_LAST` (env `HACKIT_ORDER_HISTORY_LAST`, `0` switches it off). One practice
+session per case with it on (Burak's OK, 25 Oct 07:23); main's earlier sessions for comparison:
+
+| Case | With order history last | Main: sessions, median, best |
+|---|---|---|
+| P10 | **0.6785** (8ac0222f5c2da5cd) | 37, 0.6707, 0.6785 |
+| P03 | **0.9330** (6555cf96882d55cd) | 27, 0.9228, 0.9276 |
+
+- Round 1 cited delivery record, volume change and should-cost in both cases (no order history).
+  P10's supplier took should-cost; P03's took volume change and should-cost.
+- P03 beat all 27 earlier sessions; P10 matched the best of 37. These are single sessions, so this
+  is a positive sign, not proof. The case for the change is the mechanism (0 of 194 order-history
+  citations moved a supplier) plus the low risk: prices, terms and the accept gate do not change, and
+  order history is still cited when nothing else is left.
+- Sandbox, main unchanged (25 Oct 04:46): D01 0.990, D02 0.693.
+- Simulator check with it on (frozen research, S01-S03): same scores (0.845, 0.945, 0.761); only the
+  argument order and the supplier's claim answers differ. The local simulator marks many claims
+  "contradicted" in both arms, because its facts differ from the hosted world. The hosted arena never
+  did (1,216 claim results: 1,178 verified, 27 duplicate, 11 irrelevant; the two new sessions 8 of 8
+  verified).
