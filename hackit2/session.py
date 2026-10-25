@@ -26,7 +26,7 @@ from arena_kit.play import (
     quota_used_up,
 )
 
-from . import lessons, model, pricing, settings, telemetry
+from . import model, pricing, settings, telemetry
 from .mailer import keepalive_message
 from .negotiation import FINISHED, SETTLED, Negotiator, SupplierThread
 from .prep import briefing
@@ -68,12 +68,11 @@ def near_deadline(deadline, margin=90):
     return bool(cap) and time.time() > cap - margin
 
 
-def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True, learn=True):
+def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True):
     """Play one case to its end and return the arena's result.
 
     `team`: the preparation team briefs the negotiator before the session opens (it needs the case
     file on `table.case`) and the reply reader reads every reply; off, the plain price engine plays.
-    `learn`: the debrief records this case's lesson for later cases.
 
     Everything the case does streams into its live file for the watch UI (`telemetry`)."""
     live_path = open_live_journal(case_id)
@@ -88,12 +87,12 @@ def run_case(table, case_id, pkg=None, deadline=None, complete=None, team=True, 
             goal=(case_file.get("buyer") or {}).get("category_goal"),
             team=bool(team and complete),
         )
-        return _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn)
+        return _play_case(table, case_id, live_path, pkg, deadline, complete, team)
     finally:
         telemetry.unbind(token)
 
 
-def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
+def _play_case(table, case_id, live_path, pkg, deadline, complete, team):
     briefs = None
     if team and complete:
         briefs = briefs_or_empty(table.case, pkg, complete)
@@ -247,11 +246,6 @@ def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
         end_reason=result.get("end_reason"),
     )
     write_run_log(table.session_id, case_id, negotiator, result)
-    if learn and briefs is not None:
-        try:
-            lessons.record_lesson(case, negotiator, result, complete)
-        except Exception:  # the case is closed: a failed debrief costs nothing
-            log.exception("%s: debrief failed", case_id)
     return result
 
 
@@ -451,8 +445,7 @@ def run_batch(client, cases, pkg=None, parallel=8, complete=None, team=True):
 def run_final(client, pkg=None, waves=5, parallel=10, poll=None, complete=None, team=True):
     """The Live Final: wait for each wave and play its cases in parallel within the wave's cap. No human
     may restart it, so nothing here raises: a failed poll is polled again and a crashed case is resumed
-    while its cap leaves time to close (the arena names the running session on a second open). The
-    final records no lessons."""
+    while its cap leaves time to close (the arena names the running session on a second open)."""
     poll = settings.WAVE_POLL_S if poll is None else poll
     started, closed_waves, caps = {}, set(), {}
 
@@ -461,7 +454,7 @@ def run_final(client, pkg=None, waves=5, parallel=10, poll=None, complete=None, 
         while True:
             attempt += 1
             try:
-                return run_case(RemoteTable(client, case), case["case_id"], pkg, deadline, complete, team, False)
+                return run_case(RemoteTable(client, case), case["case_id"], pkg, deadline, complete, team)
             except Exception as exc:  # noqa: BLE001 - one broken case must not stop the others
                 log.exception("%s failed (attempt %d)", case["case_id"], attempt)
                 error = exc

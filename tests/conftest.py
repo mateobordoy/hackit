@@ -119,8 +119,6 @@ WILD_ANSWERS = {
     "tactic": "hold",
     "argument_no": 1,
     "requests": ["volume", "bogus"],
-    # debrief
-    "lesson": "Offer faster payment to a shop short of cash.",
 }
 
 
