@@ -132,7 +132,7 @@ let VIEW='case', SCORES=null, scoresAt=0;  // VIEW 'scores' | 'history': a table
 // PINNED: the session of a recorded run open in the case view (no live polling); HIST: /api/history
 let PINNED=null, PINRUN=null, HIST=null, histAt=0, HF={case:'',set:'',source:''}, booted=false;
 function fresh(){return {events:[],next:0,runStart:null,head:{},session:{},end:null,suppliers:[],msgs:[],states:{},calls:{},callOrder:[],prep:{stages:{},reports:{},strategy:{},brief:{}},
- feed:[],stack:{},open:{},active:{},flows:{},links:{},decisions:[],notes:[]}}
+ feed:[],stack:{},open:{},active:{},flows:{},links:{},decisions:[],notes:[],hyp:{},hypLog:[]}}
 function touchNode(n,ms=1400){if(n)S.active[n]=performance.now()+ms}
 function touchFlow(a,b,cls='',ms=1300){if(a&&b){S.flows[a+'>'+b]={until:performance.now()+ms,cls}}}
 function apply(e,animate){
@@ -167,6 +167,8 @@ function apply(e,animate){
  else if(k==='thread_state'){S.states[e.supplier]=e}
  else if(k==='delivery_failed'){S.feed.push({t:e.at,cls:'f-dec',kind:'dec',txt:`late delivery ${e.supplier}: ${e.detail}`})}
  else if(k==='supplier_note'){S.notes.push(e);S.feed.push({t:e.at,cls:'f-msg',kind:'msg',txt:`☰ ${e.supplier||''} ${e.sender||''}${e.recipient?' → '+e.recipient:''}: ${String(e.text||'').slice(0,220)}`})}
+ else if(k==='hypotheses'){S.hyp[e.supplier]={stage:e.stage,chosen:e.chosen,list:e.hypotheses||[],at:e.at}}
+ else if(k==='hypothesis_played'||k==='hypothesis_update'){S.hypLog.push(e);S.feed.push({t:e.at,cls:'f-dec',kind:'dec',txt:k==='hypothesis_played'?`◇ hypothesis ${e.id} played · ${e.move} · p ${e.p}`:`◇ hypothesis ${e.id} ${e.outcome} → p ${e.p} · ${e.reason}`})}
  else if(k==='timeout'){S.msgs.push(e);S.feed.push({t:e.at,cls:'f-dec',kind:'dec',txt:`⏱ timeout ${e.supplier||''} (round ${e.round??'?'})`})}
  else if(!TELEMETRY.has(k)){S.decisions.push(e);const {at,event,supplier,...rest}=e;
   S.feed.push({t:e.at,cls:'f-dec',kind:'dec',txt:`◆ ${event}${supplier?' ['+supplier+']':''}  ${JSON.stringify(rest).slice(0,300)}`})}
@@ -378,6 +380,20 @@ async function openRun(session){FLOW=null;FLOW_ITEM=null;MAP_NODE=null;replay=nu
  VIEW='case';PINNED=session;PINRUN=r.run;navOn(null);SEL=r.run.case;S=fresh();
  for(const e of r.events)apply(e,false);S.next=r.events.length;S.runStart=r.events.length?r.events[0].at:null;
  document.querySelectorAll('.case').forEach(x=>x.classList.remove('sel'));$('#main').dataset.case='';render(true)}
+function hypMove(h){const m=h.move||{};return m.kind==='trade'?`offer <b>${esc(m.field)}</b> = <b>${esc(typeof m.value==='object'?JSON.stringify(m.value):m.value)}</b> as an extra sheet`:`lead with <b>${esc(m.topic)}</b> evidence`}
+function hypReaction(h){return h.reaction==='takes_term'?'it puts that term into one of its sheets':'its next counter falls clearly faster than its previous step (+1 point)'}
+function hypothesesHTML(){const sids=Object.keys(S.hyp);
+ if(!sids.length)return '<div class="muted">no hypotheses: the feature is off (<span class="chipc">--hypotheses on</span> or HACKIT_HYPOTHESES=1), or the research produced none for this run</div>';
+ const note='<div class="muted" style="font-size:12px;margin-bottom:8px">Start: the research agents\' estimate that the reaction follows the move (an estimate, not a measured statistic; hypotheses are not normalised against each other). Code plays the valid one with the highest current probability and never changes our price for it. After each reply, fixed rules update only the hypotheses that move tested: supported ×3 odds, refuted ×1/3, ambiguous unchanged.</div>';
+ return note+sids.map(sid=>{const st=S.hyp[sid];const rows=st.list.map(h=>{const d=h.p-h.p0,col=d>0.0005?'var(--ok)':d<-0.0005?'var(--bad)':'var(--muted)';
+  const status=h.valid===true?'<span class="pill done">valid</span>':h.valid===false?`<span class="pill stalled" title="${esc(h.why_not||'')}">not playable</span><div class="sub">${esc(h.why_not||'')}</div>`:'<span class="muted">not checked yet</span>';
+  const ups=(h.updates||[]).map(u=>`<div class="sub">r${u.round} <b style="color:${u.outcome==='supported'?'var(--ok)':u.outcome==='refuted'?'var(--bad)':'var(--muted)'}">${esc(u.outcome)}</b> ${u.p_before}→${u.p_after}: ${esc(u.reason)}</div>`).join('');
+  return `<tr><td><b>${esc(h.id)}</b>${st.chosen===h.id?' <span title="played on the last message" style="color:var(--us)">★ played</span>':''}${h.played?`<div class="sub">played ×${h.played}</div>`:''}</td>
+   <td>${hypMove(h)}<div class="sub">expects: ${hypReaction(h)}</div><div class="sub">${esc((h.rationale||[]).join(' · '))}</div>${(h.uncertainty||[]).length?`<div class="sub">uncertain: ${esc(h.uncertainty.join(' · '))}</div>`:''}</td>
+   <td class="sub">${esc((h.agents||[]).join(', '))}<div>${esc((h.source_ids||[]).join(', '))}</div></td>
+   <td class="num">${fmt(h.p0,2)}</td><td class="num"><b style="color:${col}">${fmt(h.p,2)}</b></td><td>${status}</td><td>${ups||'<span class="muted">no reply on it yet</span>'}</td></tr>`}).join('');
+  return `<h3 style="margin:10px 0 6px">${esc(sid)} <span class="muted" style="font-size:12px">last ${esc(st.stage)}${st.chosen?' · played '+esc(st.chosen):''}</span></h3>
+  <div class="tablewrap"><table><thead><tr><th>Id</th><th>Move and expected reaction</th><th>Agents · sources</th><th class="num">Start</th><th class="num">Now</th><th>Code check</th><th>Updates and why</th></tr></thead><tbody>${rows||'<tr><td colspan="7" class="muted">none</td></tr>'}</tbody></table></div>`}).join('')}
 function notesHTML(){if(!S.notes.length)return '<div class="muted">nothing recorded: the back office and the bot\'s reasons come with the arena sessions pulled by <span class="chipc">hackit2 pull</span></div>';
  return `<table><thead><tr><th>time</th><th>round</th><th>supplier</th><th>from → to</th><th>what it wrote</th></tr></thead><tbody>${S.notes.map(n=>`<tr><td>${tm(n.at)}</td><td>${esc(n.round??'')}</td><td>${esc(n.supplier||'')}</td>
   <td>${n.sender==='bot reasoning'?'<span class="chipm">bot reasoning</span>':esc(n.sender||'')+(n.recipient?' → '+esc(n.recipient):'')}</td><td>${esc(n.text||'')}</td></tr>`).join('')}</tbody></table>`}
@@ -428,9 +444,9 @@ function render(force){if(VIEW!=='case'||!SEL||!S)return;const c=CASES.find(x=>x
  setHTML('states',statesHTML());
  const lastIn=[...S.msgs].reverse().find(m=>m.event==='message_in'),lastOut=[...S.msgs].reverse().find(m=>m.event==='message_out');
  setHTML('caseoverview',`<div><span>Run</span><b>${S.end?(S.end.deal?'Deal reached':'Closed'):PINNED?'Recorded':'In progress'}</b></div><div><span>Suppliers</span><b>${S.suppliers.length}</b></div><div><span>Last seller message</span><b>${lastIn?tm(lastIn.at):'Not recorded'}</b></div><div><span>Last buyer message</span><b>${lastOut?tm(lastOut.at):'Not recorded'}</b></div><div><span>Model activity</span><b>${S.head.observer?'Not observed':S.callOrder.length+' calls'}</b></div><div><span>Research strategy</span><b>${esc(researchApplicationStatus())}</b></div>`);
- const tabs=[['calls',S.head.observer?'LLM calls (not observed)':`LLM calls (${S.callOrder.length})`],['prep','Research & preparation'],['notes',`Supplier back office (${S.notes.length})`],['feed','Activity & function trace']];
+ const tabs=[['calls',S.head.observer?'LLM calls (not observed)':`LLM calls (${S.callOrder.length})`],['prep','Research & preparation'],['hyp',`Hypotheses (${Object.values(S.hyp).reduce((n,x)=>n+x.list.length,0)})`],['notes',`Supplier back office (${S.notes.length})`],['feed','Activity & function trace']];
  setHTML('tabs',tabs.map(([k,l])=>`<div class="tab ${TAB===k?'on':''}" onclick="setTab('${k}')">${l}</div>`).join('')+(TAB==='feed'?`<span style="flex:1"></span>`+['all','trace','model','msg','dec'].map(f=>`<div class="tab ${feedFilter===f?'on':''}" onclick="setFeed('${f}')">${f}</div>`).join(''):''));
- setHTML('tabbody',TAB==='calls'?callsHTML():TAB==='prep'?prepHTML():TAB==='notes'?notesHTML():`<div class="feed">${feedHTML()}</div>`)}
+ setHTML('tabbody',TAB==='calls'?callsHTML():TAB==='prep'?prepHTML():TAB==='notes'?notesHTML():TAB==='hyp'?hypothesesHTML():`<div class="feed">${feedHTML()}</div>`)}
 function frame(){replayTick();if(S&&SEL&&VIEW==='case'){setHTML('mapbox',mapSVG());setHTML('now',nowBanner());if(replay)render(true)}requestAnimationFrame(frame)}
 if(typeof document!=='undefined'){poll();requestAnimationFrame(frame);setInterval(()=>{if(S&&SEL&&!replay)render(true)},1500)}
 </script></body></html>

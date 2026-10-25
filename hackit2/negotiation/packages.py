@@ -76,14 +76,14 @@ class PackageDesk:
         return keys
 
     @telemetry.traced("negotiation.packages.prepared_alternatives", result_view=telemetry.prices_view)
-    def prepared_alternatives(self, thread, main):
-        """The lead researcher's trades as extra sheets next to our opening sheet `main`. Each changes
-        one term and is priced so it costs us exactly what `main` costs: whichever the supplier picks,
-        we lose nothing and learn what it values. A trade priced at or above what the supplier quotes
-        for those terms, or far below it, is left out."""
+    def prepared_alternatives(self, thread, main, trades=None):
+        """The lead researcher's trades (or `trades`, e.g. one hypothesis) as extra sheets next to our
+        sheet `main`. Each changes one term and is priced so it costs us exactly what `main` costs:
+        whichever the supplier picks, we lose nothing and learn what it values. A trade priced at or
+        above what the supplier quotes for those terms, or far below it, is left out."""
         case, sheets = self.case, []
         main_cost = pricing.buyer_cost(case, main, thread.standard, thread.valuation)
-        for trade in thread.prep_trades:
+        for trade in thread.prep_trades if trades is None else trades:
             terms = {**main, trade["field"]: trade["value"]}
             if terms == main or not pricing.must_haves_ok(case, terms, thread.standard):
                 continue

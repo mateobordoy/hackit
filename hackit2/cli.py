@@ -96,6 +96,12 @@ def build_parser():
         default=argparse.SUPPRESS,
         help="alpha: eight experts + discovery researcher; baseline: main's four experts",
     )
+    shared.add_argument(
+        "--hypotheses",
+        choices=("on", "off"),
+        default=argparse.SUPPRESS,
+        help="play and learn the research team's testable hypotheses (default: HACKIT_HYPOTHESES, off)",
+    )
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser = functools.partial(commands.add_parser, parents=[shared])
     data = {"default": os.environ.get("ARENA_DATA"), "help": "data package folder"}
@@ -149,6 +155,8 @@ def main(argv=None):
     args = build_parser().parse_args(argv)
     if hasattr(args, "research_mode"):
         os.environ["HACKIT_RESEARCH_MODE"] = args.research_mode
+    if hasattr(args, "hypotheses"):
+        settings.HYPOTHESES = args.hypotheses == "on"
     gui_port = getattr(args, "gui_port", settings.GUI_PORT)
     if args.command == "gui":
         return liveview.serve(gui_port, offline=args.offline, reference=args.reference)

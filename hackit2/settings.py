@@ -93,6 +93,10 @@ RESEARCH_MODE = "alpha"  # alpha worktree default; baseline keeps main's four-sp
 ALPHA_RESEARCH_S = 24.0  # parallel experts and bounded discovery, leaving time for synthesis
 ALPHA_SEARCH_ROUNDS = 3
 ALPHA_TOOL_CALLS = 10
+# Hypothesis learning (feature/hypothesis-learning): the research agents propose testable moves, code
+# plays the most probable valid one and updates the probabilities from the supplier's replies.
+# Off unless HACKIT_HYPOTHESES is set, so a run is unchanged until a comparison shows a gain.
+HYPOTHESES = os.environ.get("HACKIT_HYPOTHESES", "").strip().lower() in ("1", "true", "yes", "on")
 ALPHA_SQL_TIMEOUT_S = 0.5
 PREP_TRADES_MAX = 2
 LESSONS_RECALLED = 5

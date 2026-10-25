@@ -11,13 +11,13 @@ import os
 import time
 from pathlib import Path
 
-from .. import lessons, model, settings, telemetry
+from .. import hypotheses, lessons, model, settings, telemetry
 from . import briefing, sparring
 from .alpha_roles import EXPERTS, REPORT_CONTRACT, SCOUT_SYSTEM
 from .research_tools import ResearchTools
 
 log = logging.getLogger("hackit2")
-VERSION = "alpha-nine-v1"
+VERSION = "alpha-nine-v2-hypotheses"  # v2: every report also proposes testable hypotheses
 _cache = {}
 
 # One complete object avoids suggesting that playbook fields belong after a closed strategy object.
@@ -67,8 +67,9 @@ COMPLETE JSON EXAMPLE:
 )
 
 
-def clean_report(raw, sources):
-    """Reject invented citations, retain inference labels, and never count repetition as evidence."""
+def clean_report(raw, sources, case=None):
+    """Reject invented citations, retain inference labels, and never count repetition as evidence.
+    With the case, also the agent's testable hypotheses (`hypotheses.clean`)."""
     raw = raw if isinstance(raw, dict) else {}
     evidence, seen = [], set()
     for finding in raw.get("findings", []) if isinstance(raw.get("findings"), list) else []:
@@ -103,6 +104,7 @@ def clean_report(raw, sources):
         "evidence": evidence[:4],
         "open_questions": [q[:300] for q in questions if isinstance(q, str)][:3] if isinstance(questions, list) else [],
         "leverage": raw.get("leverage") if raw.get("leverage") in ("ours", "balanced", "theirs") else "balanced",
+        "hypotheses": hypotheses.clean(raw, sources, case) if case else [],
     }
 
 
@@ -216,14 +218,14 @@ def prepare(case, pkg, complete, budget_s=None):
             user = json.dumps({"case": header, "supplier": sid, "sources": source_packet(tools, assigned[name])})
             pending[sid, name] = model.start(
                 complete,
-                f"You are {name}, an industrial procurement specialist. {goal}\n{REPORT_CONTRACT}",
+                f"You are {name}, an industrial procurement specialist. {goal}\n{REPORT_CONTRACT}{hypotheses.CONTRACT}",
                 user,
                 f"specialist:{name}",
                 sid,
             )
         pending[sid, "scout_discovery"] = model.start(
             complete,
-            SCOUT_SYSTEM,
+            SCOUT_SYSTEM + hypotheses.CONTRACT,
             scout_prompt(header, tools, {}, []),
             "researcher:scout_discovery",
             sid,
@@ -244,7 +246,7 @@ def prepare(case, pkg, complete, budget_s=None):
                 if name == "scout_discovery"
                 else {ref: tools.sources[ref] for ref in ctx["assigned"][name]}
             )
-            report = clean_report(raw, permitted)
+            report = clean_report(raw, permitted, case)
             ctx["reports"][name] = report
             telemetry.emit("prep_report", supplier=sid, specialist=name, report=report)
             if name != "scout_discovery" or not isinstance(raw, dict):
@@ -260,7 +262,7 @@ def prepare(case, pkg, complete, budget_s=None):
             final = ctx["round"] == settings.ALPHA_SEARCH_ROUNDS - 1
             pending[job] = model.start(
                 complete,
-                SCOUT_SYSTEM,
+                SCOUT_SYSTEM + hypotheses.CONTRACT,
                 scout_prompt(header, tools, ctx["reports"], ctx["observations"], final),
                 "researcher:scout_discovery",
                 sid,
@@ -313,6 +315,10 @@ def prepare(case, pkg, complete, budget_s=None):
             {
                 "playbook": sparring.build_playbook(side, raw, informed),
                 "findings": {name: report["findings"] for name, report in reports.items() if report["findings"]},
+                # every agent's testable moves, merged; the engine plays them only with HACKIT_HYPOTHESES
+                "hypotheses": hypotheses.merge(
+                    {name: report.get("hypotheses") or [] for name, report in reports.items()}
+                ),
                 "research": {
                     "version": VERSION,
                     "reports": reports,

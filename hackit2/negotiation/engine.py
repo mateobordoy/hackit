@@ -18,13 +18,13 @@ import time
 
 from arena_kit.play import ENDED, latest, moves_left, standing
 
-from .. import mailer, model, pricing, reply_reader, settings, telemetry, transcript
+from .. import hypotheses, mailer, model, pricing, reply_reader, settings, telemetry, transcript
 from ..evidence import EvidenceBank, live_rival_offer
 from ..supplier_profile import build_profile, neutral_profile, traits_in
 from .closing import ClosingDesk
 from .common import ACTIVE, ECHO, FROZEN, GONE, SETTLED, guarded, log
 from .concession import next_step_price
-from .packages import PackageDesk, argument_families, counters_stalled, same_offer
+from .packages import PackageDesk, alternative_key, argument_families, counters_stalled, same_offer
 from .thread import SupplierThread, detect_requests, quoted_standard_terms
 
 MOOD_HINTS = {
@@ -148,6 +148,8 @@ class Negotiator(PackageDesk, ClosingDesk):
             patience=thread.patience,
             evidence=[a["sentence"] for a in thread.evidence],
         )
+        if thread.hypotheses:
+            self.log_event(supplier_id, "hypotheses", stage="start", hypotheses=thread.hypotheses)
         return thread
 
     def apply_brief(self, thread, brief):
@@ -157,6 +159,8 @@ class Negotiator(PackageDesk, ClosingDesk):
         thread.prep_notes = brief.get("writer_notes") or ""
         thread.prep_trades = brief.get("trades") or []
         thread.playbook = brief.get("playbook") or {}
+        if settings.HYPOTHESES:
+            thread.hypotheses = hypotheses.start(brief.get("hypotheses"))
         if brief.get("tone"):
             thread.profile["warm"] = brief["tone"] == "warm"
         self.log_event(
@@ -354,6 +358,8 @@ class Negotiator(PackageDesk, ClosingDesk):
                 counter_terms.get(k, v) != v for k, v in plan_before.items() if k != "unit_price"
             )
             thread.their_prices.append(self.price_at_plan(thread, counter_terms))
+            if thread.hyp_pending:
+                guarded(lambda: self.learn_hypotheses(thread, last, sheets, status))
             self.tighten_full_cost(thread, counter_terms)
             thread.last_seen_reply = last
             thread.requests = detect_requests(last.get("body"))
@@ -391,12 +397,17 @@ class Negotiator(PackageDesk, ClosingDesk):
         if ceiling is not None and price > ceiling:
             price = max(ceiling, thread.our_prices[-1]) if thread.our_prices else ceiling  # never back down
             self.log_event(supplier_id, "capped_at_alternative", ceiling=ceiling, price=price)
+        main = pricing.priced(thread.plan, price)
+        played_sheet = guarded(lambda: self.play_hypothesis(thread, main))
         arguments = self.choose_arguments(thread, argument_count, threads)
-        sheets = [pricing.priced(thread.plan, price)]
+        sheets = [main]
         if not thread.our_prices and thread.prep_trades:
             sheets += guarded(lambda: self.prepared_alternatives(thread, sheets[0]), [])[: settings.PREP_TRADES_SHOWN]
         elif thread.our_prices:
             sheets += guarded(lambda: self.need_alternatives(thread, sheets[0]), [])[: settings.NEED_TRADES_MAX]
+        if played_sheet:  # the played hypothesis's trade comes first among the alternatives
+            sheets = [sheets[0], played_sheet] + [s for s in sheets[1:] if not same_offer(s, played_sheet)]
+            sheets = sheets[:3]  # the arena takes at most three term sheets
         if not arguments and len(sheets) == 1 and counters_stalled(events):
             standing_sheets = latest(events).get("term_sheets") or []
             if any(
@@ -514,6 +525,7 @@ class Negotiator(PackageDesk, ClosingDesk):
             "families": families,
             "primary": dict(sheets[0]),
             "alternative_keys": self.alternative_keys(sheets),
+            "hypotheses": self.tested_hypotheses(thread, sheets, arguments, events),
         }
         statements = mailer.binding_statements(self.case, thread, sheets)
         attachments = self.forecast_file(thread)
@@ -595,6 +607,8 @@ class Negotiator(PackageDesk, ClosingDesk):
             thread.files_sent.update(flight.get("files", set()))
             if flight.get("primary"):
                 thread.last_primary_sent = flight["primary"]
+            if flight.get("hypotheses"):
+                thread.hyp_pending = flight["hypotheses"]
             thread.in_flight = None
 
     def undo_delivery(self, supplier_id, *, count_late=True):
@@ -611,6 +625,136 @@ class Negotiator(PackageDesk, ClosingDesk):
             if count_late:
                 thread.late_rounds += 1
             self.log_event(supplier_id, "undo_delivery", late_rounds=thread.late_rounds, count_late=count_late)
+
+    # --- hypotheses (HACKIT_HYPOTHESES) ---------------------------------------------------------
+
+    def argument_available(self, thread, arg):
+        """Can this argument still be cited here (`choose_arguments` would not skip it)?"""
+        keys = [(thread.supplier_id, ref) if arg.get("rival") else ref for ref in arg["refs"]]
+        return not any(key in self.cited for key in keys) and not (argument_families(arg) & thread.used_topics)
+
+    def hypothesis_sheet(self, thread, main, h):
+        """The sheet that plays a trade hypothesis next to `main`: the one-term change priced so it costs
+        us what `main` costs (`prepared_alternatives`), or None when the trade is not allowed now: off
+        the options, a broken must-have, no price inside the trade bounds, already our plan or already
+        offered in this thread."""
+        field, value = h["move"]["field"], h["move"]["value"]
+        if field not in (self.case.get("negotiable") or []) or main.get(field) == value:
+            return None
+        if alternative_key(field, value) in thread.shown_alternatives:
+            return None
+        trade = {"field": field, "value": value, "why": f"hypothesis {h['id']}"}
+        sheets = self.prepared_alternatives(thread, main, trades=[trade])
+        return sheets[0] if sheets else None
+
+    def check_hypotheses(self, thread, main):
+        """Mark every hypothesis valid or not for the sheet `main` about to go out, with the reason."""
+        for h in thread.hypotheses:
+            if h["move"]["kind"] == "trade":
+                ok = guarded(lambda h=h: self.hypothesis_sheet(thread, main, h)) is not None
+                why = "not playable now: an option or must-have, no price at our cost, or already offered"
+            else:
+                topic = h["move"]["topic"]
+                ok = any(a["topic"] == topic and self.argument_available(thread, a) for a in thread.evidence)
+                why = "no unused evidence on this topic"
+            h["valid"], h["why_not"] = ok, None if ok else why
+
+    def play_hypothesis(self, thread, main):
+        """Check the hypotheses against `main` and play the valid one with the highest current
+        probability: a trade becomes an extra sheet that costs us what `main` costs (returned), an
+        argument moves its evidence to the front. The price and terms of `main` never change.
+        None when the feature is off, there are no hypotheses or none is valid."""
+        if not settings.HYPOTHESES or not thread.hypotheses:
+            return None
+        self.check_hypotheses(thread, main)
+        chosen = hypotheses.choose(thread.hypotheses)
+        sheet = None
+        if chosen is not None:
+            if chosen["move"]["kind"] == "trade":
+                sheet = self.hypothesis_sheet(thread, main, chosen)
+            else:
+                topic = chosen["move"]["topic"]
+                thread.evidence.sort(key=lambda a: a["topic"] != topic)  # stable: the rest keeps its order
+            chosen["played"] += 1
+            self.log_event(
+                thread.supplier_id,
+                "hypothesis_played",
+                id=chosen["id"],
+                move=hypotheses.describe(chosen),
+                p=chosen["p"],
+                reason="the highest current probability among the valid hypotheses",
+            )
+        self.log_event(
+            thread.supplier_id,
+            "hypotheses",
+            stage="check",
+            chosen=chosen["id"] if chosen else None,
+            hypotheses=thread.hypotheses,
+        )
+        return sheet
+
+    def tested_hypotheses(self, thread, sheets, arguments, events):
+        """What this message tests: every hypothesis whose move it carries (its trade as an extra sheet
+        our main sheet lacks, or its argument topic among the citations), with the context its reply
+        will be judged against. None when nothing is tested."""
+        if not thread.hypotheses:
+            return None
+        topics = [arg["topic"] for arg in arguments]
+        ids = []
+        for h in thread.hypotheses:
+            move = h["move"]
+            if move["kind"] == "trade":
+                field, value = move["field"], move["value"]
+                if sheets[0].get(field) != value and any(s.get(field) == value for s in sheets[1:]):
+                    ids.append(h["id"])
+            elif move["topic"] in topics:
+                ids.append(h["id"])
+        if not ids:
+            return None
+        counter_terms = standing(events)[1]
+        fields = {h["move"]["field"] for h in thread.hypotheses if h["move"]["kind"] == "trade"}
+        return {
+            "ids": ids,
+            "topics": topics,
+            "counter_terms": dict(counter_terms),
+            "field_before": {f: counter_terms.get(f, thread.standard.get(f)) for f in fields},
+        }
+
+    def learn_hypotheses(self, thread, reply, sheets, status):
+        """Update the hypotheses our last delivered message tested from the supplier's reply
+        (`hypotheses.observe` and `hypotheses.update`: fixed rules, no model). The previous counter is
+        re-priced at today's plan so a change of plan does not read as a price move. Claim results are
+        matched to our citations in the order we made them."""
+        pending, thread.hyp_pending = thread.hyp_pending, None
+        claims = {}
+        for result in reply.get("claim_results") or []:
+            index = result.get("index") if isinstance(result, dict) else None
+            if isinstance(index, int) and 0 <= index < len(pending["topics"]):
+                claims.setdefault(pending["topics"][index], result.get("result"))
+        observed = {
+            "sheets": [sheet.get("terms") or {} for sheet in sheets],
+            "previous_counter": self.price_at_plan(thread, pending["counter_terms"])
+            if pending["counter_terms"]
+            else None,
+            "counter": thread.their_prices[-1],
+            # how far it fell the round before (its own pace), at today's plan; None on its first counter
+            "previous_step": (prices[-3] - prices[-2]) / prices[-3]
+            if len(prices := thread.their_prices) >= 3
+            else None,
+            "status": status,
+            "body": reply.get("body"),
+            "claims": claims,
+            "field_before": pending["field_before"],
+        }
+        round_no = len(thread.our_prices)
+        for h in thread.hypotheses:
+            if h["id"] in pending["ids"]:
+                outcome, reason = hypotheses.observe(h, observed)
+                hypotheses.update(h, outcome, reason, round_no)
+                self.log_event(
+                    thread.supplier_id, "hypothesis_update", id=h["id"], outcome=outcome, reason=reason, p=h["p"]
+                )
+        self.log_event(thread.supplier_id, "hypotheses", stage="update", hypotheses=thread.hypotheses)
 
     def log_event(self, supplier_id, event, **details):
         entry = {"at": round(time.time(), 1), "supplier": supplier_id, "event": event, **details}
