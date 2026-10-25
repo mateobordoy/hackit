@@ -1,6 +1,6 @@
 """Play a few arena-sim cases locally (no arena, no quota) so `buyer gui` has runs to show.
 
-    python scripts/sim_demo.py X01 X02 S01
+python scripts/sim_demo.py X01 X02 S01
 """
 
 import sys
@@ -12,7 +12,11 @@ from arena_kit.client import ArenaClient  # noqa: E402
 from arena_kit.sim import Sim, load_cases  # noqa: E402
 from conftest import practice_like_cases, serve  # noqa: E402
 
+from buyer import memory  # noqa: E402
 from buyer.runner import play_batch  # noqa: E402
+
+# sim suppliers are not the arena's: their stops must never shift the real practice or final priors
+memory.path = lambda set_: memory.config.LOG_DIR / f"memory_sim_{set_ or 'unknown'}.jsonl"
 
 
 def main(ids):
