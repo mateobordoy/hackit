@@ -20,6 +20,7 @@ def test_storyboard_from_a_sim_rfq(sim_client, pkg, monkeypatch, tmp_path):
     monkeypatch.setitem(liveview.CONFIG, "roots", [])
     monkeypatch.setitem(liveview.CONFIG, "live", config.LOG_DIR / "live")
     monkeypatch.setattr(showcase, "BUNDLED", tmp_path / "none")
+    monkeypatch.setattr(showcase, "HIDE_SIM", False)
     sb = liveview.showcase_story()
     assert sb["found"] and sb["case_id"] == "case:X03" and sb["main"] == result["supplier_id"]
     kinds = [s["kind"] for s in sb["steps"]]

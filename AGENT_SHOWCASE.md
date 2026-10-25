@@ -58,12 +58,15 @@ system map (ids in docs/liveview-contract.md) to animate a data packet along.
 - [x] checked: nothing of `proposal-1` / `belief-buyer` missing (belief-buyer is an older proposal-1)
 - [x] old hackit2 UI features: ported except hackit2-only ones (nine-agent research, buyer boundaries,
       observer sessions, model spend, pulled arena sessions) - this agent has none of them
-- [ ] rename brand to "Hack IT Buyer Live" (page title, header, server print, README)
+- [x] rename brand to "Hack IT Buyer Live" (page title, header, server print, README)
 - [x] `buyer/showcase.py` storyboard + `/api/showcase` + `buyer showcase` CLI + tests (`tests/test_showcase.py`)
 - [x] bundled real runs: `buyer/showcase/default.jsonl` (D01, deal, 0.940), `rfq-d02.jsonl` (D02, deal, 0.723); sample storyboard `docs/showcase-sample.json`
-- [ ] Showcase player in `buyer/liveview.html` (Codex): overlay, auto-play, captions, animated packets
+- [x] Showcase player in `buyer/liveview.html` (Codex): overlay, auto-play, captions, animated packets
       on the map, per-kind visuals, play/pause/prev/next/speed/exit, keys Space/←/→/Esc, run selector
-- [ ] browser check (screenshots), gate, push
+- [x] browser check (1280x720: D01 all 15 steps, D02 selector), gate, push
+- [x] merged proposal-1 bd2be13 (supplier dossier); conflict only in the telemetry hooks of policy.py
+- [ ] optional: after the Live Final, `buyer showcase --list` and `--save <best final session> --name final`
+- [ ] optional polish: hide the empty "Alternative" bar when a case has no alternative (D01)
 
 ## Rules
 - Never spend practice quota without Burak's OK (sandbox D01/D02 and arena-sim are free).

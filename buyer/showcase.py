@@ -13,6 +13,7 @@ from pathlib import Path
 
 BUNDLED = Path(__file__).with_name("showcase")
 DEFAULT = "default"
+HIDE_SIM = True  # arena-sim runs (scripts/sim_demo.py, sessions "sim1"...) are test plumbing, not for the jury
 GUARDS = {
     "hold_after_deep_drop": "Deep first drop: hold the anchor",
     "probe_sheet": "Probe package: what is money worth to it?",
@@ -432,7 +433,10 @@ def runs(live_runs):
     for name, events in bundled().items():
         out.append((_choice(events, "bundled", name), events))
     for events in live_runs:
-        if any(e.get("event") == "end" for e in events) and head_of(events).get("session"):
+        session = str(head_of(events).get("session") or "")
+        if HIDE_SIM and session.startswith("sim"):
+            continue
+        if any(e.get("event") == "end" for e in events) and session:
             out.append((_choice(events, "recorded"), events))
     return out
 
