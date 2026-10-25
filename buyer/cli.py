@@ -8,6 +8,7 @@ buyer practice --repeat 2          every hosted practice case N times (practice 
 buyer sandbox                      the free sandbox cases D01, D02
 buyer final                        the Live Final: waits for each wave, plays it, never stops early
 buyer report                       scores from logs/runs next to the ProcureCabana reference
+buyer showcase [--list|--save ID]  the jury Showcase: list runs, or freeze one into buyer/showcase/
 buyer gui [--offline]              the watch UI on http://127.0.0.1:8790 (any play command: --gui)
 --no-live                          write no live files for the UI (play, practice, sandbox, final)
 """
@@ -81,6 +82,10 @@ def main(argv=None):
     f.add_argument("--parallel", type=int, default=10)
     r = sub.add_parser("report")
     r.add_argument("--set", default="practice")
+    s = sub.add_parser("showcase")
+    s.add_argument("--list", action="store_true", help="every run the Showcase can play")
+    s.add_argument("--save", default="", help="session to freeze as a bundled showcase run")
+    s.add_argument("--name", default="default", help="bundled name (default: the one the button opens)")
     g = sub.add_parser("gui")
     g.add_argument("--port", type=int, default=8790)
     g.add_argument("--offline", action="store_true", help="never contact the arena")
@@ -91,6 +96,19 @@ def main(argv=None):
     setup_logging(args.verbose)
     if getattr(args, "no_live", False):
         os.environ["BUYER_LIVE"] = "0"
+    if args.cmd == "showcase":
+        from . import liveview, showcase
+
+        runs = showcase.runs(liveview.live_runs())
+        if args.save:
+            hit = [events for choice, events in runs if args.save in (choice["session"], choice["name"])]
+            if not hit:
+                raise SystemExit(f"no recorded run {args.save}")
+            print(showcase.save(hit[0], args.name))
+            return
+        for choice, _ in runs:
+            print(json.dumps(choice, default=str))
+        return
     if args.cmd == "gui":
         from .liveview import serve
 

@@ -24,7 +24,7 @@ def test_sim_case_is_watchable(sim_client, pkg, monkeypatch):
     assert {"message_in", "message_out", "note"} <= set(kinds)
 
     monkeypatch.setitem(liveview.CONFIG, "roots", [])
-    server = liveview.serve(0, live=config.LOG_DIR / "live", offline=True, background=True)
+    server = liveview.serve(0, live=config.LOG_DIR / "live", roots=[], offline=True, background=True)
     port = server.server_address[1]
     try:
         cases = get(port, "/api/cases")

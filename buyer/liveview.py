@@ -1,11 +1,12 @@
-"""Hollerau buyer Live: a local watch UI for running and finished cases (`buyer gui`).
+"""Hack IT Buyer Live: a local watch UI for running and finished cases (`buyer gui`).
 
 Reads the live files the agent writes (`logs/live/case_<id>.jsonl`, see `telemetry.py`) and the run
 logs (`logs/runs/*.json`, see `records.py`) and serves one page (`liveview.html`) that shows, per case:
 the system map with the data that moved between the modules, the e-mail thread with term sheets and
 claim checks, the belief about each supplier's floor and the planner's candidate table behind every
 price, the preparation, the model calls and the decision feed. Scores compares the runs of each case
-with our best, the team's best and the ProcureCabana reference; History opens any recorded run.
+with our best, the team's best and the ProcureCabana reference; History opens any recorded run;
+Showcase plays one real recorded interaction step by step for the jury (`showcase.py`).
 
 The only arena call is `GET /v1/me` once a minute for the team's best (never the endpoints the Live
 Final forbids); `--offline` makes none. Standard library only. Contract: docs/liveview-contract.md.
@@ -23,7 +24,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import config, records
+from . import config, records, showcase
 
 CONFIG = {"live": None, "runs": None, "roots": None, "offline": False}
 TEAM_REFRESH_S = 60
@@ -332,6 +333,18 @@ def run_events(session):
     return {"found": False, "events": [], "next": 0, "run_start": None}
 
 
+def live_runs():
+    """Every run segment of every live file, oldest file first."""
+    out = []
+    for _, (path, _source) in sorted(live_files().items(), key=lambda kv: kv[1][0].stat().st_mtime):
+        out += [run for run in segments(read_events(path)) if run]
+    return out
+
+
+def showcase_story(session=None):
+    return showcase.storyboard(live_runs(), session or None)
+
+
 # -- the team's best ------------------------------------------------------------------------------------
 def read_team_best():
     try:
@@ -370,6 +383,8 @@ class Handler(BaseHTTPRequestHandler):
                 payload = history()
             elif url.path == "/api/run":
                 payload = run_events(arg("session"))
+            elif url.path == "/api/showcase":
+                payload = showcase_story(arg("session"))
             elif url.path in ("/", "/index.html"):
                 return self.reply(PAGE_FILE.read_bytes(), "text/html; charset=utf-8")
             else:
@@ -395,7 +410,7 @@ def serve(port=8790, live=None, runs=None, roots=None, offline=False, background
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     if not offline:
         threading.Thread(target=team_loop, name="team-best", daemon=True).start()
-    print(f"Hollerau buyer Live on http://127.0.0.1:{port}  (reading {live_dir()})", flush=True)
+    print(f"Hack IT Buyer Live on http://127.0.0.1:{port}  (reading {live_dir()})", flush=True)
     if background:
         threading.Thread(target=server.serve_forever, name="liveview", daemon=True).start()
         return server
@@ -404,7 +419,7 @@ def serve(port=8790, live=None, runs=None, roots=None, offline=False, background
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(prog="buyer gui", description="Hollerau buyer live watch UI")
+    ap = argparse.ArgumentParser(prog="buyer gui", description="Hack IT Buyer live watch UI")
     ap.add_argument("--port", type=int, default=8790)
     ap.add_argument("--live", default=None, help="folder with the live case files (default logs/live)")
     ap.add_argument("--offline", action="store_true", help="never contact the arena")
