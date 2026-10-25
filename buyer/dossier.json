@@ -6606,9 +6606,9 @@
      },
      {
       "label": "price_frozen",
-      "quote": "List conditions; supply from stock only.",
-      "source": "quote:7300072",
-      "by": "reader agent"
+      "quote": "Standard items will be supplied from stock at list conditions; individual agreements will not be extended.",
+      "source": "doc:20260817-70650-M1",
+      "by": "reader agent, checked by the team"
      }
     ],
     "summary": "The supplier has idle capacity but treats us as a non-strategic account supplied from stock at list conditions, with price moves above a small share needing committee approval, so only meaningful volume is likely to move it.",
@@ -6627,8 +6627,8 @@
     "read_ok": true
    },
    "review": {
-    "status": "auto",
-    "note": "REVISAR: price_frozen sale de \"List conditions; supply from stock only\" - puede ser solo deprioritising_us. Si es error, el agente solo es mas prudente."
+    "status": "checked",
+    "note": "25-10: price_frozen confirmado por su correo de agosto (precio de lista, sin acuerdos individuales); cita cambiada a esa frase. Coherente con deprioritising_us y con Waelzlager (P04, 0.86)."
    }
   },
   "sup:70710": {
