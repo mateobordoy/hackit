@@ -32,7 +32,7 @@ class State:
 
 def respond(p, st, x):
     """(status, its price, next state) for hypothesis `p` answering our price `x`."""
-    floor, beta, alpha, patience, min_move, holds_max = p
+    floor, beta, alpha, patience, min_move, holds_max, walk_extra = p
     share = beta if st.k == 1 else alpha
     target = max(floor, st.c_prev - share * (st.c_prev - floor))
     if x >= target - 1e-9:
@@ -43,7 +43,7 @@ def respond(p, st, x):
     gap = st.gap_sum + (target - x) / target
     holds = st.holds + 1 if st.c_prev - target < 1e-6 else 0
     nxt = State(st.k + 1, target, x, gap, holds)
-    if gap >= patience + config.WALK_EXTRA_GAP:
+    if gap >= patience + walk_extra:
         return WALK, target, nxt
     if gap >= patience or holds >= holds_max:
         return FINAL, target, nxt
@@ -70,6 +70,7 @@ class Belief:
             self.rng.uniform(*patience),
             self.rng.uniform(0.001, 0.012),
             self.rng.choice((1, 2)),
+            self.rng.uniform(*config.WALK_EXTRA_GAP),
         ]
 
     # -- learning ----------------------------------------------------------------------------
@@ -120,6 +121,7 @@ class Belief:
             p[2] = min(max(p[2] + self.rng.gauss(0, 0.03), 0.02), 0.95)
             p[3] = max(p[3] + self.rng.gauss(0, 0.02), 0.03)
             p[4] = min(max(p[4] + self.rng.gauss(0, 0.001), 0.0), 0.03)
+            p[6] = max(p[6] + self.rng.gauss(0, 0.01), 0.0)
         self.particles, self.weights = out, [1.0 / self.n] * self.n
 
     # -- reading it --------------------------------------------------------------------------

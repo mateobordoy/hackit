@@ -15,7 +15,7 @@ def play(true, belief, xs):
 
 
 def test_belief_finds_the_floor_from_the_counters():
-    true = [0.86, 0.4, 0.35, 0.5, 0.004, 2]
+    true = [0.86, 0.4, 0.35, 0.5, 0.004, 2, 0.1]
     b = Belief(0.92, 0.05)
     play(true, b, [0.78, 0.81, 0.83, 0.845])
     assert abs(b.quantile(0.5) - 0.86) < 0.025
@@ -23,7 +23,7 @@ def test_belief_finds_the_floor_from_the_counters():
 
 
 def test_respond_agrees_when_our_sheet_reaches_its_next_counter():
-    p = [0.9, 0.5, 0.3, 0.5, 0.004, 2]
+    p = [0.9, 0.5, 0.3, 0.5, 0.004, 2, 0.1]
     st = State(2, 0.95, 0.85)
     target = 0.95 - 0.3 * (0.95 - 0.9)
     assert respond(p, st, target)[0] == AGREED

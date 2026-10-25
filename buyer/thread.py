@@ -16,6 +16,7 @@ class Thread:
     anchor: float | None = None
     target: float | None = None  # relationship goals: the price with the lowest C
     near_cost: bool = False
+    full_cost_known: bool = False  # from a should-cost, not assumed from the quote
     claims: list = field(default_factory=list)
     belief: Belief | None = None
     ours: list = field(default_factory=list)  # our prices at `terms`, one per sheet sent

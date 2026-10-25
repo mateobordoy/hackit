@@ -84,7 +84,10 @@ PARTICLES = 400  # [eng] 400 x 12 candidates x 9 rounds runs in ~0.1 s
 CANDIDATE_SHARES = (0.12, 0.18, 0.25, 0.32, 0.4, 0.5, 0.6)
 OBS_SIGMA = 0.008  # counter noise as a share of the opening price; repeat runs differ 1-2 % [pc]
 STATUS_MATCH = 0.85  # likelihood that the model predicts the status the supplier really sent
-WALK_EXTRA_GAP = 0.15  # beyond its patience by this much, a supplier walks instead of finalling [pc]
+# Beyond its patience by this much (a range: each hypothesis draws its own), a supplier walks
+# instead of finalling. Nordmark walked without a final offer at 19 % (P02 v1, and in our own P02
+# run at 14 %); others finalled at 36-42 % and walked at 39 % (P05). [pc]
+WALK_EXTRA_GAP = (0.0, 0.15)
 SEED = 7  # deterministic particles: identical inputs give identical moves [eng]
 # Accept its standing sheet before its final word only when going on is worth less than this share
 # of C (the model does not know that a token move can make a supplier raise its final). [pc]
@@ -108,6 +111,9 @@ CLAUSE_MIN_GAIN = 0.02
 # Switch to a package the supplier quoted only when it is clearly cheaper: a 0.1 % threshold let a
 # transient spread lock in a looser ppm commitment that cost money (P11). [pc]
 ADOPT_MIN_GAIN = 0.003
+# True full cost / should-cost: P01 129.5-130.7 vs 132.64, P02 367.4-371.7 vs 374.95, P03
+# 394.7-399.4 vs 403.21, solved from the relationship charge of practice deals. [pc]
+SHOULD_COST_BIAS = 0.985
 EXTRA_SHEETS_MAX = 2  # arena max 3 sheets per message [kit]
 
 # --- Evidence ------------------------------------------------------------------------------------

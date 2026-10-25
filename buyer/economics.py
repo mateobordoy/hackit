@@ -98,6 +98,15 @@ def clause_share(clause, est):
     return min(config.CLAUSE_VALUE_MAX, (clause.get("material_share") or 0) * exposed)
 
 
+def clause_cost_share(case, clause):
+    """Our cost of a clause as a share of the spend: the case's path beyond the deadband plus the
+    index risk charge."""
+    b = case["buyer"]
+    share, deadband = clause.get("material_share") or 0, (clause.get("deadband_pct") or 0) / 100
+    path = abs(b.get("index_paths", {}).get(clause.get("series"), 0.0))
+    return share * max(0.0, path - deadband) + share * b.get("index_risk_pct", 0) / 100
+
+
 def value(case, terms, est):
     """What a sheet is worth to the supplier per unit, in cash at its standard terms, plus its
     clause value, less the overtime a faster delivery than it quoted costs it."""

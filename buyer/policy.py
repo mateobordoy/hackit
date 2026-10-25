@@ -140,7 +140,13 @@ class Negotiator:
             # it quotes with its margin: our estimate never sits above the quote less the
             # sustainable margin; without a should-cost assume it quotes two points above it
             cap = quoted_value * (1 - sustainable / 100)
-            full_cost = min(full_cost, cap) if full_cost else quoted_value * (1 - (sustainable + 2) / 100)
+            t.full_cost_known = bool(full_cost)
+            if full_cost:
+                # the should-cost overshot the true full cost by 1-2 % on P01, P02 and P03 (the
+                # relationship charge of 32 practice deals reveals it) [pc]
+                full_cost *= config.SHOULD_COST_BIAS
+            # D01 (no should-cost): its full cost sat at most at 48.9 against a 53.41 quote [pc]
+            full_cost = min(full_cost, cap) if full_cost else quoted_value * (1 - (sustainable + 4) / 100)
             t.est["full_cost"] = full_cost
         t.near_cost = bool(own_plant and full_cost and full_cost >= config.NEAR_COST_RATIO * q_price)
         ratio = self.anchor_ratio(t, q_price)
@@ -151,11 +157,12 @@ class Negotiator:
         if t.anchor >= t.q0 * config.MAX_SHARE_OF_COUNTER:
             t.anchor = round(t.q0 * ratio, 2)
             t.terms = eco.at_price(t.terms, t.anchor)
-        t.theirs = [t.q0]
         if t.est.get("full_cost") and goal in eco.RELATIONSHIP_GOALS:
             t.target = safe(
                 lambda: eco.relationship_optimum(case, t.terms, t.std, t.est, t.est["full_cost"] * 0.85, t.q0)
             )
+            safe(lambda: self.clause_trade(t, quote, signals))
+        t.theirs = [t.q0]
         mean, sd = supplier.floor_prior(case, t.prof, t.near_cost)
         if own_plant and full_cost:
             cost_share = eco.price_for_value(case, t.terms, t.est, full_cost) / t.q0
@@ -193,6 +200,34 @@ class Negotiator:
         if case.get("type") == "price_increase" and current:
             ratio = min(ratio, current / q_price)  # a price increase opens at today's price at most
         return max(config.ANCHOR_MIN, ratio)
+
+    def clause_trade(self, t, quote, signals):
+        """Relationship goals: an index clause the supplier values well above what it costs us, given
+        on top of a price at our relationship optimum. A lower fixed price only buys a relationship
+        charge; the clause pays the supplier instead. Nordmark agreed at once to a 5 % copper deadband
+        4.3 % below its fixed price (P02 0.735, our fixed-price runs 0.50 and 0.00). [pc]"""
+        case = self.case
+        if "index_clause" not in case["negotiable"] or t.terms.get("index_clause") or "hedged" in signals:
+            return
+        best = None
+        for clause in (case.get("term_options") or {}).get("index_clause") or []:
+            if not clause:
+                continue
+            gain = eco.clause_share(clause, t.est) - eco.clause_cost_share(case, clause)
+            key = (round(gain, 4), clause.get("deadband_pct") or 0)
+            if gain >= config.CLAUSE_MIN_GAIN and (best is None or key > best[0]):
+                best = (key, clause)
+        if not best:
+            return
+        terms = {**t.terms, "index_clause": best[1]}
+        price = eco.price_for_value(case, terms, t.est, eco.value(case, t.terms, t.est))
+        q0 = eco.convert(case, quote, t.est, terms)
+        floor = eco.relationship_optimum(case, terms, t.std, t.est, t.est["full_cost"] * 0.85, max(q0, price) * 1.1)
+        price = max(price, floor or 0.0)
+        if not eco.must_haves_ok(case, eco.at_price(terms, price), t.std):
+            return
+        t.terms, t.anchor, t.target, t.q0 = eco.at_price(terms, price), round(price, 2), floor, max(q0, price * 1.01)
+        self.note(t.sid, "clause_trade", clause=best[1], gain=best[0][0], anchor=t.anchor, target=floor)
 
     def index_moves(self):
         """Each clause series' change over the last twelve months: what the supplier expects."""
@@ -411,7 +446,7 @@ class Negotiator:
             t.state = "done"
             self.note(sid, "at_ceiling", cap=cap)
             return None
-        if t.ours and t.target and theirs <= t.target:
+        if t.ours and t.target and t.full_cost_known and theirs <= t.target:
             t.state = "done"
             self.note(sid, "at_relationship_target", target=t.target, theirs=round(theirs, 2))
             return None
@@ -437,10 +472,10 @@ class Negotiator:
             return round(price, 2), config.CLAIMS_FIRST_ROUND
         last = t.ours[-1]
         deep = len(t.ours) == 1 and t.first_drop >= config.DEEP_FIRST_DROP and not t.term_change
-        if deep and threads and self.cheaper_rival(t, threads):
-            # a job shop's deep first drop: held at the anchor with a cheaper rival's offer cited,
-            # it gave "the rest of the step" and agreed there (P05 0.828); a hold without that
-            # reason reads as a token move (P05: "you only moved a few cents", then a walk) [pc]
+        if deep:
+            # a job shop's deep first drop: held at the anchor it agreed at our second sheet in
+            # every run (Dralveck 27.86, P05 0.828; our 28.25 after a step: 0.788). Token moves
+            # after that, not the hold, drew "you only moved a few cents" and a walk. [pc]
             self.note(t.sid, "hold_after_deep_drop", drop=round(t.first_drop, 4))
             return round(last * 1.002, 2), config.CLAIMS_LATER
         st = t.state_now()
@@ -526,9 +561,6 @@ class Negotiator:
                 if price and price < t.theirs[-1]:
                     out.append((price, rival_offer(other, oid, float(terms["unit_price"]))))
         return [c for _, c in sorted(out, key=lambda r: r[0])]
-
-    def cheaper_rival(self, t, threads):
-        return bool(self.rivals(t, threads))
 
     def pick(self, t, n, threads):
         """Unused claims: in an RFQ the cheapest rival offer first (a new offer every round),

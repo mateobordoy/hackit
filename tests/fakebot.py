@@ -60,6 +60,10 @@ class Bot:
             self.status, self.terms, self.price = "agreed", dict(pick), x
             return
         moved = self.last_ours is None or (x - self.last_ours) / self.last_ours >= self.min_move
+        # a job shop that dropped deep at once reads a held anchor as firmness, not as a token move:
+        # "you only moved a few cents, but I want to keep our machines running" (P05) [pc]
+        if self.n == 2 and (self.quote - self.price) / self.quote >= 0.06:
+            moved = True
         self.last_ours = x
         self.terms = {k: v for k, v in pick.items() if k != "unit_price"}
         if not moved:
