@@ -115,7 +115,7 @@ def spend_file():
 
 
 def budget_eur():
-    return float(os.environ.get("HACKIT_BUDGET_EUR", "30"))
+    return float(os.environ.get("HACKIT_BUDGET_EUR", "150"))
 
 
 def spent_eur():
