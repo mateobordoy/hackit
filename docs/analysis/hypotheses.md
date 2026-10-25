@@ -78,6 +78,22 @@ Off by default. Switch on with `--hypotheses on` or `HACKIT_HYPOTHESES=1`. Nothi
   - P08 off 114763d78cc0549e 0.693, P08 on 2b313e93387cbc5a 0.693, P10 off 095bfc1671fb8050 0.679;
   - all without briefs or hypotheses, so they say nothing about the feature.
   - Rerun once credit is restored: `HACKIT_BUDGET_EUR=<cap> uv run python scripts/hypothesis_ab.py --set practice --cases P08 P10 P18 --out logs/hypothesis-ab-practice`
+- **Practice, new API key** (25 Oct ~05:00, Burak's OK, cap +20 EUR, about EUR 2.1 spent). Research frozen: P08 6, P10 9, P18 8 hypotheses. Production reader and writer in both arms.
+
+  | Case | Off | On | Difference |
+  |---|---|---|---|
+  | P08 | 0.659 (4f45686840fdd2c9) | 0.668 (c425d24297142e54) | +0.008, C EUR 1,492 lower |
+  | P10 | 0.663 (dc7383309aa19003) | 0.663 (98c5fbfc0e5f1ef3) | 0 |
+  | P18 | 0.621 (9f195dc0b299b01e) | 0.621 (c2550dce086b8958) | 0 |
+
+  What the messages show (`scripts/hypothesis_ab_messages.py` writes them side by side):
+  - **Round 1 was the same in both arms.** The lead's prepared trade was already the AS-14404 index clause (deadband 0), so both arms sent the same two sheets. The top hypothesis (H1, the same clause) was "supported" because the supplier took the clause. These distributors insist on the clause anyway, so the verdict is true but was not caused by our move.
+  - **P08 differs from round 2 on.** ON offered the clause with a 3 % and then a 5 % deadband as cost-neutral extra sheets; OFF offered none. The supplier answered with deadband-3 and deadband-5 sheets, and its final offer was EUR 5.36 with a 5 % deadband (OFF: EUR 5.25 with 0 %, or 5.37 with 5 %). The accepted package cost us EUR 1,492 less in total, from less index risk.
+  - **P18:** ON's deadband-3 sheet was answered at a higher price (5.30 vs 5.20). Both arms ended at the same final sheet (EUR 5.10, deadband 0).
+  - **P10:** the only valid hypotheses were "lead with order history / should-cost". They changed the evidence order, nothing else; the supplier's counters and final offer were identical, and the verdicts stayed ambiguous.
+  - Our main price was never changed by a hypothesis. Where main prices differ (P08 round 2: 5.00 vs 4.93), the supplier's earlier counter and the reader's tactic differed between the runs, as text varies in production mode.
+
+  **Verdict:** the mechanism works end to end on real suppliers and is harmless in these runs. Its only gain (P08, +0.008) came from trying wider index-clause deadbands. That is one run per arm, inside the run-to-run noise. Not enough evidence to switch it on for the final.
 - **Harness fix:** every fresh simulator numbers its sessions sim1, sim2…, so the per-case run log is now looked up by case and session.
 
 ## Limits to keep in mind
