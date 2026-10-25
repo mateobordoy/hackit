@@ -8,6 +8,7 @@ bargain; finally the cheapest acceptable sheet is accepted. `run_final` is the L
 import functools
 import json
 import logging
+import math
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -25,7 +26,7 @@ from arena_kit.play import (
     quota_used_up,
 )
 
-from . import lessons, model, settings, telemetry
+from . import lessons, model, pricing, settings, telemetry
 from .mailer import keepalive_message
 from .negotiation import FINISHED, SETTLED, Negotiator, SupplierThread
 from .prep import briefing
@@ -117,7 +118,7 @@ def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
     )
     for supplier_id, events in threads.items():
         for message in events:
-            publish_message(supplier_id, message)
+            publish_message(supplier_id, message, negotiator)
     for supplier_id, events in threads.items():
         try:
             negotiator.open_thread(supplier_id, events)
@@ -135,8 +136,21 @@ def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
     silent_rounds = dict.fromkeys(threads, 0)  # timeouts of earlier waits that our message count lacks
     streak = dict.fromkeys(threads, 0)  # timeouts in a row not yet reset by a delivered message
     round_trip_s = settings.FIRST_ROUND_TRIP_S  # the slowest send so far
-    # round one goes out cheapest quote first: if a clock runs out, it is the least promising one's
-    first_round_order = sorted(threads, key=lambda sid: negotiator.suppliers[sid].quote_at_plan or float("inf"))
+    # round one goes out lowest total buyer cost (C) first: if a clock runs out, it is the least promising one's
+    first_round_order = sorted(
+        threads,
+        key=lambda sid: (
+            pricing.buyer_cost(
+                case,
+                pricing.priced(negotiator.suppliers[sid].plan, negotiator.suppliers[sid].quote_at_plan),
+                negotiator.suppliers[sid].standard,
+                negotiator.suppliers[sid].valuation,
+            )
+            if negotiator.suppliers[sid].quote_at_plan
+            else float("inf"),
+            negotiator.suppliers[sid].quote_at_plan or float("inf"),
+        ),
+    )
     rank = {sid: i for i, sid in enumerate(first_round_order)}
     result = None
 
@@ -191,7 +205,7 @@ def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
             if move is None:
                 continue
             message = move["message"]
-        publish_message(supplier_id, {**message, "from": "buyer"})
+        publish_message(supplier_id, {**message, "from": "buyer"}, negotiator)
         sent_at = time.monotonic()
         try:
             reply = table.send(supplier_id, message)
@@ -211,7 +225,7 @@ def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
                 result = reply["result"]
                 break
             threads[supplier_id].append(reply)
-            publish_message(supplier_id, reply)
+            publish_message(supplier_id, reply, negotiator)
             if "late" in str(exc.detail).lower():
                 # it counted timeouts instead of our message; its clock restarted at the last of them
                 waited = max(1, int((sent_at - replied_at[supplier_id]) // settings.THREAD_CLOCK_S))
@@ -230,7 +244,7 @@ def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
             result = reply["result"]
             break
         threads[supplier_id] += [{**message, "from": "buyer"}, reply]
-        publish_message(supplier_id, reply)
+        publish_message(supplier_id, reply, negotiator)
         replied_at[supplier_id] = time.monotonic()
     if result is None:
         for events in threads.values():  # the latest quote PDFs: standard terms for the close
@@ -254,11 +268,24 @@ def _play_case(table, case_id, live_path, pkg, deadline, complete, team, learn):
     return result
 
 
-def publish_message(supplier_id, message):
-    """One e-mail in or out, in full, for the live view."""
+def _finite_cost(c):
+    return round(c, 2) if c is not None and math.isfinite(c) else None
+
+
+def publish_message(supplier_id, message, negotiator=None):
+    """One e-mail in or out, in full, for the live view (including each sheet's total buyer cost C)."""
     if telemetry.current() is None:
         return
     sheets = message.get("term_sheets") or []
+    terms_list = [sheet.get("terms") for sheet in sheets]
+    sheet_costs = []
+    if negotiator is not None:
+        thread = negotiator.suppliers.get(supplier_id)
+        standard = thread.standard if thread else None
+        valuation = thread.valuation if thread else None
+        for terms in terms_list:
+            c = pricing.buyer_cost(negotiator.case, terms or {}, standard, valuation) if terms else math.inf
+            sheet_costs.append(_finite_cost(c))
     telemetry.emit(
         "message_out" if message.get("from") == "buyer" else "message_in",
         supplier=supplier_id,
@@ -266,7 +293,8 @@ def publish_message(supplier_id, message):
         status=message.get("status"),
         subject=message.get("subject"),
         body=message.get("body"),
-        sheets=[sheet.get("terms") for sheet in sheets],
+        sheets=terms_list,
+        sheet_costs=sheet_costs,
         offer_ids=[sheet.get("term_sheet_id") for sheet in sheets],
         refs=message.get("refs"),
         claim_results=message.get("claim_results"),
@@ -276,21 +304,38 @@ def publish_message(supplier_id, message):
 
 
 def publish_state(negotiator, supplier_id):
-    """A thread's numbers after a move, for the live view's state panel and price chart."""
+    """A thread's numbers after a move, for the live view's state panel, total-cost (C) and price chart."""
     if telemetry.current() is None:
         return
     thread = negotiator.suppliers.get(supplier_id)
     if thread is None:
         return
+    case = negotiator.case
+
+    def cost_at_plan(price):
+        if price is None:
+            return None
+        return _finite_cost(
+            pricing.buyer_cost(case, pricing.priced(thread.plan, price), thread.standard, thread.valuation)
+        )
+
+    our_costs = [cost_at_plan(p) for p in thread.our_prices]
+    their_costs = [cost_at_plan(p) for p in thread.their_prices]
     telemetry.emit(
         "thread_state",
         supplier=supplier_id,
         phase=thread.phase,
         our_prices=thread.our_prices,
         their_prices=thread.their_prices,
+        our_costs=our_costs,
+        their_costs=their_costs,
         opening=thread.opening_price,
+        opening_cost=cost_at_plan(thread.opening_price),
         quote_at_plan=thread.quote_at_plan,
+        quote_cost=cost_at_plan(thread.quote_at_plan),
         sweet_spot=thread.sweet_spot,
+        sweet_spot_cost=cost_at_plan(thread.sweet_spot),
+        fallback_cost=_finite_cost(pricing.fallback_cost(case)),
         patience=thread.patience,
         patience_used=round(sum(thread.gap_history), 4),
         tactic=thread.tactic,

@@ -257,27 +257,41 @@ function flowHTML(){
  <p class="flow-scope">${r.summary?'Function traces contain compact summaries. Full arguments were not captured.':'Content is taken from this run’s telemetry. Model prompts and answers may be truncated at recording time.'}</p>
  <div class="payload-grid">${requests}${response}</div>${rows.length>1?`<div class="recent-transfers"><span class="eyebrow">RECENT ON THIS CONNECTION</span>${rows.slice(0,8).map(x=>`<button class="btn ${x.id===r.id?'on':''}" onclick="inspectTransfer(${esc(JSON.stringify(x.id))})">${tm(x.at)} · ${esc(x.label)}${x.supplier?' · '+esc(x.supplier):''}</button>`).join('')}</div>`:''}`;
 }
-function sheetChip(t,i,n){if(!t)return'';const keys=['payment_days','contract_months','volume_per_year','lead_time_days','incoterm','index_clause','ppm_commitment'];
- const extra=keys.filter(k=>t[k]!=null&&t[k]!=='').map(k=>k==='index_clause'?(t[k]?'index '+t[k].series:'fixed price'):`${k.replace(/_/g,' ')} ${t[k]}`).join(' · ');
- return `<div class="sheet">${n>1?'Option '+String.fromCharCode(65+i)+': ':''}<b>€${fmt(t.unit_price)}</b> <span class="muted">${esc(extra)}</span></div>`}
+const eur0=v=>v==null||isNaN(v)?'–':'€'+Math.round(Number(v)).toLocaleString('en-US');
+function sheetChip(t,i,n,cost){if(!t)return'';const keys=['payment_days','contract_months','volume_per_year','lead_time_days','incoterm','index_clause','ppm_commitment'];
+ const extra=keys.filter(k=>t[k]!=null&&t[k]!=='').map(k=>k==='index_clause'?(t[k]?'index '+t[k].series+(t[k].deadband_pct!=null?' ('+t[k].deadband_pct+'% db)':''):'fixed price'):`${k.replace(/_/g,' ')} ${t[k]}`).join(' · ');
+ const cBadge=cost!=null?` · <span style="color:var(--ok);font-weight:600">Total C ${eur0(cost)}</span>`:'';
+ return `<div class="sheet">${n>1?'Option '+String.fromCharCode(65+i)+': ':''}<b>€${fmt(t.unit_price)}</b>${cBadge} <span class="muted">${esc(extra)}</span></div>`}
 function chatHTML(){if(!S.msgs.length)return '<div class="muted">no e-mails yet (the preparation team works before the first e-mail)</div>';
  return S.msgs.map(m=>{if(m.event==='timeout')return `<div class="muted" style="text-align:center;font-size:11.5px;margin:6px 0">⏱ timeout · ${esc(m.supplier||'')} · round ${esc(m.round??'?')}</div>`;
   const out=m.event==='message_out';const claims=(m.claim_results||[]).map(c=>`<span class="claim ${c.result==='verified'?'c-verified':c.result==='contradicted'?'c-contradicted':'c-other'}">claim ${c.index+1}: ${esc(c.result)}</span>`).join('');
   const body=m.action?`<b>${esc(m.action.type)}</b> ${esc(m.action.term_sheet_id||'')}`:`<pre>${esc(m.body||'')}</pre>`;
+  const costs=m.sheet_costs||[];
   return `<div class="msg ${out?'out':'in'}"><div class="who"><b style="color:${out?'var(--us)':'var(--them)'}">${out?'Hollerau (hackit2)':esc(m.sender||m.supplier)}</b><span>${esc(m.supplier)}</span>
    ${m.status?`<span class="pill ${m.status==='open'?'live':m.status==='agreed'?'done':'bad'}">${esc(m.status)}</span>`:''}<span>${tm(m.at)}</span>
    ${(m.refs||[]).length?`<span class="badge">${m.refs.length} refs</span>`:''}${(m.attachments||[]).length?`<span class="badge">📎 ${esc(m.attachments.join(', '))}</span>`:''}</div>
-   ${body}${(m.sheets||[]).length?`<div class="sheets">${m.sheets.map((t,i)=>sheetChip(t,i,m.sheets.length)).join('')}</div>`:''}${claims?`<div style="margin-top:6px">${claims}</div>`:''}</div>`}).join('')}
-function chart(st){const th=st.their_prices||[],ou=st.our_prices||[];const vals=[...th,...ou,st.sweet_spot,st.quote_at_plan].filter(v=>v!=null&&v>0);if(!vals.length)return'';
- let lo=Math.min(...vals),hi=Math.max(...vals);if(hi-lo<1e-6){hi+=1;lo-=1}const pad=(hi-lo)*.08;lo-=pad;hi+=pad;
- const n=Math.max(th.length,ou.length,2),W=420,H=150,P=24,x=i=>P+i*(W-2*P)/(n-1),y=v=>H-14-(v-lo)/(hi-lo)*(H-28);
- const line=(a,c,dy)=>a.length?`<polyline fill="none" stroke="${c}" stroke-width="2.4" points="${a.map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`+a.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="3.6" fill="${c}"><title>${fmt(v)}</title></circle><text x="${x(i)}" y="${y(v)+dy}" text-anchor="middle" style="font-size:10px;fill:${c}">${fmt(v)}</text>`).join(''):'';
- const hl=(v,c,l)=>v?`<line x1="${P}" x2="${W-P}" y1="${y(v)}" y2="${y(v)}" stroke="${c}" stroke-dasharray="4 4"/><text x="${W-P}" y="${y(v)-3}" text-anchor="end" style="font-size:10px;fill:${c}">${l} ${fmt(v)}</text>`:'';
- return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${hl(st.sweet_spot,'var(--ok)','sweet spot')}${hl(st.quote_at_plan,'#5c6478','quote')}${line(th,'var(--them)',-7)}${line(ou,'var(--us)',15)}</svg>`}
+   ${body}${(m.sheets||[]).length?`<div class="sheets">${m.sheets.map((t,i)=>sheetChip(t,i,m.sheets.length,costs[i])).join('')}</div>`:''}${claims?`<div style="margin-top:6px">${claims}</div>`:''}</div>`}).join('')}
+function chart(st){const thC=(st.their_costs||[]).filter(v=>v!=null&&v>0),ouC=(st.our_costs||[]).filter(v=>v!=null&&v>0);
+ const useCost=thC.length||ouC.length;
+ const th=useCost?(st.their_costs||[]):st.their_prices||[],ou=useCost?(st.our_costs||[]):st.our_prices||[];
+ const thP=st.their_prices||[],ouP=st.our_prices||[];
+ const refQuote=useCost?st.quote_cost:st.quote_at_plan,refSweet=useCost?st.sweet_spot_cost:st.sweet_spot;
+ const vals=[...th,...ou,refSweet,refQuote].filter(v=>v!=null&&v>0);if(!vals.length)return'';
+ let lo=Math.min(...vals),hi=Math.max(...vals);if(hi-lo<1e-6){hi+=1;lo-=1}const pad=(hi-lo)*.12;lo-=pad;hi+=pad;
+ const n=Math.max(th.length,ou.length,2),W=420,H=158,P=28,x=i=>P+i*(W-2*P)/(n-1),y=v=>H-16-(v-lo)/(hi-lo)*(H-32);
+ const lbl=(v,p)=>useCost?`${eur0(v)}${p!=null?' (€'+fmt(p)+')':''}`:fmt(v);
+ const shortLbl=(v,p)=>useCost?`€${(v/1000).toFixed(1)}k (${fmt(p)})`:fmt(v);
+ const line=(a,ap,c,dy)=>a.length?`<polyline fill="none" stroke="${c}" stroke-width="2.4" points="${a.map((v,i)=>v!=null?x(i)+','+y(v):'').filter(Boolean).join(' ')}"/>`+a.map((v,i)=>v!=null?`<circle cx="${x(i)}" cy="${y(v)}" r="3.6" fill="${c}"><title>${lbl(v,ap[i])}</title></circle><text x="${x(i)}" y="${y(v)+dy}" text-anchor="middle" style="font-size:9.5px;fill:${c}">${shortLbl(v,ap[i])}</text>`:'').join(''):'';
+ const hl=(v,c,l)=>v?`<line x1="${P}" x2="${W-P}" y1="${y(v)}" y2="${y(v)}" stroke="${c}" stroke-dasharray="4 4"/><text x="${W-P}" y="${y(v)-3}" text-anchor="end" style="font-size:9.5px;fill:${c}">${l} ${useCost?eur0(v):fmt(v)}</text>`:'';
+ return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${hl(refSweet,'var(--ok)','sweet spot C')}${hl(refQuote,'#5c6478',useCost?'quote C':'quote')}${line(th,thP,'var(--them)',-7)}${line(ou,ouP,'var(--us)',15)}</svg>`}
 function statesHTML(){return S.suppliers.map(sid=>{const st=S.states[sid];if(!st)return `<div class="sup"><b>${esc(sid)}</b> <span class="muted">waiting…</span></div>`;
  const used=st.patience?Math.min(1,(st.patience_used||0)/st.patience):0;
+ const ourLastC=(st.our_costs||[])[(st.our_costs||[]).length-1],theirLastC=(st.their_costs||[])[(st.their_costs||[]).length-1];
+ const saving=(st.quote_cost!=null&&theirLastC!=null)?st.quote_cost-theirLastC:null;
  return `<div class="sup"><div class="flex" style="justify-content:space-between"><b>${esc(sid)}</b><span class="pill ${st.phase==='active'?'live':st.phase==='gone'?'bad':'done'}">${esc(st.phase)}</span></div>
-  ${chart(st)}<div class="kv"><span>opening</span><span>€${fmt(st.opening)} · quote at our terms €${fmt(st.quote_at_plan)}</span>
+  ${chart(st)}<div class="kv">
+  <span>total cost (C)</span><span><b style="color:var(--us)">ours ${eur0(ourLastC??st.opening_cost)}</b> · <b style="color:var(--them)">theirs ${eur0(theirLastC)}</b> · quote ${eur0(st.quote_cost)}${saving!=null?` · <span style="color:${saving>=0?'var(--ok)':'var(--bad)'}">saving ${saving>=0?'+':''}${eur0(saving)}</span>`:''}${st.fallback_cost!=null?` · alt ${eur0(st.fallback_cost)}`:''}</span>
+  <span>unit price</span><span>opening €${fmt(st.opening)} · quote at our terms €${fmt(st.quote_at_plan)}${st.sweet_spot!=null?` · sweet spot €${fmt(st.sweet_spot)} (${eur0(st.sweet_spot_cost)})`:''}</span>
   <span>patience</span><span><div class="bar"><i style="width:${(used*100).toFixed(0)}%"></i></div><span class="muted">${fmt(st.patience_used,3)} of ${fmt(st.patience,2)} used</span></span>
   <span>reader</span><span>${st.tactic?`<span class="chipm">${esc(st.tactic)}</span>`:'<span class="muted">–</span>'} ${st.mood?`mood ${esc(st.mood)}`:''}</span>
   <span>requests</span><span>${(st.requests||[]).join(', ')||'–'}</span><span>plan</span><span class="muted">${esc(Object.entries(st.plan||{}).map(([k,v])=>`${k}=${typeof v==='object'?(v?v.series:'none'):v}`).join(' · '))}</span>
@@ -394,7 +408,7 @@ function render(force){if(VIEW!=='case'||!SEL||!S)return;const c=CASES.find(x=>x
    <div class="card architecture-card"><div class="section-heading"><div><span class="eyebrow">SYSTEM EXPLORER</span><h2>One buyer. A connected negotiation system.</h2><p class="muted">See how supplier messages and our data become a checked offer. Every connection is inspectable.</p></div><span class="pill done">read-only view</span></div>
    <div class="map-legend"><span><i class="legend-dot buyer"></i>Buyer code</span><span><i class="legend-dot seller"></i>Seller / Arena</span><span><i class="legend-dot data"></i>Data</span><span><i class="legend-dot llm"></i>Language model</span><span class="muted">Moving = recent activity · dotted = not captured · click for details</span></div>
    <div class="map-scroll"><div id="mapbox"></div></div><div id="flowdetail" class="flow-inspector" aria-live="polite"></div></div>
-   <div class="grid2"><div class="card"><h2>Conversation · Buyer ↔ Seller</h2><div class="chat" id="chat"></div></div><div class="card"><h2>Offer comparison · Prices &amp; current terms</h2><div id="states"></div></div></div>
+   <div class="grid2"><div class="card"><h2>Conversation · Buyer ↔ Seller</h2><div class="chat" id="chat"></div></div><div class="card"><h2>Offer comparison · Total cost (C) &amp; unit prices</h2><div id="states"></div></div></div>
    <div class="card"><div class="tabs" id="tabs"></div><div id="tabbody"></div></div>`}
  const title=S.head.title||S.session.title||c.title||'';$('#ctitle').textContent=`${SEL} · ${title}`;
  const sid=S.session.session_id||c.session_id;

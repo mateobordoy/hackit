@@ -5,6 +5,7 @@ switching to a cheaper package the supplier quoted, and the guards against repea
 `self.price_at_plan` and `self.log_event`."""
 
 import json
+import math
 import re
 
 from .. import pricing, settings, telemetry
@@ -90,14 +91,18 @@ class PackageDesk:
     @telemetry.traced("negotiation.packages.prepared_alternatives", result_view=telemetry.prices_view)
     def prepared_alternatives(self, thread, main):
         """The lead researcher's trades as extra sheets next to our opening sheet `main`. Each changes
-        one term and is priced so it costs us exactly what `main` costs: whichever the supplier picks,
-        we lose nothing and learn what it values. A trade priced at or above what the supplier quotes
-        for those terms, or far below it, is left out."""
+        one term and is priced by total buyer cost (C): when a trade creates joint surplus (its price at
+        `main`'s supplier worth already lowers our C), the saving in C is split between us and the
+        supplier; otherwise it is priced C-neutral (`cost_at(price) == main_cost`). Trades that loosen
+        quality or volunteer an unvetted index clause are never offered."""
         case, sheets = self.case, []
         main_cost = pricing.buyer_cost(case, main, thread.standard, thread.valuation)
+        main_worth = pricing.supplier_worth(case, main, thread.valuation)
         for trade in thread.prep_trades:
+            if trade.get("field") == "index_clause" and main.get("index_clause") is None:
+                continue  # offer_index_clause already vetted index clauses against C and supplier hedging
             terms = {**main, trade["field"]: trade["value"]}
-            if terms == main or not pricing.must_haves_ok(case, terms, thread.standard):
+            if terms == main or loosens_quality(main, terms) or not pricing.must_haves_ok(case, terms, thread.standard):
                 continue
 
             def cost_at(price, terms=terms):
@@ -112,7 +117,14 @@ class PackageDesk:
                     low = mid
                 else:
                     high = mid
-            sheet = pricing.priced(terms, int(low * 100) / 100)
+            iso_price = low
+            worth_price = pricing.price_for_worth(case, terms, thread.valuation, main_worth)
+            target_price = (
+                (worth_price + iso_price) / 2
+                if worth_price < iso_price and cost_at(worth_price) < main_cost
+                else iso_price
+            )
+            sheet = pricing.priced(terms, int(target_price * 100) / 100)
             quoted_worth = pricing.supplier_worth(
                 case, pricing.priced(thread.plan, thread.quote_at_plan), thread.valuation
             )
@@ -129,6 +141,8 @@ class PackageDesk:
                 "prepared_alternative",
                 trade=trade,
                 price=sheet["unit_price"],
+                buyer_cost=round(cost_at(sheet["unit_price"]), 2),
+                main_cost=round(main_cost, 2),
                 quoted=round(quoted, 2),
             )
         return sheets
@@ -138,7 +152,7 @@ class PackageDesk:
         """Put an index clause into our plan when the supplier values it more than it costs us (its
         driver rose over the year while the case's path is small). It is priced to be worth the same
         to the supplier as our opening without it and, in a relationship goal, no lower than the
-        relationship sweet spot. No trade when its value merely equals our cost."""
+        relationship sweet spot. No trade when its value merely equals our cost or raises our total C."""
         case = self.case
         if "index_clause" not in case["negotiable"] or quote.get("index_clause"):
             return
@@ -167,9 +181,14 @@ class PackageDesk:
                 thread.quote_at_plan,
             )
             price = max(price, floor or 0.0)
-        if not pricing.must_haves_ok(case, pricing.priced(terms, price), thread.standard):
+        candidate = pricing.priced(terms, price)
+        if not pricing.must_haves_ok(case, candidate, thread.standard):
             return
-        thread.plan = pricing.priced(terms, price)
+        if pricing.buyer_cost(case, candidate, thread.standard, thread.valuation) > pricing.buyer_cost(
+            case, thread.plan, thread.standard, thread.valuation
+        ):
+            return
+        thread.plan = candidate
         thread.opening_price = thread.plan["unit_price"]
         thread.sweet_spot = floor or thread.sweet_spot
         self.log_event(
@@ -215,8 +234,8 @@ class PackageDesk:
                 continue
             if loosens_quality(thread.plan, package):
                 continue  # P11 run 2: ppm 300 -> 800 looked cheaper in round 1, the floor was the same
-            c = pricing.acceptable_cost(case, package, thread.standard, thread.valuation)
-            if c is not None and c < planned_cost - margin:
+            c = pricing.buyer_cost(case, package, thread.standard, thread.valuation)
+            if math.isfinite(c) and c < planned_cost - margin:
                 candidates.append((c, package))
         if candidates:
             _, package = min(candidates, key=lambda row: (row[0], repr(sorted(row[1].items()))))

@@ -157,10 +157,12 @@ def test_reader_tactic_slows_the_step_or_adds_an_argument():
     assert negotiator.next_offer_price(thread, 15.5) == (steady_price, argument_count + 1)
 
 
-def test_hold_does_not_slow_our_second_sheet():
-    """Almost every first counter reads firm: a slower second step cost patience (P08, P18)."""
+def test_hold_does_not_slow_a_hedged_supplier_on_our_second_sheet():
+    """A hedged supplier's first counter always reads firm ('covered at fixed prices'), and slowing our
+    second step made it run out of patience a round early (P08: 0.538 vs 0.737)."""
     negotiator = Negotiator(leverage_case())
     thread = negotiator.open_thread("sup:S", supplier_quote("open", LEVERAGE_QUOTE))
+    thread.profile["traits"] = ["hedged"]
     thread.our_prices, thread.their_prices, thread.gap_history = [12.0], [15.88, 15.5], [0.2]
     steady_price, _ = negotiator.next_offer_price(thread, 15.5)
     thread.tactic = "hold"

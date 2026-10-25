@@ -34,22 +34,28 @@ MOOD_HINTS = {
 
 
 def index_in_first_round(evidence, hedged):
-    """Make sure a verified index fall is among the first-round claims: without one the first counter
-    started higher (P11: 47.00 vs 46.50; P08: 5.57 vs 5.52). A hedged supplier rejects its raw-material
-    index ("covered at fixed prices") but accepts producer-price/energy series, so those go first."""
-    if hedged:
-        evidence = sorted(
-            evidence, key=lambda a: 0 if a["topic"] != "index" or any("idx:PPI" in r for r in a["refs"]) else 1
-        )
+    """Make sure verified index falls are among the first-round claims: without them the first counter
+    started higher (P11: 47.00 vs 46.50; P08: 5.57 vs 5.52; P18: 5.50 vs 5.30). A hedged supplier
+    rejects its raw-material index ("covered at fixed prices") in round one, so its producer-price
+    series goes in round one while the raw-material series stays in its normal place for round two."""
     first = settings.CLAIMS_FIRST_ROUND
-    if any(a["topic"] == "index" for a in evidence[:first]):
-        return evidence
     indices = [a for a in evidence if a["topic"] == "index"]
     if not indices or first < 1:
         return evidence
-    best = indices[0]
-    rest = [a for a in evidence if a is not best]
-    return rest[: first - 1] + [best] + rest[first - 1 :]
+    if hedged:
+        ppi = [a for a in indices if any("idx:PPI" in r for r in a["refs"])]
+        wanted = (ppi or indices)[:1]
+    else:
+        wanted = indices[:first]
+    missing = [a for a in wanted if a not in evidence[:first]]
+    if not missing:
+        return evidence
+    non_wanted_head = [a for a in evidence[:first] if a not in wanted]
+    already = [a for a in evidence[:first] if a in wanted]
+    slots = max(0, first - len(wanted))
+    chosen = non_wanted_head[:slots] + already + missing
+    rest = [a for a in evidence if a not in chosen]
+    return chosen + rest
 
 
 class Negotiator(PackageDesk, ClosingDesk):
@@ -125,7 +131,6 @@ class Negotiator(PackageDesk, ClosingDesk):
         opening = quoted_price * share
         planned = guarded(lambda: pricing.cheapest_terms(case, thread.standard, thread.valuation, quote, opening))
         thread.plan = planned[0] if planned else pricing.complete_offer(case, pricing.priced(quote, opening))
-        guarded(lambda: self.ask_needed_lead_time(thread))
         thread.opening_price = thread.plan["unit_price"]
         thread.quote_at_plan = guarded(
             lambda: round(
@@ -170,27 +175,6 @@ class Negotiator(PackageDesk, ClosingDesk):
             evidence=[a["sentence"] for a in thread.evidence],
         )
         return thread
-
-    def ask_needed_lead_time(self, thread):
-        """A plan that volunteers a lead time beyond our need pays the late-delivery charge for sure, on
-        the guess that the supplier would price a faster delivery up (P10: 56 days planned against a
-        42-day need, EUR 33.6k late cost). Ask for the needed lead time at the same price instead and
-        offer the slower one as a prepared, cost-neutral alternative, so the supplier can still pick it."""
-        case = self.case
-        need = case["buyer"].get("need_lead_time_days")
-        options = (case.get("term_options") or {}).get("lead_time_days") or []
-        planned = thread.plan.get("lead_time_days")
-        if "lead_time_days" not in case.get("negotiable", []) or need not in options or planned is None:
-            return
-        if planned <= need:
-            return
-        terms = {**thread.plan, "lead_time_days": need}
-        if not pricing.must_haves_ok(case, terms, thread.standard):
-            return
-        thread.plan = terms
-        trade = {"field": "lead_time_days", "value": planned, "why": "your capacity constraint"}
-        thread.prep_trades = [trade] + [t for t in thread.prep_trades if t.get("field") != "lead_time_days"]
-        self.log_event(thread.supplier_id, "lead_time_asked", need=need, instead_of=planned)
 
     def apply_brief(self, thread, brief):
         """The preparation team's brief: prepared trades wait for our opening sheet, the playbook for
@@ -482,9 +466,10 @@ class Negotiator(PackageDesk, ClosingDesk):
         last = thread.our_prices[-1]
         prices = thread.their_prices
         first_drop = (prices[-2] - counter) / prices[-2] if len(prices) > 1 else 0.0
-        # "hold" slows us only from our third sheet on: almost every first counter reads firm, and a slower
-        # second step made the supplier run out of patience a round early (P08 0.538 vs 0.737, P18)
-        holding = thread.tactic == "hold" and len(thread.our_prices) >= 2
+        # a hedged supplier's first counter always reads firm ("covered at fixed prices"), and slowing our
+        # second step made it run out of patience a round early (P08: 0.538 vs 0.737)
+        hedged_first = "hedged" in (thread.profile.get("traits") or ()) and len(thread.our_prices) == 1
+        holding = thread.tactic == "hold" and not hedged_first
         share = settings.STEP_SHARE * (settings.HOLD_FACTOR if holding else 1.0)
         price = next_step_price(
             last,
@@ -502,16 +487,30 @@ class Negotiator(PackageDesk, ClosingDesk):
     @telemetry.traced("negotiation.engine.choose_arguments", result_view=telemetry.topics_view)
     def choose_arguments(self, thread, count, threads):
         """The next unused arguments for this supplier: in a multi-bidder case the cheapest live rival
-        offer first (a new offer is a new argument every round), then its own arguments, strongest first."""
+        offer first (ranked by total buyer cost C), then its own arguments, strongest first."""
         rivals = []
+        their_cost = (
+            pricing.buyer_cost(
+                self.case, pricing.priced(thread.plan, thread.their_prices[-1]), thread.standard, thread.valuation
+            )
+            if thread.their_prices
+            else float("inf")
+        )
         for other_id, events in threads.items():
             if other_id == thread.supplier_id or latest(events).get("status") in ENDED:
                 continue
             offer_id, terms = standing(events)
             if offer_id and terms.get("unit_price") and thread.their_prices:
+                other = self.suppliers.get(other_id)
+                other_cost = pricing.buyer_cost(
+                    self.case,
+                    terms,
+                    other.standard if other else thread.standard,
+                    other.valuation if other else thread.valuation,
+                )
                 price = self.price_at_plan(thread, terms)
-                if price < thread.their_prices[-1]:
-                    rivals.append((price, live_rival_offer(other_id, offer_id, terms["unit_price"])))
+                if other_cost < their_cost or price < thread.their_prices[-1]:
+                    rivals.append(((other_cost, price), live_rival_offer(other_id, offer_id, terms["unit_price"])))
         pool = [arg for _, arg in sorted(rivals, key=lambda row: row[0])[:1]] + thread.evidence
         chosen, chosen_families = [], set()
         for arg in pool:
