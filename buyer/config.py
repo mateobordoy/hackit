@@ -162,3 +162,5 @@ MEMORY_N0 = 4
 # means sat 0.84 to 0.975, a few points either way is a different population, more is noise. [eng]
 MEMORY_MAX_SHIFT = 0.03
 MEMORY_MAX_SD = 0.08
+# Never lower: a greedier prior cost P18 0.07 (memory.py). [pc]
+MEMORY_MAX_DOWN = 0.0

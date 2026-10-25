@@ -1,5 +1,6 @@
 """Learning between cases: the stop recorded per thread, a gradual and capped pull of the factory
-prior, only ever a wider spread, separate sets, and no shift on any error."""
+prior that only ever makes us more careful, only ever a wider spread, separate sets, and no shift on
+any error."""
 
 from types import SimpleNamespace
 
@@ -31,17 +32,25 @@ def test_no_data_no_change():
     assert memory.adjust(CASE, 0.975, 0.02) == (0.975, 0.02, None)
 
 
-def test_the_pull_is_gradual_and_capped():
+def test_the_pull_up_is_gradual_and_capped():
     factory = config.FLOOR_PRIOR["renewal"][0]
-    memory.record(CASE, neg(thread(90.0)))
-    mean1, _, note1 = memory.adjust(CASE, factory, 0.02)
-    expected = (config.MEMORY_N0 * factory + 0.90) / (config.MEMORY_N0 + 1) - factory
-    assert abs(note1["shift"] - max(-config.MEMORY_MAX_SHIFT, expected)) < 1e-4
+    memory.record(CASE, neg(thread(99.5)))
+    _, _, note1 = memory.adjust(CASE, factory, 0.02)
+    expected = (config.MEMORY_N0 * factory + 0.995) / (config.MEMORY_N0 + 1) - factory
+    assert abs(note1["shift"] - expected) < 1e-4 and 0 < note1["shift"] < config.MEMORY_MAX_SHIFT
+    case = {**CASE, "type": "rfq"}
     for _ in range(20):
+        memory.record(case, neg(thread(99.0)))
+    mean, _, note2 = memory.adjust(case, 0.84, 0.07)
+    assert note2["shift"] == config.MEMORY_MAX_SHIFT
+    assert abs(mean - (0.84 + config.MEMORY_MAX_SHIFT)) < 1e-9
+
+
+def test_softer_suppliers_never_make_us_greedier():
+    for _ in range(10):
         memory.record(CASE, neg(thread(80.0)))
-    mean2, _, note2 = memory.adjust(CASE, factory, 0.02)
-    assert note2["shift"] == -config.MEMORY_MAX_SHIFT
-    assert abs(mean2 - (factory - config.MEMORY_MAX_SHIFT)) < 1e-9
+    mean, _, note = memory.adjust(CASE, 0.975, 0.02)
+    assert note["shift"] == -config.MEMORY_MAX_DOWN and mean == 0.975 - config.MEMORY_MAX_DOWN
 
 
 def test_the_spread_only_widens_and_sets_stay_apart():
