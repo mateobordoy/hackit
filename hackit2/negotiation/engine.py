@@ -143,6 +143,10 @@ class Negotiator(PackageDesk, ClosingDesk):
         thread.evidence = guarded(lambda: self.evidence_bank.for_supplier(supplier_id, quoted_price), [])
         order = brief.get("argument_order") or []  # arguments the lead expects this supplier to accept, first
         thread.evidence.sort(key=lambda a: order.index(a["topic"]) if a["topic"] in order else len(order))
+        if settings.ORDER_HISTORY_LAST:
+            # suppliers answer our order prices with "it does not change our calculation" (0 of 194 in
+            # practice): keep the round-1 slots for arguments that can move them
+            thread.evidence.sort(key=lambda a: a["topic"] == "order_history")
         self.log_event(
             supplier_id,
             "open_thread",
