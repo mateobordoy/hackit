@@ -10,9 +10,8 @@ import math
 from arena_kit.play import ENDED, latest, live_threads, standing
 
 from .. import pricing, settings, telemetry
-from .common import ACTIVE, ECHO, FINISHED, FROZEN, SETTLED, guarded
 from .packages import same_offer
-from .thread import SupplierThread, quoted_standard_terms
+from .thread import ACTIVE, ECHO, FINISHED, FROZEN, SETTLED, SupplierThread, guarded, quoted_standard_terms
 
 # The arena ends a thread at its third timeout in a row, or at any timeout after its last round
 # (brief "Limits"; the kit's simulator `_tick`). Each full minute a supplier waits for us is a

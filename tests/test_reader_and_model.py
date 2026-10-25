@@ -6,7 +6,7 @@ import time
 
 from conftest import WILD_ANSWERS, failing_model, leverage_case, scripted_model
 
-from hackit2 import model, reply_reader
+from hackit2 import mailer, model
 
 
 def test_expired_helper_is_marked_unused_even_if_its_answer_arrives_later(tmp_path):
@@ -28,7 +28,7 @@ def test_expired_helper_is_marked_unused_even_if_its_answer_arrives_later(tmp_pa
 
 
 def test_reader_only_returns_values_from_its_lists():
-    reading = reply_reader.read_reply(
+    reading = mailer.read_reply(
         scripted_model, leverage_case(), "Which volume can you commit to?", [], [15.88], ["Wages rose."]
     )
     assert (reading["mood"], reading["tactic"], reading["argument"], reading["requests"]) == (
@@ -41,10 +41,10 @@ def test_reader_only_returns_values_from_its_lists():
     def outdated_tactic(system, user):
         return json.dumps({**WILD_ANSWERS, "tactic": "close_in"})
 
-    assert reply_reader.read_reply(outdated_tactic, leverage_case(), "hello", [], [])["tactic"] == "steady"
+    assert mailer.read_reply(outdated_tactic, leverage_case(), "hello", [], [])["tactic"] == "steady"
     # no expected arguments: nothing can be matched
-    assert reply_reader.read_reply(scripted_model, leverage_case(), "hello", [], [])["argument"] == 0
-    assert reply_reader.read_reply(failing_model, leverage_case(), "hello", [], []) is None
+    assert mailer.read_reply(scripted_model, leverage_case(), "hello", [], [])["argument"] == 0
+    assert mailer.read_reply(failing_model, leverage_case(), "hello", [], []) is None
 
 
 def test_rejected_paragraph_shows_up_in_the_counters():

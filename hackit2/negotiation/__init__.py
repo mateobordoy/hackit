@@ -1,7 +1,6 @@
 """The negotiation engine: per-case `Negotiator`, per-supplier `SupplierThread`."""
 
-from .common import ACTIVE, ECHO, FINISHED, GONE, SETTLED
 from .engine import Negotiator
-from .thread import SupplierThread
+from .thread import ACTIVE, ECHO, FINISHED, GONE, SETTLED, SupplierThread
 
 __all__ = ["ACTIVE", "ECHO", "FINISHED", "GONE", "SETTLED", "Negotiator", "SupplierThread"]

@@ -1,14 +1,58 @@
 """The state we keep per supplier thread, plus readers for the supplier's quote and requests."""
 
+import logging
 import re
 
 from arena_kit.docs import quote_terms, standard_terms
 
-from .. import settings
-from .common import ACTIVE
+from .. import settings, telemetry
 
 # What a supplier e-mail asks of us. The bots phrase their asks in a few stock sentences, so plain
 # patterns read them with no model and no latency.
+log = logging.getLogger("hackit2")
+
+# Thread phases
+ACTIVE = "active"  # still bargaining
+ECHO = "echo"  # we sent one of its own sheets back for it to agree to; the next reply ends the thread
+SETTLED = "settled"  # nothing more to bargain; it waits for the close (and keepalives)
+GONE = "gone"  # the supplier left, or never quoted
+FINISHED = (SETTLED, GONE)
+
+# Supplier statuses that freeze its standing sheet
+FROZEN = {"agreed", "final_offer"}
+
+
+def guarded(fn, default=None):
+    """`fn()`, or `default` if it raises. A hidden case may lack a field the data code expects, and a
+    missing argument or profile must never cost the move; the failure is logged."""
+    try:
+        return fn()
+    except Exception:  # noqa: BLE001 - logged, the move goes on with the default
+        log.exception("skipped: %s", getattr(fn, "__name__", fn))
+        return default
+
+
+@telemetry.traced("negotiation.concession.next_step_price")
+def next_step_price(last, counter, first_drop, first_round, share, patience, patience_used, terms_changed=False):
+    """Our next price after `last`, facing the supplier's counter `counter`.
+
+    We close `share` of the gap, but hold our price after a deep first concession (a pure price drop
+    that large means the supplier moves fast on its own and will agree at our sheet next, unless the
+    drop came with terms it added), and keep the next gap within what is left of its patience."""
+    gap = (counter - last) / counter
+    closing = share
+    if first_round and first_drop >= settings.DEEP_FIRST_DROP and not terms_changed:
+        closing = 0.0
+    remaining = max(0.0, patience - patience_used)
+    new_gap = min(gap * (1 - closing), remaining / 2)
+    if patience < settings.PATIENCE_TOUCHY:  # a touchy supplier: small, steady gaps
+        new_gap = min(new_gap, settings.TOUCHY_MAX_GAP)
+    price = counter * (1 - new_gap)
+    price = max(price, last * (1 + settings.MIN_STEP))
+    price = min(price, counter * settings.MAX_SHARE_OF_COUNTER)
+    return max(price, last)
+
+
 REQUEST_PATTERNS = {
     # a binding volume figure; stated in words with the figure, it was taken into account
     "volume": r"volume (can )?you (can )?commit|binding (higher )?volume|higher (order )?volume|volume figures"
@@ -86,7 +130,7 @@ class SupplierThread:
         self.prep_trades = []  # terms the lead expects it to value: offered next to our opening sheet
         self.need_trades = []  # supplier needs priced for the current move
         self.playbook = {}  # the sparring round: expected arguments, our answers, points to raise
-        self.history = None  # `transcript.build`, from delivered messages only
+        self.history = None  # `mailer.build_transcript`, from delivered messages only
         self.reader_notes = ""  # the reply reader's notes on its last e-mail
         self.mood = None
         self.tactic = None  # steady | hold | argue

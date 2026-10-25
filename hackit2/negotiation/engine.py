@@ -18,14 +18,24 @@ import time
 
 from arena_kit.play import ENDED, latest, moves_left, standing
 
-from .. import mailer, model, pricing, reply_reader, settings, telemetry, transcript
+from .. import mailer, model, pricing, settings, telemetry
 from ..evidence import EvidenceBank, live_rival_offer
 from ..supplier_profile import build_profile, neutral_profile, traits_in
 from .closing import ClosingDesk
-from .common import ACTIVE, ECHO, FROZEN, GONE, SETTLED, guarded, log
-from .concession import next_step_price
 from .packages import PackageDesk, argument_families, counters_stalled, same_offer
-from .thread import SupplierThread, detect_requests, quoted_standard_terms
+from .thread import (
+    ACTIVE,
+    ECHO,
+    FROZEN,
+    GONE,
+    SETTLED,
+    SupplierThread,
+    detect_requests,
+    guarded,
+    log,
+    next_step_price,
+    quoted_standard_terms,
+)
 
 MOOD_HINTS = {
     "irritated": "they sound irritated: acknowledge it sincerely before anything else",
@@ -261,7 +271,7 @@ class Negotiator(PackageDesk, ClosingDesk):
             return
         started = time.monotonic()
         expected = thread.playbook.get("arguments") or []
-        reading = reply_reader.read_reply(
+        reading = mailer.read_reply(
             self.complete,
             self.case,
             body,
@@ -275,7 +285,7 @@ class Negotiator(PackageDesk, ClosingDesk):
         self.write_budget_s -= time.monotonic() - started
         if reading is None:
             return
-        thread.requests = [k for k in reply_reader.REQUEST_KINDS if k in thread.requests or k in reading["requests"]]
+        thread.requests = [k for k in mailer.REQUEST_KINDS if k in thread.requests or k in reading["requests"]]
         thread.mood, thread.tactic = reading["mood"], reading["tactic"]
         thread.matched_argument, thread.reader_notes = reading["argument"], reading["notes"]
         thread.tactic_log.append(thread.tactic)
@@ -332,7 +342,7 @@ class Negotiator(PackageDesk, ClosingDesk):
         """The next message to this supplier as {"message": ...}, or None when the thread is finished.
         `write_budget_s`: what the supplier clocks leave for the model."""
         thread, events = self.suppliers[supplier_id], threads[supplier_id]
-        thread.history = transcript.build(self.case, events)
+        thread.history = mailer.build_transcript(self.case, events)
         self.write_budget_s = settings.MODEL_TIMEOUT_S if write_budget_s is None else write_budget_s
         thread.phase_before = thread.phase
         last = latest(events)
@@ -535,7 +545,7 @@ class Negotiator(PackageDesk, ClosingDesk):
             tone,
             first,
             [thread.prep_notes, thread.reader_notes],
-            history=transcript.build(self.case, events),
+            history=mailer.build_transcript(self.case, events),
         )
         paragraph = model.write_paragraph(self.complete, prompt, self.write_budget_s, supplier_id=thread.supplier_id)
         body = mailer.compose_email(
