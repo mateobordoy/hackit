@@ -11,6 +11,8 @@ code, docs and the page are in English. Code freeze Sun 25 Oct 2026 13:00 CET, L
   Our changes to Jose's files are only small telemetry hooks (`buyer/policy.py`, `buyer/runner.py`,
   `buyer/cli.py`), so conflicts should stay small; keep his logic, re-add the hooks.
 - Checkout: `/home/burak/Belgeler/hackathon/tacto/hackit-p1-ui` (own clone; never edit `hackit-v2`).
+- Mirror: Burak's own private repo https://github.com/Burak-GGM/team-hackit (remote `team`, branch
+  `main` = `proposal-1-ui`). After every push of `proposal-1-ui`, also `git push team proposal-1-ui:main`.
 - Gate: `.venv/bin/pytest -q && .venv/bin/ruff check . && .venv/bin/ruff format --check .`
 
 ## Files
