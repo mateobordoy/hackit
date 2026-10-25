@@ -1,0 +1,7277 @@
+{
+ "about": "Supplier dossier for the fully documented suppliers (detail = full). Built by scripts/build_dossier.py from the data package and the Sunday release.",
+ "built_at": "2026-10-25 11:35",
+ "model": "claude-opus-5-5",
+ "fields": {
+  "reading": "situation labels the agent absorbs at setup (reader agent + phrase lists), each with its quote and source",
+  "company": "register facts (supplier_intel): owner, size, equity, credit index (higher = riskier) now and a year ago",
+  "terms": "its standard terms (suppliers, contracts)",
+  "our_payments": "how we paid its invoices in the last 12 months: mean days late, share paid late, we_pay_late flag",
+  "quality": "latest scorecard and supplier-caused quality notifications in the last 12 months",
+  "dependency": "parts it supplies to us and where it is our only active source",
+  "costing": "should-cost coverage and past negotiations (context only: they do not predict where it stops)",
+  "review": "for the team: status auto|checked|corrected and a note"
+ },
+ "suppliers": {
+  "sup:70110": {
+   "name": "Gießerei Brandlhuber GmbH & Co. KG",
+   "country": "DE",
+   "category": "castings",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 185,
+    "turnover_band": "25-50 M EUR",
+    "equity_ratio_pct": 24.7,
+    "credit_index": 222,
+    "credit_index_12m_ago": 222,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "FCA",
+    "standard_lead_time_days": 42,
+    "contract": {
+     "id": "ctr:4600070110",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 54,
+    "mean_days_late": 3.5,
+    "paid_late_share": 0.852,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70110@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 85.2,
+     "ppm": 712,
+     "score": 84.0,
+     "colour": "amber"
+    },
+    "notifications_12m": 7,
+    "supplier_caused_12m": 6
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:310010",
+      "status": "active",
+      "quota_pct": 100
+     },
+     {
+      "part_id": "part:310012",
+      "status": "active",
+      "quota_pct": 40
+     }
+    ],
+    "only_active_source_for": [
+     "part:310010"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:310010",
+     "cost:310012-70110"
+    ],
+    "sold_below_full_cost": true,
+    "history_notes": [
+     "accepted below full cost to keep the volume"
+    ],
+    "history": [
+     {
+      "event_id": "EV-2023-70110-310012",
+      "date": "2022-11-22",
+      "part_id": "part:310012",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70110-310010",
+      "date": "2022-12-05",
+      "part_id": "part:310010",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70110-310010",
+      "date": "2023-11-16",
+      "part_id": "part:310010",
+      "type": "annual renewal",
+      "asked_pct": -2.2,
+      "settled_pct": -5.6
+     },
+     {
+      "event_id": "EV-2024-70110-310012",
+      "date": "2023-11-25",
+      "part_id": "part:310012",
+      "type": "annual renewal",
+      "asked_pct": -3.3,
+      "settled_pct": -5.6
+     },
+     {
+      "event_id": "EV-2025-70110-310010",
+      "date": "2024-11-17",
+      "part_id": "part:310010",
+      "type": "annual renewal",
+      "asked_pct": 1.9,
+      "settled_pct": -0.1
+     },
+     {
+      "event_id": "EV-2025-70110-310012",
+      "date": "2024-12-01",
+      "part_id": "part:310012",
+      "type": "annual renewal",
+      "asked_pct": 2.6,
+      "settled_pct": -0.1
+     },
+     {
+      "event_id": "EV-2026-70110-310012",
+      "date": "2025-11-26",
+      "part_id": "part:310012",
+      "type": "annual renewal",
+      "asked_pct": 1.5,
+      "settled_pct": -1.4
+     },
+     {
+      "event_id": "EV-2026-70110-310010",
+      "date": "2025-12-03",
+      "part_id": "part:310010",
+      "type": "annual renewal",
+      "asked_pct": 2.1,
+      "settled_pct": -1.4
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "partnership_2022",
+      "quote": "He reminded us that in 2022 they kept supplying at the old price for a quarter",
+      "source": "doc:20260715-70110-M5",
+      "by": "reader agent"
+     },
+     {
+      "label": "stale_costing",
+      "quote": "he works from his own spreadsheet, last updated two years ago",
+      "source": "doc:20260824-70110-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "cash_need",
+      "quote": "Could you pay our invoices within 10 days? In return we would grant a cash discount.",
+      "source": "doc:20260902-70110-M2",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The owner-run foundry announces a price increase based on an outdated costing, invokes its  loyalty, and wants faster payment, so earlier payment and a review of current material data would likely move it.",
+    "sources": [
+     "doc:20251217-70110-N",
+     "doc:20260715-70110-M5",
+     "doc:20260824-70110-M1",
+     "doc:20260902-70110-M2",
+     "doc:20260909-70110-M4",
+     "doc:20260911-70110-P01",
+     "doc:20260917-70110-M3"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70120": {
+   "name": "Eisengießerei Velkenreith GmbH",
+   "country": "DE",
+   "category": "castings",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 240,
+    "turnover_band": "25-50 M EUR",
+    "equity_ratio_pct": 38.5,
+    "credit_index": 239,
+    "credit_index_12m_ago": 239,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 45,
+    "cash_discount": null,
+    "incoterm": "FCA",
+    "standard_lead_time_days": 49,
+    "contract": {
+     "id": "ctr:4600070120",
+     "valid_to": "2026-12-31",
+     "payment_days": 45,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 53,
+    "mean_days_late": 4.8,
+    "paid_late_share": 0.849,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70120@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 74.5,
+     "ppm": 734,
+     "score": 83.6,
+     "colour": "amber"
+    },
+    "notifications_12m": 9,
+    "supplier_caused_12m": 8
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:310030",
+      "status": "active",
+      "quota_pct": 70
+     },
+     {
+      "part_id": "part:310031",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:310031"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:310030"
+    ],
+    "sold_below_full_cost": true,
+    "history_notes": [
+     "accepted below full cost to keep the volume"
+    ],
+    "history": [
+     {
+      "event_id": "EV-2023-70120-310030",
+      "date": "2022-11-27",
+      "part_id": "part:310030",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70120-310031",
+      "date": "2022-12-01",
+      "part_id": "part:310031",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70120-310031",
+      "date": "2023-11-26",
+      "part_id": "part:310031",
+      "type": "annual renewal",
+      "asked_pct": -2.1,
+      "settled_pct": -3.9
+     },
+     {
+      "event_id": "EV-2024-70120-310030",
+      "date": "2023-12-05",
+      "part_id": "part:310030",
+      "type": "annual renewal",
+      "asked_pct": -4.1,
+      "settled_pct": -5.6
+     },
+     {
+      "event_id": "EV-2025-70120-310030",
+      "date": "2024-11-14",
+      "part_id": "part:310030",
+      "type": "annual renewal",
+      "asked_pct": 1.1,
+      "settled_pct": -0.1
+     },
+     {
+      "event_id": "EV-2025-70120-310031",
+      "date": "2024-11-25",
+      "part_id": "part:310031",
+      "type": "annual renewal",
+      "asked_pct": 2.0,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70120-310031",
+      "date": "2025-11-26",
+      "part_id": "part:310031",
+      "type": "annual renewal",
+      "asked_pct": 3.2,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70120-310030",
+      "date": "2025-12-03",
+      "part_id": "part:310030",
+      "type": "annual renewal",
+      "asked_pct": 2.6,
+      "settled_pct": -1.4
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "partnership_2022",
+      "quote": "He reminded us that in 2022 they kept supplying at the old price for a quarter",
+      "source": "doc:20260719-70120-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The foundry stresses its  partnership of supplying at the old price and expects goodwill in return, and has repeatedly accepted prices below full cost to keep the volume, so securing volume matters to it.",
+    "sources": [
+     "doc:20251127-70120-N",
+     "doc:20260719-70120-M1",
+     "doc:20260926-70120-P06"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70130": {
+   "name": "Gießerei Wimbacher GmbH",
+   "country": "DE",
+   "category": "castings",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 120,
+    "turnover_band": "10-25 M EUR",
+    "equity_ratio_pct": 39.9,
+    "credit_index": 231,
+    "credit_index_12m_ago": 231,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "FCA",
+    "standard_lead_time_days": 45,
+    "contract": {
+     "id": "ctr:4600070130",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 51,
+    "mean_days_late": 2.6,
+    "paid_late_share": 0.784,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70130@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 82.4,
+     "ppm": 651,
+     "score": 87.9,
+     "colour": "green"
+    },
+    "notifications_12m": 6,
+    "supplier_caused_12m": 4
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:310011",
+      "status": "active",
+      "quota_pct": 100
+     },
+     {
+      "part_id": "part:310012",
+      "status": "active",
+      "quota_pct": 60
+     }
+    ],
+    "only_active_source_for": [
+     "part:310011"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:310011",
+     "cost:310012"
+    ],
+    "sold_below_full_cost": true,
+    "history_notes": [
+     "accepted below full cost to keep the volume"
+    ],
+    "history": [
+     {
+      "event_id": "EV-2023-70130-310011",
+      "date": "2022-11-12",
+      "part_id": "part:310011",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70130-310012",
+      "date": "2022-11-23",
+      "part_id": "part:310012",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70130-310012",
+      "date": "2023-11-29",
+      "part_id": "part:310012",
+      "type": "annual renewal",
+      "asked_pct": -3.2,
+      "settled_pct": -5.6
+     },
+     {
+      "event_id": "EV-2024-70130-310011",
+      "date": "2023-12-04",
+      "part_id": "part:310011",
+      "type": "annual renewal",
+      "asked_pct": -2.9,
+      "settled_pct": -5.6
+     },
+     {
+      "event_id": "EV-2025-70130-310012",
+      "date": "2024-11-25",
+      "part_id": "part:310012",
+      "type": "annual renewal",
+      "asked_pct": 1.4,
+      "settled_pct": -0.1
+     },
+     {
+      "event_id": "EV-2025-70130-310011",
+      "date": "2024-12-01",
+      "part_id": "part:310011",
+      "type": "annual renewal",
+      "asked_pct": 1.3,
+      "settled_pct": -0.1
+     },
+     {
+      "event_id": "EV-2026-70130-310011",
+      "date": "2025-11-18",
+      "part_id": "part:310011",
+      "type": "annual renewal",
+      "asked_pct": 0.9,
+      "settled_pct": -1.4
+     },
+     {
+      "event_id": "EV-2026-70130-310012",
+      "date": "2025-11-19",
+      "part_id": "part:310012",
+      "type": "annual renewal",
+      "asked_pct": 0.9,
+      "settled_pct": -1.4
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "cash_need",
+      "quote": "he asked twice whether we could pay earlier and said the bank is watching every month",
+      "source": "doc:20260802-70130-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "spare_capacity",
+      "quote": "half the shop floor was idle, two shifts are on short hours",
+      "source": "doc:20260602-70130-M4",
+      "by": "reader agent"
+     },
+     {
+      "label": "deprioritising_us",
+      "quote": "they are reviewing small accounts and will focus on customers with volume",
+      "source": "doc:20260322-70130-M6",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The foundry is under cash pressure with idle capacity and short-time work, resists anything that cuts its margin, and is reviewing small accounts, so faster payment and committed volume would move it most.",
+    "sources": [
+     "doc:20251107-70130-N",
+     "doc:20260321-70130-M5",
+     "doc:20260322-70130-M6",
+     "doc:20260602-70130-M4",
+     "doc:20260607-70130-M2",
+     "doc:20260802-70130-M1",
+     "doc:20260911-70130-M3",
+     "news:20260322-05",
+     "quote:7300051",
+     "quote:7300078"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "checked",
+    "note": "senal nueva del lector revisada el 25-10 (cita literal correcta)"
+   }
+  },
+  "sup:70140": {
+   "name": "Odlewnia Kalwisz Sp. z o.o.",
+   "country": "PL",
+   "category": "castings",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "private",
+    "group_parent": null,
+    "staff": 210,
+    "turnover_band": "5-10 M EUR",
+    "equity_ratio_pct": 39.1,
+    "credit_index": 225,
+    "credit_index_12m_ago": 225,
+    "credit_trend": "same",
+    "audit_grade_vda63": "C"
+   },
+   "terms": {
+    "payment_days": 60,
+    "cash_discount": null,
+    "incoterm": "FCA",
+    "standard_lead_time_days": 56,
+    "contract": {
+     "id": "ctr:4600070140",
+     "valid_to": "2027-06-30",
+     "payment_days": 60,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 48,
+    "mean_days_late": 9.8,
+    "paid_late_share": 0.958,
+    "we_pay_late": true,
+    "open_overdue_invoices": 2
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70140@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 63.5,
+     "ppm": 2376,
+     "score": 69.9,
+     "colour": "red"
+    },
+    "notifications_12m": 13,
+    "supplier_caused_12m": 12
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:310010",
+      "status": "qualified",
+      "quota_pct": 0
+     },
+     {
+      "part_id": "part:310020",
+      "status": "active",
+      "quota_pct": 100
+     },
+     {
+      "part_id": "part:310030",
+      "status": "active",
+      "quota_pct": 30
+     }
+    ],
+    "only_active_source_for": [
+     "part:310020"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70140-310030",
+      "date": "2022-12-05",
+      "part_id": "part:310030",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70140-310020",
+      "date": "2022-12-06",
+      "part_id": "part:310020",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70140-310020",
+      "date": "2023-11-18",
+      "part_id": "part:310020",
+      "type": "annual renewal",
+      "asked_pct": -3.3,
+      "settled_pct": -5.5
+     },
+     {
+      "event_id": "EV-2024-70140-310030",
+      "date": "2023-11-28",
+      "part_id": "part:310030",
+      "type": "annual renewal",
+      "asked_pct": -4.7,
+      "settled_pct": -6.2
+     },
+     {
+      "event_id": "EV-2025-70140-310030",
+      "date": "2024-11-19",
+      "part_id": "part:310030",
+      "type": "annual renewal",
+      "asked_pct": 3.8,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70140-310020",
+      "date": "2024-11-21",
+      "part_id": "part:310020",
+      "type": "annual renewal",
+      "asked_pct": 1.3,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70140-310020",
+      "date": "2025-12-08",
+      "part_id": "part:310020",
+      "type": "annual renewal",
+      "asked_pct": -1.0,
+      "settled_pct": -2.5
+     },
+     {
+      "event_id": "EV-2026-70140-310030",
+      "date": "2025-12-08",
+      "part_id": "part:310030",
+      "type": "annual renewal",
+      "asked_pct": 2.8,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "cash_need",
+      "quote": "he asked twice whether we could pay earlier and said the bank is watching every month",
+      "source": "doc:20260715-70140-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The foundry is under bank-supervised restructuring after loss-making years and needs cash, so faster payment is the lever most likely to move it, while it resists anything that cuts its margin.",
+    "sources": [
+     "doc:20251026-70140-N",
+     "doc:20260710-70140-M2",
+     "doc:20260715-70140-M1",
+     "doc:20260921-70140-P11",
+     "news:20260911-28",
+     "quote:7300011"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70150": {
+   "name": "Tarsevi Döküm Sanayi A.Ş.",
+   "country": "TR",
+   "category": "castings",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 380,
+    "turnover_band": "10-25 M EUR",
+    "equity_ratio_pct": 30.7,
+    "credit_index": 228,
+    "credit_index_12m_ago": 228,
+    "credit_trend": "same",
+    "audit_grade_vda63": "C"
+   },
+   "terms": {
+    "payment_days": 60,
+    "cash_discount": null,
+    "incoterm": "FCA",
+    "standard_lead_time_days": 70,
+    "contract": {
+     "id": "ctr:4600070150",
+     "valid_to": "2027-06-30",
+     "payment_days": 60,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 25,
+    "mean_days_late": 6.4,
+    "paid_late_share": 0.96,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70150@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 52.0,
+     "ppm": 2652,
+     "score": 62.7,
+     "colour": "red"
+    },
+    "notifications_12m": 5,
+    "supplier_caused_12m": 5
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:310060",
+      "status": "active",
+      "quota_pct": 60
+     }
+    ],
+    "only_active_source_for": []
+   },
+   "costing": {
+    "should_cost": [
+     "cost:310060"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70150-310060",
+      "date": "2022-11-14",
+      "part_id": "part:310060",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70150-310060",
+      "date": "2023-11-19",
+      "part_id": "part:310060",
+      "type": "annual renewal",
+      "asked_pct": -0.7,
+      "settled_pct": -4.5
+     },
+     {
+      "event_id": "EV-2025-70150-310060",
+      "date": "2024-11-17",
+      "part_id": "part:310060",
+      "type": "annual renewal",
+      "asked_pct": 3.0,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70150-310060",
+      "date": "2025-12-08",
+      "part_id": "part:310060",
+      "type": "annual renewal",
+      "asked_pct": 0.7,
+      "settled_pct": -1.9
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "spare_capacity",
+      "quote": "they could take additional parts at short notice; the second shift has been on hold since spring",
+      "source": "doc:20260414-70150-M5",
+      "by": "reader agent"
+     },
+     {
+      "label": "open_book",
+      "quote": "he offered to walk us through their calculation (hourly rates and material) if that helps to settle prices",
+      "source": "doc:20260418-70150-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "cash_need",
+      "quote": "the MD spoke mostly about cash and the banks",
+      "source": "doc:20260610-70150-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The foundry is under clear cash pressure with idle capacity and a bank-led restructuring, and offers to open its calculation, so faster payment or additional volume would move it more than margin cuts.",
+    "sources": [
+     "doc:20251017-70150-N",
+     "doc:20260414-70150-M5",
+     "doc:20260418-70150-M2",
+     "doc:20260419-70150-M3",
+     "doc:20260610-70150-M1",
+     "doc:20260804-70150-M4",
+     "doc:20260905-70150-M6",
+     "news:20260809-22",
+     "quote:7300068"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70160": {
+   "name": "Meridune Precision Castings Co., Ltd.",
+   "country": "CN",
+   "category": "castings",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "private",
+    "group_parent": null,
+    "staff": 900,
+    "turnover_band": "25-50 M EUR",
+    "equity_ratio_pct": 25.3,
+    "credit_index": 254,
+    "credit_index_12m_ago": 254,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 90,
+    "cash_discount": null,
+    "incoterm": "FCA",
+    "standard_lead_time_days": 105,
+    "contract": {
+     "id": "ctr:4600070160",
+     "valid_to": "2027-06-30",
+     "payment_days": 90,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 27,
+    "mean_days_late": 2.6,
+    "paid_late_share": 0.778,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70160@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 84.0,
+     "ppm": 0,
+     "score": 92.0,
+     "colour": "green"
+    },
+    "notifications_12m": 0,
+    "supplier_caused_12m": 0
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:310051",
+      "status": "active",
+      "quota_pct": 40
+     }
+    ],
+    "only_active_source_for": []
+   },
+   "costing": {
+    "should_cost": [
+     "cost:310051"
+    ],
+    "sold_below_full_cost": true,
+    "history_notes": [
+     "accepted below full cost to keep the volume"
+    ],
+    "history": [
+     {
+      "event_id": "EV-2023-70160-310051",
+      "date": "2022-11-25",
+      "part_id": "part:310051",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70160-310051",
+      "date": "2023-12-02",
+      "part_id": "part:310051",
+      "type": "annual renewal",
+      "asked_pct": -2.6,
+      "settled_pct": -5.1
+     },
+     {
+      "event_id": "EV-2025-70160-310051",
+      "date": "2024-11-13",
+      "part_id": "part:310051",
+      "type": "annual renewal",
+      "asked_pct": 1.0,
+      "settled_pct": -0.3
+     },
+     {
+      "event_id": "EV-2026-70160-310051",
+      "date": "2025-12-09",
+      "part_id": "part:310051",
+      "type": "annual renewal",
+      "asked_pct": -1.1,
+      "settled_pct": -2.3
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "cash_need",
+      "quote": "Could you pay our invoices within 10 days? In return we would grant a cash discount.",
+      "source": "doc:20260701-70160-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier has asked to be paid faster in exchange for a cash discount, which points to a need for cash, and it has repeatedly accepted prices below full cost to keep the volume, so faster payment and secured volume would likely move it.",
+    "sources": [
+     "doc:20251116-70160-N",
+     "doc:20260701-70160-M1",
+     "news:20260925-37"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70170": {
+   "name": "Slévárna Vrbenský s.r.o.",
+   "country": "CZ",
+   "category": "castings",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 150,
+    "turnover_band": "5-10 M EUR",
+    "equity_ratio_pct": 36.4,
+    "credit_index": 239,
+    "credit_index_12m_ago": 239,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 45,
+    "cash_discount": null,
+    "incoterm": "FCA",
+    "standard_lead_time_days": 56,
+    "contract": {
+     "id": "ctr:4600070170",
+     "valid_to": "2027-06-30",
+     "payment_days": 45,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 24,
+    "mean_days_late": 5.0,
+    "paid_late_share": 0.875,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70170@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 91.7,
+     "ppm": 5682,
+     "score": 67.4,
+     "colour": "red"
+    },
+    "notifications_12m": 2,
+    "supplier_caused_12m": 2
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:310050",
+      "status": "active",
+      "quota_pct": 25
+     }
+    ],
+    "only_active_source_for": []
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70170-310050",
+      "date": "2022-11-24",
+      "part_id": "part:310050",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70170-310050",
+      "date": "2023-11-25",
+      "part_id": "part:310050",
+      "type": "annual renewal",
+      "asked_pct": -2.5,
+      "settled_pct": -5.9
+     },
+     {
+      "event_id": "EV-2025-70170-310050",
+      "date": "2024-12-06",
+      "part_id": "part:310050",
+      "type": "annual renewal",
+      "asked_pct": 1.2,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70170-310050",
+      "date": "2025-11-17",
+      "part_id": "part:310050",
+      "type": "annual renewal",
+      "asked_pct": 0.6,
+      "settled_pct": -1.7
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "cash_need",
+      "quote": "the start-up of our new moulding line has tied up more cash than we planned, and our bank is watching our figures closely",
+      "source": "doc:20261016-70170-S12",
+      "by": "reader agent"
+     },
+     {
+      "label": "spare_capacity",
+      "quote": "commissioned a new automatic moulding line that doubles its capacity for stainless castings",
+      "source": "news:20260420-09",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The foundry is short of cash after an over-budget moulding line start-up and a cut credit line, has doubled its capacity, and would value faster payment highly, which is the main lever to move it.",
+    "sources": [
+     "doc:20251109-70170-N",
+     "doc:20260210-70170-M1",
+     "doc:20260512-70170-M2",
+     "doc:20261016-70170-S12",
+     "news:20260420-09",
+     "news:20261014-S11"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "checked",
+    "note": "senal nueva del lector revisada el 25-10 (cita literal correcta)"
+   }
+  },
+  "sup:70180": {
+   "name": "Feinguss Allgäu-Reiter GmbH",
+   "country": "DE",
+   "category": "castings",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 160,
+    "turnover_band": "10-25 M EUR",
+    "equity_ratio_pct": 25.0,
+    "credit_index": 244,
+    "credit_index_12m_ago": 244,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "FCA",
+    "standard_lead_time_days": 49,
+    "contract": {
+     "id": "ctr:4600070180",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 51,
+    "mean_days_late": 4.5,
+    "paid_late_share": 0.882,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70180@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 73.1,
+     "ppm": 526,
+     "score": 78.9,
+     "colour": "amber"
+    },
+    "notifications_12m": 1,
+    "supplier_caused_12m": 1
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:310050",
+      "status": "active",
+      "quota_pct": 75
+     },
+     {
+      "part_id": "part:310051",
+      "status": "active",
+      "quota_pct": 60
+     }
+    ],
+    "only_active_source_for": []
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70180-310051",
+      "date": "2022-12-04",
+      "part_id": "part:310051",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70180-310050",
+      "date": "2022-12-12",
+      "part_id": "part:310050",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70180-310050",
+      "date": "2023-11-23",
+      "part_id": "part:310050",
+      "type": "annual renewal",
+      "asked_pct": -2.1,
+      "settled_pct": -3.7
+     },
+     {
+      "event_id": "EV-2024-70180-310051",
+      "date": "2023-11-29",
+      "part_id": "part:310051",
+      "type": "annual renewal",
+      "asked_pct": -5.1,
+      "settled_pct": -6.4
+     },
+     {
+      "event_id": "EV-2025-70180-310051",
+      "date": "2024-11-15",
+      "part_id": "part:310051",
+      "type": "annual renewal",
+      "asked_pct": 4.0,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70180-310050",
+      "date": "2024-11-19",
+      "part_id": "part:310050",
+      "type": "annual renewal",
+      "asked_pct": 1.5,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70180-310050",
+      "date": "2025-11-18",
+      "part_id": "part:310050",
+      "type": "annual renewal",
+      "asked_pct": 0.0,
+      "settled_pct": -2.1
+     },
+     {
+      "event_id": "EV-2026-70180-310051",
+      "date": "2025-12-09",
+      "part_id": "part:310051",
+      "type": "annual renewal",
+      "asked_pct": 0.1,
+      "settled_pct": -3.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "partnership_2022",
+      "quote": "He reminded us that in 2022 they kept supplying at the old price for a quarter",
+      "source": "doc:20260924-70180-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier stresses that it kept supplying at the old price during the  crisis and expects partnership in return, so acknowledging that loyalty would likely matter to it in negotiations.",
+    "sources": [
+     "doc:20251022-70180-N",
+     "doc:20260924-70180-M1"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70190": {
+   "name": "Gießerei Pfaffenreuth GmbH",
+   "country": "DE",
+   "category": "castings",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 95,
+    "turnover_band": "10-25 M EUR",
+    "equity_ratio_pct": 33.9,
+    "credit_index": 227,
+    "credit_index_12m_ago": 227,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "FCA",
+    "standard_lead_time_days": 42,
+    "contract": {
+     "id": "ctr:4600070190",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 48,
+    "mean_days_late": 3.2,
+    "paid_late_share": 0.833,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70190@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 85.1,
+     "ppm": 715,
+     "score": 84.0,
+     "colour": "amber"
+    },
+    "notifications_12m": 13,
+    "supplier_caused_12m": 13
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:310011",
+      "status": "qualified",
+      "quota_pct": 0
+     },
+     {
+      "part_id": "part:310020",
+      "status": "qualified",
+      "quota_pct": 0
+     },
+     {
+      "part_id": "part:310030",
+      "status": "qualified",
+      "quota_pct": 0
+     },
+     {
+      "part_id": "part:310040",
+      "status": "active",
+      "quota_pct": 100
+     },
+     {
+      "part_id": "part:310060",
+      "status": "active",
+      "quota_pct": 40
+     }
+    ],
+    "only_active_source_for": [
+     "part:310040"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:310040",
+     "cost:310060"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70190-310060",
+      "date": "2022-11-20",
+      "part_id": "part:310060",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70190-310040",
+      "date": "2022-12-03",
+      "part_id": "part:310040",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70190-310060",
+      "date": "2023-11-18",
+      "part_id": "part:310060",
+      "type": "annual renewal",
+      "asked_pct": -2.3,
+      "settled_pct": -4.0
+     },
+     {
+      "event_id": "EV-2024-70190-310040",
+      "date": "2023-11-22",
+      "part_id": "part:310040",
+      "type": "annual renewal",
+      "asked_pct": -3.1,
+      "settled_pct": -4.7
+     },
+     {
+      "event_id": "EV-2025-70190-310060",
+      "date": "2024-11-24",
+      "part_id": "part:310060",
+      "type": "annual renewal",
+      "asked_pct": 1.6,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70190-310040",
+      "date": "2024-11-26",
+      "part_id": "part:310040",
+      "type": "annual renewal",
+      "asked_pct": 4.0,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70190-310060",
+      "date": "2025-11-20",
+      "part_id": "part:310060",
+      "type": "annual renewal",
+      "asked_pct": 1.5,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70190-310040",
+      "date": "2025-12-04",
+      "part_id": "part:310040",
+      "type": "annual renewal",
+      "asked_pct": 1.3,
+      "settled_pct": -2.5
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "hedged",
+      "quote": "they bought their electricity forward until December 2028 and said the market price is 'not our reality' before then",
+      "source": "doc:20260623-70190-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "cash_need",
+      "quote": "our bank is watching our liquidity closely",
+      "source": "doc:20261019-70190-S13",
+      "by": "reader agent"
+     },
+     {
+      "label": "spare_capacity",
+      "quote": "a large customer from the heating industry has cancelled its orders for 2027",
+      "source": "doc:20261019-70190-S13",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The foundry has lost a major heating customer and is under bank pressure on liquidity while its energy and material costs are fixed until , so faster payment and firm call-offs would move it more than index-based price arguments.",
+    "sources": [
+     "doc:20251014-70190-N",
+     "doc:20260623-70190-M1",
+     "doc:20261019-70190-S13",
+     "news:20260426-10",
+     "news:20261015-S14",
+     "quote:7300064"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "checked",
+    "note": "senal nueva del lector revisada el 25-10 (cita literal correcta)"
+   }
+  },
+  "sup:70210": {
+   "name": "Zerspanung Dralveck GmbH",
+   "country": "DE",
+   "category": "machined parts",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "founder",
+    "group_parent": null,
+    "staff": 22,
+    "turnover_band": "2-5 M EUR",
+    "equity_ratio_pct": 43.6,
+    "credit_index": 249,
+    "credit_index_12m_ago": 249,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": "2% within 10 days",
+    "incoterm": "EXW",
+    "standard_lead_time_days": 28,
+    "contract": {
+     "id": "ctr:4600070210",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 50,
+    "mean_days_late": 3.9,
+    "paid_late_share": 0.36,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70210@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 80.8,
+     "ppm": 1863,
+     "score": 81.1,
+     "colour": "amber"
+    },
+    "notifications_12m": 19,
+    "supplier_caused_12m": 17
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:320010",
+      "status": "active",
+      "quota_pct": 30
+     },
+     {
+      "part_id": "part:320011",
+      "status": "qualified",
+      "quota_pct": 0
+     },
+     {
+      "part_id": "part:320080",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:320080"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70210-320010",
+      "date": "2022-11-15",
+      "part_id": "part:320010",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70210-320080",
+      "date": "2022-12-12",
+      "part_id": "part:320080",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70210-320010",
+      "date": "2023-11-30",
+      "part_id": "part:320010",
+      "type": "annual renewal",
+      "asked_pct": -3.2,
+      "settled_pct": -6.6
+     },
+     {
+      "event_id": "EV-2024-70210-320080",
+      "date": "2023-12-02",
+      "part_id": "part:320080",
+      "type": "annual renewal",
+      "asked_pct": 0.2,
+      "settled_pct": -2.1
+     },
+     {
+      "event_id": "EV-2025-70210-320080",
+      "date": "2024-11-28",
+      "part_id": "part:320080",
+      "type": "annual renewal",
+      "asked_pct": 1.2,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70210-320010",
+      "date": "2024-12-10",
+      "part_id": "part:320010",
+      "type": "annual renewal",
+      "asked_pct": 4.6,
+      "settled_pct": 2.2
+     },
+     {
+      "event_id": "EV-2026-70210-320010",
+      "date": "2025-11-23",
+      "part_id": "part:320010",
+      "type": "annual renewal",
+      "asked_pct": -0.9,
+      "settled_pct": -3.0
+     },
+     {
+      "event_id": "EV-2026-70210-320080",
+      "date": "2025-12-08",
+      "part_id": "part:320080",
+      "type": "annual renewal",
+      "asked_pct": 1.2,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "complains_late_pay",
+      "quote": "Several of our invoices are overdue again. We ask you to keep to the agreed payment terms",
+      "source": "doc:20260504-70210-P",
+      "by": "reader agent"
+     },
+     {
+      "label": "spare_capacity",
+      "quote": "they could take additional parts at short notice; the second shift has been on hold since spring",
+      "source": "doc:20260722-70210-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "stale_costing",
+      "quote": "he had not followed his material and energy prices closely since the 2022 peak",
+      "source": "doc:20260908-70210-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "Zerspanung Dralveck has idle second-shift capacity and wants more work, prices from a costing that has not tracked material and energy prices since , and is sensitive about late payment, so reliable on-time payment and additional volume would likely move it.",
+    "sources": [
+     "doc:20251123-70210-N",
+     "doc:20260504-70210-P",
+     "doc:20260722-70210-M2",
+     "doc:20260908-70210-M1",
+     "doc:20260910-70210-M3",
+     "doc:20260923-70210-P05",
+     "news:20240514-00"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70220": {
+   "name": "CNC-Technik Obermaier & Huber GmbH",
+   "country": "DE",
+   "category": "machined parts",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "founder",
+    "group_parent": null,
+    "staff": 35,
+    "turnover_band": "2-5 M EUR",
+    "equity_ratio_pct": 31.1,
+    "credit_index": 245,
+    "credit_index_12m_ago": 245,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "EXW",
+    "standard_lead_time_days": 35,
+    "contract": {
+     "id": "ctr:4600070220",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 27,
+    "mean_days_late": 8.6,
+    "paid_late_share": 0.963,
+    "we_pay_late": true,
+    "open_overdue_invoices": 1
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70220@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 56.0,
+     "ppm": 731,
+     "score": 74.3,
+     "colour": "amber"
+    },
+    "notifications_12m": 7,
+    "supplier_caused_12m": 7
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:320030",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:320030"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:320030"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70220-320030",
+      "date": "2022-11-23",
+      "part_id": "part:320030",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70220-320030",
+      "date": "2023-11-20",
+      "part_id": "part:320030",
+      "type": "annual renewal",
+      "asked_pct": -0.4,
+      "settled_pct": -4.1
+     },
+     {
+      "event_id": "EV-2025-70220-320030",
+      "date": "2024-11-19",
+      "part_id": "part:320030",
+      "type": "annual renewal",
+      "asked_pct": 3.1,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70220-320030",
+      "date": "2025-12-04",
+      "part_id": "part:320030",
+      "type": "annual renewal",
+      "asked_pct": 3.5,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "capacity_full",
+      "quote": "due to very high capacity utilisation we cannot confirm your full forecast",
+      "source": "doc:20260915-70220-P09",
+      "by": "reader agent"
+     },
+     {
+      "label": "cash_need",
+      "quote": "Could you pay our invoices within 10 days? In return we would grant a cash discount.",
+      "source": "doc:20260511-70220-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier is fully loaded with a long backlog and allocates capacity to customers with firm long-term commitments, and it also wants faster payment, so a longer commitment or quicker payment would move it.",
+    "sources": [
+     "doc:20251207-70220-N",
+     "doc:20260224-70220-M2",
+     "doc:20260511-70220-M1",
+     "doc:20260915-70220-P09",
+     "news:20260320-04"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70230": {
+   "name": "Präzisionsteile Lindlbauer KG",
+   "country": "DE",
+   "category": "machined parts",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 14,
+    "turnover_band": "0-2 M EUR",
+    "equity_ratio_pct": 37.3,
+    "credit_index": 255,
+    "credit_index_12m_ago": 255,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": "2% within 14 days",
+    "incoterm": "EXW",
+    "standard_lead_time_days": 28,
+    "contract": {
+     "id": "ctr:4600070230",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 58,
+    "mean_days_late": 7.0,
+    "paid_late_share": 0.534,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70230@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 82.1,
+     "ppm": 544,
+     "score": 88.3,
+     "colour": "green"
+    },
+    "notifications_12m": 11,
+    "supplier_caused_12m": 9
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:320020",
+      "status": "active",
+      "quota_pct": 40
+     },
+     {
+      "part_id": "part:320031",
+      "status": "active",
+      "quota_pct": 30
+     },
+     {
+      "part_id": "part:320060",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:320060"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70230-320031",
+      "date": "2022-11-15",
+      "part_id": "part:320031",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70230-320020",
+      "date": "2022-11-20",
+      "part_id": "part:320020",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70230-320060",
+      "date": "2022-12-07",
+      "part_id": "part:320060",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70230-320020",
+      "date": "2023-11-13",
+      "part_id": "part:320020",
+      "type": "annual renewal",
+      "asked_pct": -0.5,
+      "settled_pct": -4.1
+     },
+     {
+      "event_id": "EV-2024-70230-320060",
+      "date": "2023-11-15",
+      "part_id": "part:320060",
+      "type": "annual renewal",
+      "asked_pct": 0.5,
+      "settled_pct": -3.0
+     },
+     {
+      "event_id": "EV-2024-70230-320031",
+      "date": "2023-11-19",
+      "part_id": "part:320031",
+      "type": "annual renewal",
+      "asked_pct": -2.3,
+      "settled_pct": -4.3
+     },
+     {
+      "event_id": "EV-2025-70230-320060",
+      "date": "2024-11-19",
+      "part_id": "part:320060",
+      "type": "annual renewal",
+      "asked_pct": 4.2,
+      "settled_pct": 0.3
+     },
+     {
+      "event_id": "EV-2025-70230-320031",
+      "date": "2024-11-26",
+      "part_id": "part:320031",
+      "type": "annual renewal",
+      "asked_pct": 1.3,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70230-320020",
+      "date": "2024-11-27",
+      "part_id": "part:320020",
+      "type": "annual renewal",
+      "asked_pct": 2.4,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70230-320020",
+      "date": "2025-11-16",
+      "part_id": "part:320020",
+      "type": "annual renewal",
+      "asked_pct": 3.8,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70230-320031",
+      "date": "2025-11-23",
+      "part_id": "part:320031",
+      "type": "annual renewal",
+      "asked_pct": 2.1,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70230-320060",
+      "date": "2025-11-26",
+      "part_id": "part:320060",
+      "type": "annual renewal",
+      "asked_pct": 3.4,
+      "settled_pct": 0.1
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "stale_costing",
+      "quote": "he had not followed his material and energy prices closely since the 2022 peak",
+      "source": "doc:20260724-70230-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "open_book",
+      "quote": "he offered to walk us through their calculation (hourly rates and material)",
+      "source": "doc:20260809-70230-M3",
+      "by": "reader agent"
+     },
+     {
+      "label": "complains_late_pay",
+      "quote": "Several of our invoices are overdue again. We ask you to keep to the agreed payment terms",
+      "source": "doc:20260812-70230-P",
+      "by": "reader agent"
+     },
+     {
+      "label": "cash_need",
+      "quote": "Could you pay our invoices within 10 days? In return we would grant a cash discount.",
+      "source": "doc:20260912-70230-M2",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The small supplier announces a price increase based on a costing that has not tracked material and energy prices since , offers to open its calculation, and wants faster, on-time payment, so prompt payment and a review of its cost basis would likely move it.",
+    "sources": [
+     "doc:20251114-70230-N",
+     "doc:20260724-70230-M1",
+     "doc:20260809-70230-M3",
+     "doc:20260812-70230-P",
+     "doc:20260912-70230-M2",
+     "doc:20260927-70230-P13",
+     "news:20260503-11"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70240": {
+   "name": "Strojírna Hrvelec s.r.o.",
+   "country": "CZ",
+   "category": "machined parts",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "founder",
+    "group_parent": null,
+    "staff": 60,
+    "turnover_band": "2-5 M EUR",
+    "equity_ratio_pct": 30.2,
+    "credit_index": 246,
+    "credit_index_12m_ago": 246,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 45,
+    "cash_discount": null,
+    "incoterm": "FCA",
+    "standard_lead_time_days": 42,
+    "contract": {
+     "id": "ctr:4600070240",
+     "valid_to": "2027-06-30",
+     "payment_days": 45,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 25,
+    "mean_days_late": 5.7,
+    "paid_late_share": 0.88,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70240@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 62.5,
+     "ppm": 980,
+     "score": 76.3,
+     "colour": "amber"
+    },
+    "notifications_12m": 4,
+    "supplier_caused_12m": 3
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:320030",
+      "status": "qualified",
+      "quota_pct": 0
+     },
+     {
+      "part_id": "part:320031",
+      "status": "active",
+      "quota_pct": 70
+     }
+    ],
+    "only_active_source_for": []
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70240-320031",
+      "date": "2022-11-14",
+      "part_id": "part:320031",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70240-320031",
+      "date": "2023-12-12",
+      "part_id": "part:320031",
+      "type": "annual renewal",
+      "asked_pct": 2.4,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70240-320031",
+      "date": "2024-12-02",
+      "part_id": "part:320031",
+      "type": "annual renewal",
+      "asked_pct": 3.3,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70240-320031",
+      "date": "2025-11-14",
+      "part_id": "part:320031",
+      "type": "annual renewal",
+      "asked_pct": -1.0,
+      "settled_pct": -3.1
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "capacity_full",
+      "quote": "Order intake is very strong.",
+      "source": "doc:20260924-70240-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier is fully loaded with a long backlog and will only commit additional volumes against a binding twelve-month commitment.",
+    "sources": [
+     "doc:20251203-70240-N",
+     "doc:20260924-70240-M1",
+     "news:20260710-18"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70250": {
+   "name": "Drehteile Fuchsreiter GmbH",
+   "country": "DE",
+   "category": "machined parts",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "founder",
+    "group_parent": null,
+    "staff": 18,
+    "turnover_band": "0-2 M EUR",
+    "equity_ratio_pct": 19.6,
+    "credit_index": 228,
+    "credit_index_12m_ago": 228,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "EXW",
+    "standard_lead_time_days": 28,
+    "contract": {
+     "id": "ctr:4600070250",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 26,
+    "mean_days_late": 10.5,
+    "paid_late_share": 0.923,
+    "we_pay_late": true,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70250@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 88.0,
+     "ppm": 318,
+     "score": 92.4,
+     "colour": "green"
+    },
+    "notifications_12m": 5,
+    "supplier_caused_12m": 4
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:320060",
+      "status": "qualified",
+      "quota_pct": 0
+     },
+     {
+      "part_id": "part:320090",
+      "status": "active",
+      "quota_pct": 50
+     }
+    ],
+    "only_active_source_for": []
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70250-320090",
+      "date": "2022-12-03",
+      "part_id": "part:320090",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70250-320090",
+      "date": "2023-11-30",
+      "part_id": "part:320090",
+      "type": "annual renewal",
+      "asked_pct": -3.9,
+      "settled_pct": -5.2
+     },
+     {
+      "event_id": "EV-2025-70250-320090",
+      "date": "2024-12-03",
+      "part_id": "part:320090",
+      "type": "annual renewal",
+      "asked_pct": 1.3,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70250-320090",
+      "date": "2025-11-29",
+      "part_id": "part:320090",
+      "type": "annual renewal",
+      "asked_pct": -0.8,
+      "settled_pct": -2.1
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "spare_capacity",
+      "quote": "they could take additional parts at short notice; the second shift has been on hold since spring",
+      "source": "doc:20260620-70250-M3",
+      "by": "reader agent"
+     },
+     {
+      "label": "complains_late_pay",
+      "quote": "Several of our invoices are overdue again. We ask you to keep to the agreed payment terms",
+      "source": "doc:20260818-70250-P",
+      "by": "reader agent"
+     },
+     {
+      "label": "cash_need",
+      "quote": "Could you pay our invoices within 10 days? In return we would grant a cash discount.",
+      "source": "doc:20260904-70250-M4",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier has idle capacity with its second shift on hold, complains about our late payments and wants faster payment, so additional volume and quicker payment would likely move it.",
+    "sources": [
+     "doc:20251016-70250-N",
+     "doc:20260620-70250-M3",
+     "doc:20260723-70250-M1",
+     "doc:20260811-70250-M2",
+     "doc:20260818-70250-P",
+     "doc:20260904-70250-M4",
+     "news:20260309-03"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70260": {
+   "name": "Mechanik Tauvelt GmbH",
+   "country": "AT",
+   "category": "machined parts",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 45,
+    "turnover_band": "5-10 M EUR",
+    "equity_ratio_pct": 38.8,
+    "credit_index": 240,
+    "credit_index_12m_ago": 240,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "FCA",
+    "standard_lead_time_days": 35,
+    "contract": {
+     "id": "ctr:4600070260",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 26,
+    "mean_days_late": 4.2,
+    "paid_late_share": 0.885,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70260@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 92.3,
+     "ppm": 0,
+     "score": 96.2,
+     "colour": "green"
+    },
+    "notifications_12m": 0,
+    "supplier_caused_12m": 0
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:320012",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:320012"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70260-320012",
+      "date": "2022-11-20",
+      "part_id": "part:320012",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70260-320012",
+      "date": "2023-11-30",
+      "part_id": "part:320012",
+      "type": "annual renewal",
+      "asked_pct": -0.1,
+      "settled_pct": -4.0
+     },
+     {
+      "event_id": "EV-2025-70260-320012",
+      "date": "2024-12-02",
+      "part_id": "part:320012",
+      "type": "annual renewal",
+      "asked_pct": 1.8,
+      "settled_pct": -0.3
+     },
+     {
+      "event_id": "EV-2026-70260-320012",
+      "date": "2025-11-15",
+      "part_id": "part:320012",
+      "type": "annual renewal",
+      "asked_pct": 2.6,
+      "settled_pct": -1.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "open_book",
+      "quote": "he offered to walk us through their calculation (hourly rates and material) if that helps to settle prices",
+      "source": "doc:20260212-70260-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "partnership_2022",
+      "quote": "He reminded us that in 2022 they kept supplying at the old price for a quarter",
+      "source": "doc:20260322-70260-M4",
+      "by": "reader agent"
+     },
+     {
+      "label": "deprioritising_us",
+      "quote": "they are reviewing small accounts and will focus on customers with volume",
+      "source": "doc:20260522-70260-M3",
+      "by": "reader agent"
+     },
+     {
+      "label": "cash_need",
+      "quote": "Could you pay our invoices within 10 days? In return we would grant a cash discount.",
+      "source": "doc:20260913-70260-M2",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "Mechanik Tauvelt wants faster payment in exchange for a cash discount, offers to open its calculation, recalls its  support and is shifting focus to customers with volume, so earlier payment, transparency on costs and a meaningful volume commitment would move it.",
+    "sources": [
+     "doc:20251220-70260-N",
+     "doc:20260212-70260-M1",
+     "doc:20260322-70260-M4",
+     "doc:20260522-70260-M3",
+     "doc:20260913-70260-M2",
+     "news:20260417-08"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70270": {
+   "name": "Obrábění Kraslin s.r.o.",
+   "country": "CZ",
+   "category": "machined parts",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "founder",
+    "group_parent": null,
+    "staff": 30,
+    "turnover_band": "2-5 M EUR",
+    "equity_ratio_pct": 44.8,
+    "credit_index": 245,
+    "credit_index_12m_ago": 245,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 45,
+    "cash_discount": null,
+    "incoterm": "EXW",
+    "standard_lead_time_days": 42,
+    "contract": {
+     "id": "ctr:4600070270",
+     "valid_to": "2027-06-30",
+     "payment_days": 45,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 27,
+    "mean_days_late": 5.4,
+    "paid_late_share": 0.778,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70270@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 84.6,
+     "ppm": 1531,
+     "score": 84.7,
+     "colour": "amber"
+    },
+    "notifications_12m": 6,
+    "supplier_caused_12m": 6
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:320050",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:320050"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70270-320050",
+      "date": "2022-11-29",
+      "part_id": "part:320050",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70270-320050",
+      "date": "2023-11-18",
+      "part_id": "part:320050",
+      "type": "annual renewal",
+      "asked_pct": -4.1,
+      "settled_pct": -5.4
+     },
+     {
+      "event_id": "EV-2025-70270-320050",
+      "date": "2024-12-04",
+      "part_id": "part:320050",
+      "type": "annual renewal",
+      "asked_pct": 5.8,
+      "settled_pct": 2.7
+     },
+     {
+      "event_id": "EV-2026-70270-320050",
+      "date": "2025-12-02",
+      "part_id": "part:320050",
+      "type": "annual renewal",
+      "asked_pct": 2.8,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "deprioritising_us",
+      "quote": "they are reviewing small accounts and will focus on customers with volume",
+      "source": "doc:20260223-70270-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "partnership_2022",
+      "quote": "in 2022 they kept supplying at the old price for a quarter and said he expects partnership in return",
+      "source": "doc:20260318-70270-M3",
+      "by": "reader agent"
+     },
+     {
+      "label": "stale_costing",
+      "quote": "he works from his own spreadsheet, last updated two years ago",
+      "source": "doc:20260809-70270-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "cash_need",
+      "quote": "put its turning shop on short-time work from November",
+      "source": "news:20261020-S16",
+      "by": "reader agent"
+     },
+     {
+      "label": "spare_capacity",
+      "quote": "the owner says he is looking for new customers in Germany",
+      "source": "news:20261020-S16",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier lost an automotive order and has idle capacity on short-time work, prices from an outdated spreadsheet, and leans on past partnership while favouring volume customers, so volume commitments and faster payment would likely move it.",
+    "sources": [
+     "doc:20251211-70270-N",
+     "doc:20260223-70270-M2",
+     "doc:20260318-70270-M3",
+     "doc:20260809-70270-M1",
+     "news:20261020-S16"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "checked",
+    "note": "senal nueva del lector revisada el 25-10 (cita literal correcta)"
+   }
+  },
+  "sup:70280": {
+   "name": "Wälzhammer Präzision GmbH",
+   "country": "DE",
+   "category": "machined parts",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 55,
+    "turnover_band": "5-10 M EUR",
+    "equity_ratio_pct": 20.3,
+    "credit_index": 302,
+    "credit_index_12m_ago": 230,
+    "credit_trend": "worse",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": "3% within 10 days",
+    "incoterm": "EXW",
+    "standard_lead_time_days": 28,
+    "contract": {
+     "id": "ctr:4600070280",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 28,
+    "mean_days_late": 8.0,
+    "paid_late_share": 0.536,
+    "we_pay_late": true,
+    "open_overdue_invoices": 1
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70280@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 88.9,
+     "ppm": 425,
+     "score": 92.3,
+     "colour": "green"
+    },
+    "notifications_12m": 3,
+    "supplier_caused_12m": 3
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:320011",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:320011"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70280-320011",
+      "date": "2022-11-21",
+      "part_id": "part:320011",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70280-320011",
+      "date": "2023-12-08",
+      "part_id": "part:320011",
+      "type": "annual renewal",
+      "asked_pct": 1.5,
+      "settled_pct": -1.9
+     },
+     {
+      "event_id": "EV-2025-70280-320011",
+      "date": "2024-11-20",
+      "part_id": "part:320011",
+      "type": "annual renewal",
+      "asked_pct": -0.7,
+      "settled_pct": -3.0
+     },
+     {
+      "event_id": "EV-2026-70280-320011",
+      "date": "2025-11-24",
+      "part_id": "part:320011",
+      "type": "annual renewal",
+      "asked_pct": 3.5,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "open_book",
+      "quote": "he offered to walk us through their calculation (hourly rates and material) if that helps to settle prices",
+      "source": "doc:20260617-70280-M3",
+      "by": "reader agent"
+     },
+     {
+      "label": "spare_capacity",
+      "quote": "they could take additional parts at short notice; the second shift has been on hold since spring",
+      "source": "doc:20260619-70280-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "cash_need",
+      "quote": "he asked twice whether we could pay earlier and said the bank is watching every month",
+      "source": "doc:20260707-70280-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "complains_late_pay",
+      "quote": "Several of our invoices are overdue again. We ask you to keep to the agreed payment terms",
+      "source": "doc:20260720-70280-P",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier is under bank pressure with idle capacity and short-time work, resists margin cuts, complains about our late payments, and would be moved most by faster payment and additional volume, with an offer to open its calculation.",
+    "sources": [
+     "doc:20251121-70280-N",
+     "doc:20260617-70280-M3",
+     "doc:20260619-70280-M2",
+     "doc:20260707-70280-M1",
+     "doc:20260720-70280-P",
+     "news:20260725-20",
+     "news:20260926-38",
+     "quote:7300056"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70290": {
+   "name": "Feinmechanik Rottaler GmbH",
+   "country": "DE",
+   "category": "machined parts",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "founder",
+    "group_parent": null,
+    "staff": 25,
+    "turnover_band": "2-5 M EUR",
+    "equity_ratio_pct": 21.7,
+    "credit_index": 231,
+    "credit_index_12m_ago": 231,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "EXW",
+    "standard_lead_time_days": 35,
+    "contract": {
+     "id": "ctr:4600070290",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 29,
+    "mean_days_late": 10.3,
+    "paid_late_share": 0.966,
+    "we_pay_late": true,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70290@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 75.9,
+     "ppm": 921,
+     "score": 83.3,
+     "colour": "amber"
+    },
+    "notifications_12m": 8,
+    "supplier_caused_12m": 8
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:320010",
+      "status": "active",
+      "quota_pct": 70
+     }
+    ],
+    "only_active_source_for": []
+   },
+   "costing": {
+    "should_cost": [
+     "cost:320010"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70290-320010",
+      "date": "2022-12-07",
+      "part_id": "part:320010",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70290-320010",
+      "date": "2023-11-12",
+      "part_id": "part:320010",
+      "type": "annual renewal",
+      "asked_pct": -0.1,
+      "settled_pct": -2.7
+     },
+     {
+      "event_id": "EV-2025-70290-320010",
+      "date": "2024-12-02",
+      "part_id": "part:320010",
+      "type": "annual renewal",
+      "asked_pct": 3.7,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70290-320010",
+      "date": "2025-11-19",
+      "part_id": "part:320010",
+      "type": "annual renewal",
+      "asked_pct": -1.2,
+      "settled_pct": -2.9
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "capacity_full",
+      "quote": "Order intake is very strong. We can confirm additional volumes only against a binding 12-month commitment.",
+      "source": "doc:20260315-70290-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "cash_need",
+      "quote": "Could you pay our invoices within 10 days? In return we would grant a cash discount.",
+      "source": "doc:20260501-70290-M2",
+      "by": "phrase list"
+     }
+    ],
+    "summary": "The supplier is heavily loaded after winning a large multi-year contract and allocates extra volume only to customers giving a binding twelve-month commitment, while also seeking faster payment in exchange for a cash discount.",
+    "sources": [
+     "doc:20251014-70290-N",
+     "doc:20260315-70290-M1",
+     "doc:20260501-70290-M2",
+     "doc:20260619-70290-M3",
+     "news:20260323-06"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70295": {
+   "name": "Drehzentrum Ilzauer GmbH",
+   "country": "DE",
+   "category": "machined parts",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "founder",
+    "group_parent": null,
+    "staff": 20,
+    "turnover_band": "2-5 M EUR",
+    "equity_ratio_pct": 40.8,
+    "credit_index": 249,
+    "credit_index_12m_ago": 249,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "EXW",
+    "standard_lead_time_days": 28,
+    "contract": {
+     "id": "ctr:4600070295",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 60,
+    "mean_days_late": 11.0,
+    "paid_late_share": 0.95,
+    "we_pay_late": true,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70295@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 84.4,
+     "ppm": 1000,
+     "score": 77.2,
+     "colour": "amber"
+    },
+    "notifications_12m": 20,
+    "supplier_caused_12m": 20
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:320020",
+      "status": "active",
+      "quota_pct": 60
+     },
+     {
+      "part_id": "part:320040",
+      "status": "active",
+      "quota_pct": 100
+     },
+     {
+      "part_id": "part:320090",
+      "status": "active",
+      "quota_pct": 50
+     }
+    ],
+    "only_active_source_for": [
+     "part:320040"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70295-320020",
+      "date": "2022-11-13",
+      "part_id": "part:320020",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70295-320040",
+      "date": "2022-11-23",
+      "part_id": "part:320040",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70295-320090",
+      "date": "2022-11-28",
+      "part_id": "part:320090",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70295-320040",
+      "date": "2023-12-01",
+      "part_id": "part:320040",
+      "type": "annual renewal",
+      "asked_pct": 1.9,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2024-70295-320020",
+      "date": "2023-12-08",
+      "part_id": "part:320020",
+      "type": "annual renewal",
+      "asked_pct": -1.2,
+      "settled_pct": -3.6
+     },
+     {
+      "event_id": "EV-2024-70295-320090",
+      "date": "2023-12-09",
+      "part_id": "part:320090",
+      "type": "annual renewal",
+      "asked_pct": -0.1,
+      "settled_pct": -3.1
+     },
+     {
+      "event_id": "EV-2025-70295-320090",
+      "date": "2024-11-17",
+      "part_id": "part:320090",
+      "type": "annual renewal",
+      "asked_pct": 1.7,
+      "settled_pct": -1.7
+     },
+     {
+      "event_id": "EV-2025-70295-320040",
+      "date": "2024-11-24",
+      "part_id": "part:320040",
+      "type": "annual renewal",
+      "asked_pct": 6.6,
+      "settled_pct": 5.2
+     },
+     {
+      "event_id": "EV-2025-70295-320020",
+      "date": "2024-12-08",
+      "part_id": "part:320020",
+      "type": "annual renewal",
+      "asked_pct": 2.4,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70295-320020",
+      "date": "2025-11-12",
+      "part_id": "part:320020",
+      "type": "annual renewal",
+      "asked_pct": 3.0,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70295-320040",
+      "date": "2025-11-15",
+      "part_id": "part:320040",
+      "type": "annual renewal",
+      "asked_pct": 5.2,
+      "settled_pct": 3.1
+     },
+     {
+      "event_id": "EV-2026-70295-320090",
+      "date": "2025-11-18",
+      "part_id": "part:320090",
+      "type": "annual renewal",
+      "asked_pct": 3.3,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "spare_capacity",
+      "quote": "they could take additional parts at short notice; the second shift has been on hold since spring",
+      "source": "doc:20260419-70295-M5",
+      "by": "reader agent"
+     },
+     {
+      "label": "cash_need",
+      "quote": "Could you pay our invoices within 10 days? In return we would grant a cash discount.",
+      "source": "doc:20260505-70295-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "complains_late_pay",
+      "quote": "Several of our invoices are overdue again. We ask you to keep to the agreed payment terms",
+      "source": "doc:20260515-70295-P",
+      "by": "reader agent"
+     },
+     {
+      "label": "stale_costing",
+      "quote": "he had not followed his material and energy prices closely since the 2022 peak",
+      "source": "doc:20260717-70295-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier has idle capacity, wants faster payment and complains about late payment, and prices from a stale costing, so paying promptly or earlier and offering additional volume would likely move it.",
+    "sources": [
+     "doc:20251028-70295-N",
+     "doc:20260415-70295-M6",
+     "doc:20260419-70295-M5",
+     "doc:20260505-70295-M2",
+     "doc:20260515-70295-P",
+     "doc:20260717-70295-M1",
+     "doc:20260828-70295-M3",
+     "doc:20260909-70295-M4",
+     "news:20260514-12"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70310": {
+   "name": "Blechtechnik Aichbauer GmbH",
+   "country": "DE",
+   "category": "sheet metal",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 70,
+    "turnover_band": "5-10 M EUR",
+    "equity_ratio_pct": 24.1,
+    "credit_index": 232,
+    "credit_index_12m_ago": 232,
+    "credit_trend": "same",
+    "audit_grade_vda63": "C"
+   },
+   "terms": {
+    "payment_days": 45,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 21,
+    "contract": {
+     "id": "ctr:4600070310",
+     "valid_to": "2027-06-30",
+     "payment_days": 45,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 28,
+    "mean_days_late": 6.0,
+    "paid_late_share": 0.893,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70310@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 63.0,
+     "ppm": 4118,
+     "score": 60.9,
+     "colour": "red"
+    },
+    "notifications_12m": 7,
+    "supplier_caused_12m": 7
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:330010",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:330010"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70310-330010",
+      "date": "2022-11-20",
+      "part_id": "part:330010",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70310-330010",
+      "date": "2023-12-06",
+      "part_id": "part:330010",
+      "type": "annual renewal",
+      "asked_pct": -2.2,
+      "settled_pct": -6.0
+     },
+     {
+      "event_id": "EV-2025-70310-330010",
+      "date": "2024-11-27",
+      "part_id": "part:330010",
+      "type": "annual renewal",
+      "asked_pct": 2.2,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70310-330010",
+      "date": "2025-11-20",
+      "part_id": "part:330010",
+      "type": "annual renewal",
+      "asked_pct": 3.6,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "cash_need",
+      "quote": "Could you pay our invoices within 10 days? In return we would grant a cash discount.",
+      "source": "doc:20260911-70310-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier appears to need cash, asking us to pay its invoices within  days in exchange for a cash discount, so faster payment would likely move it; it is also under pressure from a red delivery and quality scorecard.",
+    "sources": [
+     "doc:20251003-70310-N",
+     "doc:20260911-70310-M1",
+     "doc:20260924-70310-P12"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70320": {
+   "name": "Stahlbau Ganghofer-Lenz GmbH",
+   "country": "DE",
+   "category": "sheet metal",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 110,
+    "turnover_band": "10-25 M EUR",
+    "equity_ratio_pct": 25.6,
+    "credit_index": 251,
+    "credit_index_12m_ago": 251,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 28,
+    "contract": {
+     "id": "ctr:4600070320",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 25,
+    "mean_days_late": 4.2,
+    "paid_late_share": 0.88,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70320@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 88.0,
+     "ppm": 949,
+     "score": 89.3,
+     "colour": "green"
+    },
+    "notifications_12m": 2,
+    "supplier_caused_12m": 2
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:330011",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:330011"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70320-330011",
+      "date": "2022-12-09",
+      "part_id": "part:330011",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70320-330011",
+      "date": "2023-11-23",
+      "part_id": "part:330011",
+      "type": "annual renewal",
+      "asked_pct": -3.9,
+      "settled_pct": -6.6
+     },
+     {
+      "event_id": "EV-2025-70320-330011",
+      "date": "2024-11-14",
+      "part_id": "part:330011",
+      "type": "annual renewal",
+      "asked_pct": 3.1,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70320-330011",
+      "date": "2025-11-22",
+      "part_id": "part:330011",
+      "type": "annual renewal",
+      "asked_pct": -0.7,
+      "settled_pct": -1.9
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "cash_need",
+      "quote": "Could you pay our invoices within 10 days? In return we would grant a cash discount.",
+      "source": "doc:20260607-70320-M1",
+      "by": "phrase list"
+     }
+    ],
+    "summary": "The supplier asks for faster payment in exchange for a cash discount, but gives no clear sign of financial strain, so earlier payment terms may be a lever.",
+    "sources": [
+     "doc:20251214-70320-N",
+     "doc:20260607-70320-M1",
+     "news:20260715-19"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70330": {
+   "name": "Lasertechnik Varnoszeg Kft.",
+   "country": "HU",
+   "category": "sheet metal",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "private",
+    "group_parent": null,
+    "staff": 90,
+    "turnover_band": "2-5 M EUR",
+    "equity_ratio_pct": 35.3,
+    "credit_index": 248,
+    "credit_index_12m_ago": 248,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 60,
+    "cash_discount": null,
+    "incoterm": "FCA",
+    "standard_lead_time_days": 35,
+    "contract": {
+     "id": "ctr:4600070330",
+     "valid_to": "2027-06-30",
+     "payment_days": 60,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 25,
+    "mean_days_late": 3.8,
+    "paid_late_share": 1.0,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70330@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 70.8,
+     "ppm": 1879,
+     "score": 76.0,
+     "colour": "amber"
+    },
+    "notifications_12m": 5,
+    "supplier_caused_12m": 5
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:330040",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:330040"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70330-330040",
+      "date": "2022-11-12",
+      "part_id": "part:330040",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70330-330040",
+      "date": "2023-11-16",
+      "part_id": "part:330040",
+      "type": "annual renewal",
+      "asked_pct": -3.8,
+      "settled_pct": -7.5
+     },
+     {
+      "event_id": "EV-2025-70330-330040",
+      "date": "2024-12-05",
+      "part_id": "part:330040",
+      "type": "annual renewal",
+      "asked_pct": 3.2,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70330-330040",
+      "date": "2025-11-18",
+      "part_id": "part:330040",
+      "type": "annual renewal",
+      "asked_pct": 1.5,
+      "settled_pct": -2.5
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "spare_capacity",
+      "quote": "they could take additional parts at short notice; the second shift has been on hold since spring",
+      "source": "doc:20260206-70330-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "cash_need",
+      "quote": "Could you pay our invoices within 10 days? In return we would grant a cash discount.",
+      "source": "doc:20260316-70330-M2",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier has idle capacity with its second shift on hold and wants faster payment, so additional volume and earlier payment would likely move it.",
+    "sources": [
+     "doc:20251016-70330-N",
+     "doc:20260206-70330-M1",
+     "doc:20260316-70330-M2"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70340": {
+   "name": "Metallbau Steinfelder KG",
+   "country": "DE",
+   "category": "sheet metal",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 40,
+    "turnover_band": "2-5 M EUR",
+    "equity_ratio_pct": 33.0,
+    "credit_index": 230,
+    "credit_index_12m_ago": 230,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 21,
+    "contract": {
+     "id": "ctr:4600070340",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 51,
+    "mean_days_late": 9.7,
+    "paid_late_share": 0.98,
+    "we_pay_late": true,
+    "open_overdue_invoices": 2
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70340@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 88.5,
+     "ppm": 489,
+     "score": 91.8,
+     "colour": "green"
+    },
+    "notifications_12m": 13,
+    "supplier_caused_12m": 10
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:330020",
+      "status": "active",
+      "quota_pct": 100
+     },
+     {
+      "part_id": "part:330030",
+      "status": "active",
+      "quota_pct": 50
+     }
+    ],
+    "only_active_source_for": [
+     "part:330020"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70340-330020",
+      "date": "2022-11-19",
+      "part_id": "part:330020",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70340-330030",
+      "date": "2022-12-12",
+      "part_id": "part:330030",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70340-330020",
+      "date": "2023-11-24",
+      "part_id": "part:330020",
+      "type": "annual renewal",
+      "asked_pct": -3.2,
+      "settled_pct": -6.1
+     },
+     {
+      "event_id": "EV-2024-70340-330030",
+      "date": "2023-12-12",
+      "part_id": "part:330030",
+      "type": "annual renewal",
+      "asked_pct": -3.4,
+      "settled_pct": -7.4
+     },
+     {
+      "event_id": "EV-2025-70340-330020",
+      "date": "2024-11-19",
+      "part_id": "part:330020",
+      "type": "annual renewal",
+      "asked_pct": 0.4,
+      "settled_pct": -1.1
+     },
+     {
+      "event_id": "EV-2025-70340-330030",
+      "date": "2024-11-22",
+      "part_id": "part:330030",
+      "type": "annual renewal",
+      "asked_pct": 2.1,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70340-330030",
+      "date": "2025-11-30",
+      "part_id": "part:330030",
+      "type": "annual renewal",
+      "asked_pct": 3.2,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70340-330020",
+      "date": "2025-12-12",
+      "part_id": "part:330020",
+      "type": "annual renewal",
+      "asked_pct": 0.2,
+      "settled_pct": -1.3
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "open_book",
+      "quote": "he offered to walk us through their calculation (hourly rates and material) if that helps to settle prices",
+      "source": "doc:20260721-70340-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "stale_costing",
+      "quote": "he works from his own spreadsheet, last updated two years ago",
+      "source": "doc:20260728-70340-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "hedged",
+      "quote": "we have secured our steel sheet and coil for 2027, bought forward at fixed prices with our mill",
+      "source": "doc:20261013-70340-S15",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier prices from an outdated own spreadsheet and offers to open its calculation, but has hedged its  steel at fixed prices, so falling indices will not lower its cost; walking through its cost breakdown with solid index data is the most promising lever.",
+    "sources": [
+     "doc:20251009-70340-N",
+     "doc:20260418-70340-M3",
+     "doc:20260721-70340-M2",
+     "doc:20260728-70340-M1",
+     "doc:20261013-70340-S15"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "checked",
+    "note": "senal nueva del lector revisada el 25-10 (cita literal correcta)"
+   }
+  },
+  "sup:70350": {
+   "name": "Oberflächentechnik Weißacher GmbH",
+   "country": "DE",
+   "category": "sheet metal",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "founder",
+    "group_parent": null,
+    "staff": 30,
+    "turnover_band": "2-5 M EUR",
+    "equity_ratio_pct": 24.9,
+    "credit_index": 343,
+    "credit_index_12m_ago": 248,
+    "credit_trend": "worse",
+    "audit_grade_vda63": "C"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": "2% within 10 days",
+    "incoterm": "DAP",
+    "standard_lead_time_days": 14,
+    "contract": {
+     "id": "ctr:4600070350",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 25,
+    "mean_days_late": 4.7,
+    "paid_late_share": 0.44,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70350@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 53.8,
+     "ppm": 5556,
+     "score": 49.1,
+     "colour": "red"
+    },
+    "notifications_12m": 8,
+    "supplier_caused_12m": 8
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:330060",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:330060"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70350-330060",
+      "date": "2022-12-12",
+      "part_id": "part:330060",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70350-330060",
+      "date": "2023-12-07",
+      "part_id": "part:330060",
+      "type": "annual renewal",
+      "asked_pct": -2.6,
+      "settled_pct": -6.0
+     },
+     {
+      "event_id": "EV-2025-70350-330060",
+      "date": "2024-11-20",
+      "part_id": "part:330060",
+      "type": "annual renewal",
+      "asked_pct": 2.8,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70350-330060",
+      "date": "2025-11-21",
+      "part_id": "part:330060",
+      "type": "annual renewal",
+      "asked_pct": 1.9,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "complains_late_pay",
+      "quote": "Several of our invoices are overdue again. We ask you to keep to the agreed payment terms",
+      "source": "doc:20260820-70350-P",
+      "by": "reader agent"
+     },
+     {
+      "label": "cash_need",
+      "quote": "he asked twice whether we could pay earlier and said the bank is watching every month",
+      "source": "doc:20260912-70350-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier is under liquidity pressure, with its bank watching closely and a lowered credit rating, and it complains about our late payments; faster payment would move it more than anything, while it resists any margin cut.",
+    "sources": [
+     "doc:20251014-70350-N",
+     "doc:20260820-70350-P",
+     "doc:20260821-70350-M2",
+     "doc:20260912-70350-M1",
+     "news:20260904-26",
+     "quote:7300070"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70360": {
+   "name": "Kantteile Strasser GmbH",
+   "country": "AT",
+   "category": "sheet metal",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "founder",
+    "group_parent": null,
+    "staff": 25,
+    "turnover_band": "2-5 M EUR",
+    "equity_ratio_pct": 31.1,
+    "credit_index": 223,
+    "credit_index_12m_ago": 223,
+    "credit_trend": "same",
+    "audit_grade_vda63": "B"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 28,
+    "contract": {
+     "id": "ctr:4600070360",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 27,
+    "mean_days_late": 4.9,
+    "paid_late_share": 0.889,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70360@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 76.0,
+     "ppm": 762,
+     "score": 79.2,
+     "colour": "amber"
+    },
+    "notifications_12m": 6,
+    "supplier_caused_12m": 6
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:330020",
+      "status": "qualified",
+      "quota_pct": 0
+     },
+     {
+      "part_id": "part:330030",
+      "status": "active",
+      "quota_pct": 50
+     }
+    ],
+    "only_active_source_for": []
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70360-330030",
+      "date": "2022-11-23",
+      "part_id": "part:330030",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70360-330030",
+      "date": "2023-11-20",
+      "part_id": "part:330030",
+      "type": "annual renewal",
+      "asked_pct": -3.1,
+      "settled_pct": -6.0
+     },
+     {
+      "event_id": "EV-2025-70360-330030",
+      "date": "2024-11-26",
+      "part_id": "part:330030",
+      "type": "annual renewal",
+      "asked_pct": 3.7,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70360-330030",
+      "date": "2025-11-24",
+      "part_id": "part:330030",
+      "type": "annual renewal",
+      "asked_pct": 3.6,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "spare_capacity",
+      "quote": "they could take additional parts at short notice; the second shift has been on hold since spring",
+      "source": "doc:20260527-70360-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "stale_costing",
+      "quote": "he works from his own spreadsheet, last updated two years ago",
+      "source": "doc:20260606-70360-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "Kantteile Strasser has idle capacity and prices from an outdated spreadsheet, so showing it current index data and offering additional volume would likely move its price.",
+    "sources": [
+     "doc:20251212-70360-N",
+     "doc:20260527-70360-M2",
+     "doc:20260606-70360-M1",
+     "doc:20260812-70360-M3"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70410": {
+   "name": "Dichtungswerk Ravensteiner GmbH",
+   "country": "DE",
+   "category": "seals",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "group",
+    "group_parent": "Ravensteiner Holding AG",
+    "staff": 650,
+    "turnover_band": "100-250 M EUR",
+    "equity_ratio_pct": 28.8,
+    "credit_index": 159,
+    "credit_index_12m_ago": 159,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 42,
+    "contract": {
+     "id": "ctr:4600070410",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 66,
+    "mean_days_late": 2.3,
+    "paid_late_share": 0.758,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70410@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 79.5,
+     "ppm": 270,
+     "score": 88.4,
+     "colour": "green"
+    },
+    "notifications_12m": 16,
+    "supplier_caused_12m": 14
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:340010",
+      "status": "active",
+      "quota_pct": 100
+     },
+     {
+      "part_id": "part:340011",
+      "status": "active",
+      "quota_pct": 40
+     },
+     {
+      "part_id": "part:340030",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:340010",
+     "part:340030"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:340010"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70410-340030",
+      "date": "2022-11-14",
+      "part_id": "part:340030",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70410-340010",
+      "date": "2022-11-18",
+      "part_id": "part:340010",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70410-340011",
+      "date": "2022-12-10",
+      "part_id": "part:340011",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70410-340011",
+      "date": "2023-12-02",
+      "part_id": "part:340011",
+      "type": "annual renewal",
+      "asked_pct": 1.8,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2024-70410-340030",
+      "date": "2023-12-08",
+      "part_id": "part:340030",
+      "type": "annual renewal",
+      "asked_pct": 2.2,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2024-70410-340010",
+      "date": "2023-12-10",
+      "part_id": "part:340010",
+      "type": "annual renewal",
+      "asked_pct": 7.0,
+      "settled_pct": 3.3
+     },
+     {
+      "event_id": "EV-2025-70410-340010",
+      "date": "2024-11-24",
+      "part_id": "part:340010",
+      "type": "annual renewal",
+      "asked_pct": 2.0,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70410-340011",
+      "date": "2024-11-24",
+      "part_id": "part:340011",
+      "type": "annual renewal",
+      "asked_pct": 4.9,
+      "settled_pct": 2.1
+     },
+     {
+      "event_id": "EV-2025-70410-340030",
+      "date": "2024-12-06",
+      "part_id": "part:340030",
+      "type": "annual renewal",
+      "asked_pct": 5.6,
+      "settled_pct": 3.7
+     },
+     {
+      "event_id": "EV-2026-70410-340010",
+      "date": "2025-11-23",
+      "part_id": "part:340010",
+      "type": "annual renewal",
+      "asked_pct": 2.5,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70410-340011",
+      "date": "2025-12-02",
+      "part_id": "part:340011",
+      "type": "annual renewal",
+      "asked_pct": 1.5,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70410-340030",
+      "date": "2025-12-07",
+      "part_id": "part:340030",
+      "type": "annual renewal",
+      "asked_pct": 1.1,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks",
+      "source": "doc:20260310-70410-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "capacity_full",
+      "quote": "Order intake is very strong.",
+      "source": "doc:20260327-70410-M2",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier is fully loaded and allocating volumes, needs committee approval for price moves above a small share, and favours customers offering firm long-term commitments.",
+    "sources": [
+     "doc:20251108-70410-N",
+     "doc:20260310-70410-M1",
+     "doc:20260327-70410-M2",
+     "doc:20260918-70410-P10",
+     "news:20260822-23"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70420": {
+   "name": "Gleitring-Systeme Kaltenbrunn AG",
+   "country": "CH",
+   "category": "seals",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "group",
+    "group_parent": null,
+    "staff": 900,
+    "turnover_band": "100-250 M EUR",
+    "equity_ratio_pct": 35.7,
+    "credit_index": 162,
+    "credit_index_12m_ago": 162,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 56,
+    "contract": {
+     "id": "ctr:4600070420",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 180,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 24,
+    "mean_days_late": 0.9,
+    "paid_late_share": 0.542,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70420@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 95.8,
+     "ppm": 0,
+     "score": 97.9,
+     "colour": "green"
+    },
+    "notifications_12m": 0,
+    "supplier_caused_12m": 0
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:340012",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:340012"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:340012"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70420-340012",
+      "date": "2022-12-05",
+      "part_id": "part:340012",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70420-340012",
+      "date": "2023-11-20",
+      "part_id": "part:340012",
+      "type": "annual renewal",
+      "asked_pct": 3.3,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70420-340012",
+      "date": "2024-11-20",
+      "part_id": "part:340012",
+      "type": "annual renewal",
+      "asked_pct": 2.2,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70420-340012",
+      "date": "2025-11-12",
+      "part_id": "part:340012",
+      "type": "annual renewal",
+      "asked_pct": 1.3,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks",
+      "source": "doc:20260302-70420-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "price_frozen",
+      "quote": "there is no room on price this year: head office has frozen all price reductions until December 2027",
+      "source": "doc:20260823-70420-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier's head office has frozen price reductions and larger price moves need committee approval, so price will not move, but it is open to trading payment terms and call-off flexibility.",
+    "sources": [
+     "doc:20251124-70420-N",
+     "doc:20260302-70420-M2",
+     "doc:20260823-70420-M1",
+     "news:20260912-29",
+     "quote:7300055"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70430": {
+   "name": "Elasto-Dicht Hermannsdorfer GmbH",
+   "country": "DE",
+   "category": "seals",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 45,
+    "turnover_band": "10-25 M EUR",
+    "equity_ratio_pct": 38.9,
+    "credit_index": 167,
+    "credit_index_12m_ago": 167,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 7,
+    "contract": {
+     "id": "ctr:4600070430",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 53,
+    "mean_days_late": 2.2,
+    "paid_late_share": 0.717,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70430@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 91.8,
+     "ppm": 291,
+     "score": 94.5,
+     "colour": "green"
+    },
+    "notifications_12m": 13,
+    "supplier_caused_12m": 12
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:340020",
+      "status": "active",
+      "quota_pct": 100
+     },
+     {
+      "part_id": "part:340030",
+      "status": "qualified",
+      "quota_pct": 0
+     },
+     {
+      "part_id": "part:340040",
+      "status": "active",
+      "quota_pct": 50
+     }
+    ],
+    "only_active_source_for": [
+     "part:340020"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70430-340040",
+      "date": "2022-11-20",
+      "part_id": "part:340040",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70430-340020",
+      "date": "2022-11-29",
+      "part_id": "part:340020",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70430-340040",
+      "date": "2023-11-22",
+      "part_id": "part:340040",
+      "type": "annual renewal",
+      "asked_pct": 1.1,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2024-70430-340020",
+      "date": "2023-12-02",
+      "part_id": "part:340020",
+      "type": "annual renewal",
+      "asked_pct": 2.7,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70430-340040",
+      "date": "2024-11-22",
+      "part_id": "part:340040",
+      "type": "annual renewal",
+      "asked_pct": 2.5,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70430-340020",
+      "date": "2024-11-26",
+      "part_id": "part:340020",
+      "type": "annual renewal",
+      "asked_pct": 1.1,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70430-340020",
+      "date": "2025-11-24",
+      "part_id": "part:340020",
+      "type": "annual renewal",
+      "asked_pct": 5.4,
+      "settled_pct": 2.4
+     },
+     {
+      "event_id": "EV-2026-70430-340040",
+      "date": "2025-12-01",
+      "part_id": "part:340040",
+      "type": "annual renewal",
+      "asked_pct": 4.0,
+      "settled_pct": 2.6
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "open_book",
+      "quote": "he offered to walk us through their calculation (hourly rates and material) if that helps to settle prices",
+      "source": "doc:20260326-70430-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "deprioritising_us",
+      "quote": "they are reviewing small accounts and will focus on customers with volume",
+      "source": "doc:20260515-70430-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier is willing to open its calculation but is narrowing its focus to larger accounts, so bundling the kit volume with one supplier could make us more attractive to it.",
+    "sources": [
+     "doc:20251012-70430-N",
+     "doc:20260326-70430-M2",
+     "doc:20260515-70430-M1",
+     "doc:20260913-70430-P15"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70440": {
+   "name": "Kohlering-Technik Pirkheim GmbH",
+   "country": "DE",
+   "category": "seals",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 140,
+    "turnover_band": "25-50 M EUR",
+    "equity_ratio_pct": 24.5,
+    "credit_index": 147,
+    "credit_index_12m_ago": 147,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 35,
+    "contract": {
+     "id": "ctr:4600070440",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 52,
+    "mean_days_late": 3.1,
+    "paid_late_share": 0.865,
+    "we_pay_late": false,
+    "open_overdue_invoices": 1
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70440@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 75.5,
+     "ppm": 387,
+     "score": 85.8,
+     "colour": "green"
+    },
+    "notifications_12m": 11,
+    "supplier_caused_12m": 10
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:340011",
+      "status": "active",
+      "quota_pct": 60
+     },
+     {
+      "part_id": "part:340040",
+      "status": "active",
+      "quota_pct": 50
+     }
+    ],
+    "only_active_source_for": []
+   },
+   "costing": {
+    "should_cost": [
+     "cost:340011"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70440-340011",
+      "date": "2022-11-27",
+      "part_id": "part:340011",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70440-340040",
+      "date": "2022-12-01",
+      "part_id": "part:340040",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70440-340040",
+      "date": "2023-11-14",
+      "part_id": "part:340040",
+      "type": "annual renewal",
+      "asked_pct": 3.9,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2024-70440-340011",
+      "date": "2023-12-07",
+      "part_id": "part:340011",
+      "type": "annual renewal",
+      "asked_pct": 2.9,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70440-340011",
+      "date": "2024-11-25",
+      "part_id": "part:340011",
+      "type": "annual renewal",
+      "asked_pct": 1.1,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70440-340040",
+      "date": "2024-11-25",
+      "part_id": "part:340040",
+      "type": "annual renewal",
+      "asked_pct": 4.7,
+      "settled_pct": 1.8
+     },
+     {
+      "event_id": "EV-2026-70440-340040",
+      "date": "2025-11-12",
+      "part_id": "part:340040",
+      "type": "annual renewal",
+      "asked_pct": 1.7,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70440-340011",
+      "date": "2025-11-17",
+      "part_id": "part:340011",
+      "type": "annual renewal",
+      "asked_pct": 4.8,
+      "settled_pct": 2.1
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks",
+      "source": "doc:20260524-70440-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "price_frozen",
+      "quote": "standard items are not discounted; only multi-year volume agreements change prices",
+      "source": "doc:20260910-70440-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "capacity_full",
+      "quote": "deliveries of standard mechanical seals will be allocated in line with last year's call-offs",
+      "source": "news:20260827-25",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "Kohlering-Technik is allocating standard seal volumes, does not discount standard items, and needs committee approval for price moves above a small share, so only a multi-year volume agreement is likely to move its price.",
+    "sources": [
+     "doc:20251012-70440-N",
+     "doc:20260524-70440-M2",
+     "doc:20260910-70440-M1",
+     "news:20260827-25"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70510": {
+   "name": "Antriebstechnik Nordmark AG",
+   "country": "DE",
+   "category": "electrical",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "group",
+    "group_parent": "Nordmark Gruppe",
+    "staff": 4800,
+    "turnover_band": ">1000 M EUR",
+    "equity_ratio_pct": 29.1,
+    "credit_index": 147,
+    "credit_index_12m_ago": 147,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 35,
+    "contract": {
+     "id": "ctr:4600070510",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 50,
+    "mean_days_late": 1.2,
+    "paid_late_share": 0.64,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70510@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 90.4,
+     "ppm": 273,
+     "score": 93.8,
+     "colour": "green"
+    },
+    "notifications_12m": 3,
+    "supplier_caused_12m": 3
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:350010",
+      "status": "active",
+      "quota_pct": 70
+     },
+     {
+      "part_id": "part:350011",
+      "status": "active",
+      "quota_pct": 100
+     },
+     {
+      "part_id": "part:350012",
+      "status": "qualified",
+      "quota_pct": 0
+     },
+     {
+      "part_id": "part:350013",
+      "status": "qualified",
+      "quota_pct": 0
+     }
+    ],
+    "only_active_source_for": [
+     "part:350011"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:350010",
+     "cost:350011"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70510-350011",
+      "date": "2022-11-27",
+      "part_id": "part:350011",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70510-350010",
+      "date": "2022-12-03",
+      "part_id": "part:350010",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70510-350011",
+      "date": "2023-12-09",
+      "part_id": "part:350011",
+      "type": "annual renewal",
+      "asked_pct": -0.4,
+      "settled_pct": -2.6
+     },
+     {
+      "event_id": "EV-2024-70510-350010",
+      "date": "2023-12-12",
+      "part_id": "part:350010",
+      "type": "annual renewal",
+      "asked_pct": -1.2,
+      "settled_pct": -2.6
+     },
+     {
+      "event_id": "EV-2025-70510-350011",
+      "date": "2024-11-29",
+      "part_id": "part:350011",
+      "type": "annual renewal",
+      "asked_pct": 3.5,
+      "settled_pct": 1.4
+     },
+     {
+      "event_id": "EV-2025-70510-350010",
+      "date": "2024-12-01",
+      "part_id": "part:350010",
+      "type": "annual renewal",
+      "asked_pct": 3.7,
+      "settled_pct": 1.4
+     },
+     {
+      "event_id": "EV-2026-70510-350011",
+      "date": "2025-11-12",
+      "part_id": "part:350011",
+      "type": "annual renewal",
+      "asked_pct": 4.7,
+      "settled_pct": 1.2
+     },
+     {
+      "event_id": "EV-2026-70510-350010",
+      "date": "2025-11-13",
+      "part_id": "part:350010",
+      "type": "annual renewal",
+      "asked_pct": 3.8,
+      "settled_pct": 1.2
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks",
+      "source": "doc:20260227-70510-M2",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "Antriebstechnik Nordmark announces a price increase citing copper and electronics costs, and any price move above a small share needs its pricing committee's approval, so concessions will take time and justification.",
+    "sources": [
+     "doc:20251019-70510-N",
+     "doc:20260227-70510-M2",
+     "doc:20260410-70510-M1",
+     "doc:20260914-70510-P02"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70520": {
+   "name": "Vesmo Elektromotory a.s.",
+   "country": "CZ",
+   "category": "electrical",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "group",
+    "group_parent": null,
+    "staff": 1200,
+    "turnover_band": "100-250 M EUR",
+    "equity_ratio_pct": 37.4,
+    "credit_index": 173,
+    "credit_index_12m_ago": 173,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 45,
+    "cash_discount": null,
+    "incoterm": "FCA",
+    "standard_lead_time_days": 42,
+    "contract": {
+     "id": "ctr:4600070520",
+     "valid_to": "2026-12-31",
+     "payment_days": 45,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 52,
+    "mean_days_late": 3.1,
+    "paid_late_share": 0.769,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70520@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 81.1,
+     "ppm": 764,
+     "score": 86.7,
+     "colour": "green"
+    },
+    "notifications_12m": 4,
+    "supplier_caused_12m": 4
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:350010",
+      "status": "active",
+      "quota_pct": 30
+     },
+     {
+      "part_id": "part:350012",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:350012"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:350010-70520",
+     "cost:350012"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70520-350010",
+      "date": "2022-11-26",
+      "part_id": "part:350010",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70520-350012",
+      "date": "2022-12-07",
+      "part_id": "part:350012",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70520-350012",
+      "date": "2023-11-19",
+      "part_id": "part:350012",
+      "type": "annual renewal",
+      "asked_pct": -0.9,
+      "settled_pct": -2.6
+     },
+     {
+      "event_id": "EV-2024-70520-350010",
+      "date": "2023-12-08",
+      "part_id": "part:350010",
+      "type": "annual renewal",
+      "asked_pct": -0.7,
+      "settled_pct": -2.6
+     },
+     {
+      "event_id": "EV-2025-70520-350012",
+      "date": "2024-11-21",
+      "part_id": "part:350012",
+      "type": "annual renewal",
+      "asked_pct": 2.7,
+      "settled_pct": 1.4
+     },
+     {
+      "event_id": "EV-2025-70520-350010",
+      "date": "2024-12-06",
+      "part_id": "part:350010",
+      "type": "annual renewal",
+      "asked_pct": 4.7,
+      "settled_pct": 1.4
+     },
+     {
+      "event_id": "EV-2026-70520-350012",
+      "date": "2025-11-13",
+      "part_id": "part:350012",
+      "type": "annual renewal",
+      "asked_pct": 4.3,
+      "settled_pct": 1.2
+     },
+     {
+      "event_id": "EV-2026-70520-350010",
+      "date": "2025-11-19",
+      "part_id": "part:350010",
+      "type": "annual renewal",
+      "asked_pct": 3.5,
+      "settled_pct": 1.2
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks",
+      "source": "doc:20260218-70520-M3",
+      "by": "reader agent"
+     },
+     {
+      "label": "deprioritising_us",
+      "quote": "they are reviewing small accounts and will focus on customers with volume",
+      "source": "doc:20260413-70520-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "hedged",
+      "quote": "our copper requirement is covered at fixed prices until March 2027",
+      "source": "doc:20260620-70520-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "Vesmo has hedged its copper until March , needs committee approval for price moves above a small share, and is deprioritising small accounts, so a larger volume commitment is the most likely lever.",
+    "sources": [
+     "doc:20251207-70520-N",
+     "doc:20260218-70520-M3",
+     "doc:20260413-70520-M2",
+     "doc:20260426-70520-M5",
+     "doc:20260620-70520-M1",
+     "doc:20260701-70520-M4",
+     "quote:7300054",
+     "quote:7300077"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70530": {
+   "name": "Selvbrunn Drive Systems GmbH",
+   "country": "DE",
+   "category": "electrical",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "group",
+    "group_parent": null,
+    "staff": 2200,
+    "turnover_band": "250-1000 M EUR",
+    "equity_ratio_pct": 31.7,
+    "credit_index": 157,
+    "credit_index_12m_ago": 157,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 49,
+    "contract": {
+     "id": "ctr:4600070530",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 27,
+    "mean_days_late": 2.1,
+    "paid_late_share": 0.704,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70530@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 84.6,
+     "ppm": 0,
+     "score": 92.3,
+     "colour": "green"
+    },
+    "notifications_12m": 0,
+    "supplier_caused_12m": 0
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:350020",
+      "status": "active",
+      "quota_pct": 100
+     },
+     {
+      "part_id": "part:350021",
+      "status": "qualified",
+      "quota_pct": 0
+     }
+    ],
+    "only_active_source_for": [
+     "part:350020"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:350020"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70530-350020",
+      "date": "2022-12-02",
+      "part_id": "part:350020",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70530-350020",
+      "date": "2023-11-13",
+      "part_id": "part:350020",
+      "type": "annual renewal",
+      "asked_pct": 1.4,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70530-350020",
+      "date": "2024-12-08",
+      "part_id": "part:350020",
+      "type": "annual renewal",
+      "asked_pct": -0.6,
+      "settled_pct": -3.5
+     },
+     {
+      "event_id": "EV-2026-70530-350020",
+      "date": "2025-11-21",
+      "part_id": "part:350020",
+      "type": "annual renewal",
+      "asked_pct": 5.5,
+      "settled_pct": 3.1
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "price_frozen",
+      "quote": "head office has frozen all price reductions until December 2027",
+      "source": "doc:20260826-70530-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks",
+      "source": "doc:20260909-70530-M2",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "Selvbrunn has frozen price reductions by head-office directive and needs committee approval for larger changes, so movement is more likely on payment terms, call-off flexibility or volume than on price.",
+    "sources": [
+     "doc:20251201-70530-N",
+     "doc:20260826-70530-M1",
+     "doc:20260909-70530-M2",
+     "doc:20260917-70530-P03",
+     "news:20260612-13",
+     "quote:7300003"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70540": {
+   "name": "Konvertek Antriebselektronik GmbH",
+   "country": "AT",
+   "category": "electrical",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "group",
+    "group_parent": null,
+    "staff": 800,
+    "turnover_band": "100-250 M EUR",
+    "equity_ratio_pct": 38.4,
+    "credit_index": 178,
+    "credit_index_12m_ago": 178,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 84,
+    "contract": {
+     "id": "ctr:4600070540",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 27,
+    "mean_days_late": 2.1,
+    "paid_late_share": 0.889,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70540@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 81.5,
+     "ppm": 0,
+     "score": 90.7,
+     "colour": "green"
+    },
+    "notifications_12m": 0,
+    "supplier_caused_12m": 0
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:350020",
+      "status": "qualified",
+      "quota_pct": 0
+     },
+     {
+      "part_id": "part:350021",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:350021"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:350021"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70540-350021",
+      "date": "2022-12-02",
+      "part_id": "part:350021",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70540-350021",
+      "date": "2023-11-18",
+      "part_id": "part:350021",
+      "type": "annual renewal",
+      "asked_pct": 3.2,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70540-350021",
+      "date": "2024-11-26",
+      "part_id": "part:350021",
+      "type": "annual renewal",
+      "asked_pct": 1.0,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70540-350021",
+      "date": "2025-12-09",
+      "part_id": "part:350021",
+      "type": "annual renewal",
+      "asked_pct": 2.8,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "deprioritising_us",
+      "quote": "they are reviewing small accounts and will focus on customers with volume",
+      "source": "doc:20260223-70540-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee",
+      "source": "doc:20260711-70540-M3",
+      "by": "reader agent"
+     },
+     {
+      "label": "price_frozen",
+      "quote": "Our price list applies to all customers without exception until June 2027.",
+      "source": "doc:20260906-70540-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "Konvertek has frozen list prices for all customers and needs committee approval for larger moves, while it focuses on high-volume accounts; logistics, payment terms or a stronger volume commitment are the likely levers rather than price.",
+    "sources": [
+     "doc:20251005-70540-N",
+     "doc:20260223-70540-M2",
+     "doc:20260711-70540-M3",
+     "doc:20260906-70540-M1",
+     "news:20260302-01",
+     "quote:7300067"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70550": {
+   "name": "Platinenwerk Lausitz GmbH",
+   "country": "DE",
+   "category": "electrical",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "private",
+    "group_parent": null,
+    "staff": 320,
+    "turnover_band": "50-100 M EUR",
+    "equity_ratio_pct": 39.5,
+    "credit_index": 150,
+    "credit_index_12m_ago": 150,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 45,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 56,
+    "contract": {
+     "id": "ctr:4600070550",
+     "valid_to": "2027-06-30",
+     "payment_days": 45,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 26,
+    "mean_days_late": 4.8,
+    "paid_late_share": 0.923,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70550@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 85.7,
+     "ppm": 701,
+     "score": 89.4,
+     "colour": "green"
+    },
+    "notifications_12m": 10,
+    "supplier_caused_12m": 8
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:350030",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:350030"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:350030"
+    ],
+    "sold_below_full_cost": true,
+    "history_notes": [
+     "accepted below full cost to keep the volume"
+    ],
+    "history": [
+     {
+      "event_id": "EV-2023-70550-350030",
+      "date": "2022-12-09",
+      "part_id": "part:350030",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70550-350030",
+      "date": "2023-12-08",
+      "part_id": "part:350030",
+      "type": "annual renewal",
+      "asked_pct": 1.2,
+      "settled_pct": -1.8
+     },
+     {
+      "event_id": "EV-2025-70550-350030",
+      "date": "2024-11-13",
+      "part_id": "part:350030",
+      "type": "annual renewal",
+      "asked_pct": -0.5,
+      "settled_pct": -2.0
+     },
+     {
+      "event_id": "EV-2026-70550-350030",
+      "date": "2025-11-21",
+      "part_id": "part:350030",
+      "type": "annual renewal",
+      "asked_pct": 2.1,
+      "settled_pct": 0.4
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks",
+      "source": "doc:20260417-70550-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier announces a price increase citing copper and component costs, and any price move above a small share needs its pricing committee's approval, so larger concessions take time to clear.",
+    "sources": [
+     "doc:20251217-70550-N",
+     "doc:20260417-70550-M1",
+     "doc:20260919-70550-P17",
+     "news:20260924-36"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70560": {
+   "name": "Kabelwerk Rhönsberg GmbH",
+   "country": "DE",
+   "category": "electrical",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "group",
+    "group_parent": null,
+    "staff": 400,
+    "turnover_band": "50-100 M EUR",
+    "equity_ratio_pct": 32.3,
+    "credit_index": 149,
+    "credit_index_12m_ago": 149,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 14,
+    "contract": {
+     "id": "ctr:4600070560",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 60,
+     "price_basis": "index clause"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 27,
+    "mean_days_late": 2.1,
+    "paid_late_share": 0.63,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70560@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 88.5,
+     "ppm": 111,
+     "score": 93.7,
+     "colour": "green"
+    },
+    "notifications_12m": 8,
+    "supplier_caused_12m": 8
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:350040",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:350040"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:350040"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70560-350040",
+      "date": "2022-12-03",
+      "part_id": "part:350040",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70560-350040",
+      "date": "2023-12-10",
+      "part_id": "part:350040",
+      "type": "annual renewal",
+      "asked_pct": 2.1,
+      "settled_pct": -1.0
+     },
+     {
+      "event_id": "EV-2025-70560-350040",
+      "date": "2024-11-15",
+      "part_id": "part:350040",
+      "type": "annual renewal",
+      "asked_pct": 2.7,
+      "settled_pct": 1.6
+     },
+     {
+      "event_id": "EV-2026-70560-350040",
+      "date": "2025-11-22",
+      "part_id": "part:350040",
+      "type": "annual renewal",
+      "asked_pct": 8.6,
+      "settled_pct": 6.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks",
+      "source": "doc:20260415-70560-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "hedged",
+      "quote": "they bought their copper forward until March 2027 and said the market price is 'not our reality' before then",
+      "source": "doc:20260617-70560-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier has hedged its copper until March , so falling market prices do not lower its cost, and price moves above a small share need committee approval; a clear volume commitment is what it asks for and could help move it.",
+    "sources": [
+     "doc:20251014-70560-N",
+     "doc:20260415-70560-M2",
+     "doc:20260617-70560-M1",
+     "doc:20260910-70560-P14",
+     "news:20260303-02",
+     "news:20261022-S18",
+     "quote:7300014"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70570": {
+   "name": "Sensorik Ammertal GmbH",
+   "country": "DE",
+   "category": "electrical",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "private",
+    "group_parent": null,
+    "staff": 150,
+    "turnover_band": "25-50 M EUR",
+    "equity_ratio_pct": 43.5,
+    "credit_index": 176,
+    "credit_index_12m_ago": 176,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 28,
+    "contract": {
+     "id": "ctr:4600070570",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 25,
+    "mean_days_late": 3.2,
+    "paid_late_share": 0.84,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70570@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 88.0,
+     "ppm": 271,
+     "score": 92.6,
+     "colour": "green"
+    },
+    "notifications_12m": 4,
+    "supplier_caused_12m": 4
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:350050",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:350050"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:350050"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70570-350050",
+      "date": "2022-11-26",
+      "part_id": "part:350050",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70570-350050",
+      "date": "2023-12-05",
+      "part_id": "part:350050",
+      "type": "annual renewal",
+      "asked_pct": 2.1,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70570-350050",
+      "date": "2024-11-13",
+      "part_id": "part:350050",
+      "type": "annual renewal",
+      "asked_pct": 1.6,
+      "settled_pct": -1.8
+     },
+     {
+      "event_id": "EV-2026-70570-350050",
+      "date": "2025-12-08",
+      "part_id": "part:350050",
+      "type": "annual renewal",
+      "asked_pct": 4.9,
+      "settled_pct": 3.1
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks",
+      "source": "doc:20260314-70570-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "price_frozen",
+      "quote": "there is no room on price this year: head office has frozen all price reductions until December 2027",
+      "source": "doc:20260927-70570-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "Sensorik Ammertal has frozen price reductions by head-office directive and needs committee approval for larger moves, but is open on payment terms and call-off flexibility, so terms rather than price are the lever.",
+    "sources": [
+     "doc:20251007-70570-N",
+     "doc:20260314-70570-M2",
+     "doc:20260927-70570-M1",
+     "news:20260622-16",
+     "quote:7300075"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70580": {
+   "name": "Motorenwerk Saalach GmbH",
+   "country": "DE",
+   "category": "electrical",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "group",
+    "group_parent": null,
+    "staff": 650,
+    "turnover_band": "100-250 M EUR",
+    "equity_ratio_pct": 30.2,
+    "credit_index": 171,
+    "credit_index_12m_ago": 171,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 42,
+    "contract": {
+     "id": "ctr:4600070580",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 23,
+    "mean_days_late": 20.0,
+    "paid_late_share": 1.0,
+    "we_pay_late": true,
+    "open_overdue_invoices": 3
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70580@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 95.8,
+     "ppm": 0,
+     "score": 97.9,
+     "colour": "green"
+    },
+    "notifications_12m": 0,
+    "supplier_caused_12m": 0
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:350011",
+      "status": "qualified",
+      "quota_pct": 0
+     },
+     {
+      "part_id": "part:350013",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:350013"
+    ]
+   },
+   "costing": {
+    "should_cost": [
+     "cost:350013"
+    ],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70580-350013",
+      "date": "2022-11-28",
+      "part_id": "part:350013",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70580-350013",
+      "date": "2023-11-23",
+      "part_id": "part:350013",
+      "type": "annual renewal",
+      "asked_pct": 2.4,
+      "settled_pct": -1.5
+     },
+     {
+      "event_id": "EV-2025-70580-350013",
+      "date": "2024-11-19",
+      "part_id": "part:350013",
+      "type": "annual renewal",
+      "asked_pct": 3.9,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70580-350013",
+      "date": "2025-11-18",
+      "part_id": "part:350013",
+      "type": "annual renewal",
+      "asked_pct": 3.3,
+      "settled_pct": 1.7
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks",
+      "source": "doc:20260322-70580-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "complains_late_pay",
+      "quote": "Several of our invoices are overdue again. We ask you to keep to the agreed payment terms",
+      "source": "doc:20260612-70580-P",
+      "by": "reader agent"
+     },
+     {
+      "label": "deprioritising_us",
+      "quote": "they are reviewing small accounts and will focus on customers with volume",
+      "source": "doc:20260908-70580-M3",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "Motorenwerk Saalach treats Hollerau as a non-strategic small account, supplying from stock at list conditions. It needs committee approval for price moves above a small share and is annoyed by late payments, so a larger volume commitment and on-time payment would be most likely to win attention.",
+    "sources": [
+     "doc:20251102-70580-N",
+     "doc:20260322-70580-M2",
+     "doc:20260612-70580-P",
+     "doc:20260908-70580-M3",
+     "doc:20260926-70580-M1",
+     "news:20260327-07",
+     "quote:7300057"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70610": {
+   "name": "Schraubenhandel Leitner & Sohn GmbH",
+   "country": "DE",
+   "category": "C-parts",
+   "abc_class": "C",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 280,
+    "turnover_band": "100-250 M EUR",
+    "equity_ratio_pct": 30.0,
+    "credit_index": 179,
+    "credit_index_12m_ago": 179,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 5,
+    "contract": {
+     "id": "ctr:4600070610",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 51,
+    "mean_days_late": 2.0,
+    "paid_late_share": 0.667,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70610@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 88.6,
+     "ppm": 68,
+     "score": 94.0,
+     "colour": "green"
+    },
+    "notifications_12m": 19,
+    "supplier_caused_12m": 19
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:360010",
+      "status": "active",
+      "quota_pct": 40
+     },
+     {
+      "part_id": "part:360012",
+      "status": "active",
+      "quota_pct": 30
+     },
+     {
+      "part_id": "part:360030",
+      "status": "active",
+      "quota_pct": 50
+     }
+    ],
+    "only_active_source_for": []
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70610-360012",
+      "date": "2022-11-15",
+      "part_id": "part:360012",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70610-360010",
+      "date": "2022-11-27",
+      "part_id": "part:360010",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70610-360030",
+      "date": "2022-12-10",
+      "part_id": "part:360030",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70610-360012",
+      "date": "2023-11-16",
+      "part_id": "part:360012",
+      "type": "annual renewal",
+      "asked_pct": 2.3,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2024-70610-360010",
+      "date": "2023-11-23",
+      "part_id": "part:360010",
+      "type": "annual renewal",
+      "asked_pct": 2.2,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2024-70610-360030",
+      "date": "2023-11-28",
+      "part_id": "part:360030",
+      "type": "annual renewal",
+      "asked_pct": 3.2,
+      "settled_pct": 1.5
+     },
+     {
+      "event_id": "EV-2025-70610-360012",
+      "date": "2024-11-12",
+      "part_id": "part:360012",
+      "type": "annual renewal",
+      "asked_pct": 3.3,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70610-360030",
+      "date": "2024-11-23",
+      "part_id": "part:360030",
+      "type": "annual renewal",
+      "asked_pct": 2.3,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70610-360010",
+      "date": "2024-12-06",
+      "part_id": "part:360010",
+      "type": "annual renewal",
+      "asked_pct": 2.4,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70610-360012",
+      "date": "2025-11-12",
+      "part_id": "part:360012",
+      "type": "annual renewal",
+      "asked_pct": 1.7,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70610-360030",
+      "date": "2025-11-24",
+      "part_id": "part:360030",
+      "type": "annual renewal",
+      "asked_pct": 1.2,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70610-360010",
+      "date": "2025-12-06",
+      "part_id": "part:360010",
+      "type": "annual renewal",
+      "asked_pct": 3.6,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "spare_capacity",
+      "quote": "they could take additional parts at short notice; the second shift has been on hold since spring.",
+      "source": "doc:20260401-70610-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks.",
+      "source": "doc:20260513-70610-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier has idle capacity and wants more work, so added kit volume could move it, though larger price changes need its pricing committee's approval.",
+    "sources": [
+     "doc:20251224-70610-N",
+     "doc:20260401-70610-M2",
+     "doc:20260513-70610-M1",
+     "doc:20260514-70610-M3",
+     "doc:20260909-70610-P07"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70620": {
+   "name": "Wälzlager-Zentrum Süd GmbH",
+   "country": "DE",
+   "category": "C-parts",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 120,
+    "turnover_band": "25-50 M EUR",
+    "equity_ratio_pct": 34.0,
+    "credit_index": 181,
+    "credit_index_12m_ago": 181,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 7,
+    "contract": {
+     "id": "ctr:4600070620",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 60,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 61,
+    "mean_days_late": 3.1,
+    "paid_late_share": 0.869,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70620@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 85.0,
+     "ppm": 302,
+     "score": 91.0,
+     "colour": "green"
+    },
+    "notifications_12m": 9,
+    "supplier_caused_12m": 9
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:360020",
+      "status": "active",
+      "quota_pct": 70
+     },
+     {
+      "part_id": "part:360021",
+      "status": "active",
+      "quota_pct": 40
+     },
+     {
+      "part_id": "part:360022",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:360022"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70620-360022",
+      "date": "2022-11-18",
+      "part_id": "part:360022",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70620-360020",
+      "date": "2022-11-22",
+      "part_id": "part:360020",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70620-360021",
+      "date": "2022-12-12",
+      "part_id": "part:360021",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70620-360021",
+      "date": "2023-11-23",
+      "part_id": "part:360021",
+      "type": "annual renewal",
+      "asked_pct": 5.2,
+      "settled_pct": 2.3
+     },
+     {
+      "event_id": "EV-2024-70620-360022",
+      "date": "2023-11-23",
+      "part_id": "part:360022",
+      "type": "annual renewal",
+      "asked_pct": 1.6,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2024-70620-360020",
+      "date": "2023-12-10",
+      "part_id": "part:360020",
+      "type": "annual renewal",
+      "asked_pct": 5.7,
+      "settled_pct": 4.1
+     },
+     {
+      "event_id": "EV-2025-70620-360021",
+      "date": "2024-11-27",
+      "part_id": "part:360021",
+      "type": "annual renewal",
+      "asked_pct": 4.2,
+      "settled_pct": 2.4
+     },
+     {
+      "event_id": "EV-2025-70620-360022",
+      "date": "2024-12-02",
+      "part_id": "part:360022",
+      "type": "annual renewal",
+      "asked_pct": 7.1,
+      "settled_pct": 4.9
+     },
+     {
+      "event_id": "EV-2025-70620-360020",
+      "date": "2024-12-04",
+      "part_id": "part:360020",
+      "type": "annual renewal",
+      "asked_pct": 3.8,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70620-360021",
+      "date": "2025-11-24",
+      "part_id": "part:360021",
+      "type": "annual renewal",
+      "asked_pct": 1.8,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70620-360020",
+      "date": "2025-12-05",
+      "part_id": "part:360020",
+      "type": "annual renewal",
+      "asked_pct": 5.7,
+      "settled_pct": 2.3
+     },
+     {
+      "event_id": "EV-2026-70620-360022",
+      "date": "2025-12-10",
+      "part_id": "part:360022",
+      "type": "annual renewal",
+      "asked_pct": 2.1,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "deprioritising_us",
+      "quote": "Hollerau's volumes are 'not strategic' for Wälzlager-Zentrum Süd GmbH any more",
+      "source": "doc:20260917-70620-M4",
+      "by": "reader agent"
+     },
+     {
+      "label": "open_book",
+      "quote": "he offered to walk us through their calculation (hourly rates and material) if that helps to settle prices",
+      "source": "doc:20260616-70620-M6",
+      "by": "reader agent"
+     },
+     {
+      "label": "price_frozen",
+      "quote": "standard items are not discounted; only multi-year volume agreements change prices",
+      "source": "doc:20260627-70620-M2",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier treats us as a non-strategic small account, supplies standard items from stock at list conditions and keeps price fixed, though it has offered to walk us through its calculation; only a multi-year volume commitment is likely to move its prices.",
+    "sources": [
+     "doc:20251216-70620-N",
+     "doc:20260427-70620-M5",
+     "doc:20260501-70620-M3",
+     "doc:20260616-70620-M6",
+     "doc:20260627-70620-M2",
+     "doc:20260706-70620-M1",
+     "doc:20260917-70620-M4",
+     "doc:20260920-70620-P04",
+     "news:20260619-15",
+     "quote:7300004",
+     "quote:7300087"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70630": {
+   "name": "Normteile Brucker KG",
+   "country": "DE",
+   "category": "C-parts",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 60,
+    "turnover_band": "25-50 M EUR",
+    "equity_ratio_pct": 36.2,
+    "credit_index": 185,
+    "credit_index_12m_ago": 185,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 7,
+    "contract": {
+     "id": "ctr:4600070630",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 50,
+    "mean_days_late": 4.2,
+    "paid_late_share": 0.86,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70630@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 88.0,
+     "ppm": 257,
+     "score": 92.7,
+     "colour": "green"
+    },
+    "notifications_12m": 19,
+    "supplier_caused_12m": 19
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:360013",
+      "status": "active",
+      "quota_pct": 100
+     },
+     {
+      "part_id": "part:360030",
+      "status": "active",
+      "quota_pct": 50
+     }
+    ],
+    "only_active_source_for": [
+     "part:360013"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70630-360013",
+      "date": "2022-12-10",
+      "part_id": "part:360013",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70630-360030",
+      "date": "2022-12-11",
+      "part_id": "part:360030",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70630-360030",
+      "date": "2023-11-12",
+      "part_id": "part:360030",
+      "type": "annual renewal",
+      "asked_pct": 1.7,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2024-70630-360013",
+      "date": "2023-11-20",
+      "part_id": "part:360013",
+      "type": "annual renewal",
+      "asked_pct": -5.1,
+      "settled_pct": -6.3
+     },
+     {
+      "event_id": "EV-2025-70630-360030",
+      "date": "2024-11-12",
+      "part_id": "part:360030",
+      "type": "annual renewal",
+      "asked_pct": 3.5,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70630-360013",
+      "date": "2024-12-08",
+      "part_id": "part:360013",
+      "type": "annual renewal",
+      "asked_pct": -1.1,
+      "settled_pct": -2.8
+     },
+     {
+      "event_id": "EV-2026-70630-360013",
+      "date": "2025-11-22",
+      "part_id": "part:360013",
+      "type": "annual renewal",
+      "asked_pct": -0.7,
+      "settled_pct": -3.8
+     },
+     {
+      "event_id": "EV-2026-70630-360030",
+      "date": "2025-12-08",
+      "part_id": "part:360030",
+      "type": "annual renewal",
+      "asked_pct": 1.2,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "price_frozen",
+      "quote": "head office has frozen all price reductions until December 2027",
+      "source": "doc:20260724-70630-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee",
+      "source": "doc:20260923-70630-M4",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "Normteile Brucker KG has frozen list prices for all customers until December , and larger moves need committee approval, but it is open to discussing payment terms, logistics, call-off flexibility and multi-year volume agreements.",
+    "sources": [
+     "doc:20251222-70630-N",
+     "doc:20260327-70630-M2",
+     "doc:20260706-70630-M3",
+     "doc:20260724-70630-M1",
+     "doc:20260923-70630-M4",
+     "news:20260706-17",
+     "quote:7300052"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70640": {
+   "name": "Kugellager-Vertrieb Inntal GmbH",
+   "country": "AT",
+   "category": "C-parts",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 80,
+    "turnover_band": "25-50 M EUR",
+    "equity_ratio_pct": 43.4,
+    "credit_index": 180,
+    "credit_index_12m_ago": 180,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 10,
+    "contract": {
+     "id": "ctr:4600070640",
+     "valid_to": "2027-06-30",
+     "payment_days": 30,
+     "notice_days": 90,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 52,
+    "mean_days_late": 3.1,
+    "paid_late_share": 0.827,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70640@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 86.5,
+     "ppm": 0,
+     "score": 93.3,
+     "colour": "green"
+    },
+    "notifications_12m": 0,
+    "supplier_caused_12m": 0
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:360020",
+      "status": "active",
+      "quota_pct": 30
+     },
+     {
+      "part_id": "part:360021",
+      "status": "active",
+      "quota_pct": 60
+     }
+    ],
+    "only_active_source_for": []
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70640-360021",
+      "date": "2022-11-22",
+      "part_id": "part:360021",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70640-360020",
+      "date": "2022-12-01",
+      "part_id": "part:360020",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70640-360020",
+      "date": "2023-11-25",
+      "part_id": "part:360020",
+      "type": "annual renewal",
+      "asked_pct": 1.3,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2024-70640-360021",
+      "date": "2023-12-10",
+      "part_id": "part:360021",
+      "type": "annual renewal",
+      "asked_pct": 5.4,
+      "settled_pct": 1.8
+     },
+     {
+      "event_id": "EV-2025-70640-360020",
+      "date": "2024-11-23",
+      "part_id": "part:360020",
+      "type": "annual renewal",
+      "asked_pct": 5.0,
+      "settled_pct": 3.4
+     },
+     {
+      "event_id": "EV-2025-70640-360021",
+      "date": "2024-11-23",
+      "part_id": "part:360021",
+      "type": "annual renewal",
+      "asked_pct": 1.8,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70640-360021",
+      "date": "2025-11-24",
+      "part_id": "part:360021",
+      "type": "annual renewal",
+      "asked_pct": 6.4,
+      "settled_pct": 4.0
+     },
+     {
+      "event_id": "EV-2026-70640-360020",
+      "date": "2025-11-26",
+      "part_id": "part:360020",
+      "type": "annual renewal",
+      "asked_pct": 3.4,
+      "settled_pct": 0.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "spare_capacity",
+      "quote": "they could take additional parts at short notice; the second shift has been on hold since spring.",
+      "source": "doc:20260201-70640-M5",
+      "by": "reader agent"
+     },
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks.",
+      "source": "doc:20260228-70640-M3",
+      "by": "reader agent"
+     },
+     {
+      "label": "deprioritising_us",
+      "quote": "they are reviewing small accounts and will focus on customers with volume.",
+      "source": "doc:20260819-70640-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier has idle capacity and lost volume elsewhere, yet is reviewing small accounts and needs committee approval for larger price moves, so a firm volume commitment is what would most likely move it.",
+    "sources": [
+     "doc:20251212-70640-N",
+     "doc:20260201-70640-M5",
+     "doc:20260228-70640-M3",
+     "doc:20260512-70640-M2",
+     "doc:20260715-70640-M4",
+     "doc:20260819-70640-M1",
+     "doc:20260925-70640-P19",
+     "news:20261017-S19"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70650": {
+   "name": "Verbindungstechnik Mairhofer GmbH",
+   "country": "DE",
+   "category": "C-parts",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 40,
+    "turnover_band": "10-25 M EUR",
+    "equity_ratio_pct": 39.8,
+    "credit_index": 156,
+    "credit_index_12m_ago": 156,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 7,
+    "contract": {
+     "id": "ctr:4600070650",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 60,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 55,
+    "mean_days_late": 5.9,
+    "paid_late_share": 0.855,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70650@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 84.1,
+     "ppm": 296,
+     "score": 90.6,
+     "colour": "green"
+    },
+    "notifications_12m": 30,
+    "supplier_caused_12m": 25
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:360010",
+      "status": "active",
+      "quota_pct": 60
+     },
+     {
+      "part_id": "part:360011",
+      "status": "active",
+      "quota_pct": 100
+     },
+     {
+      "part_id": "part:360012",
+      "status": "active",
+      "quota_pct": 70
+     }
+    ],
+    "only_active_source_for": [
+     "part:360011"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70650-360012",
+      "date": "2022-11-12",
+      "part_id": "part:360012",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70650-360010",
+      "date": "2022-11-27",
+      "part_id": "part:360010",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70650-360011",
+      "date": "2022-12-12",
+      "part_id": "part:360011",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70650-360011",
+      "date": "2023-11-24",
+      "part_id": "part:360011",
+      "type": "annual renewal",
+      "asked_pct": 3.6,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2024-70650-360010",
+      "date": "2023-11-26",
+      "part_id": "part:360010",
+      "type": "annual renewal",
+      "asked_pct": 2.8,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2024-70650-360012",
+      "date": "2023-11-29",
+      "part_id": "part:360012",
+      "type": "annual renewal",
+      "asked_pct": 5.0,
+      "settled_pct": 2.8
+     },
+     {
+      "event_id": "EV-2025-70650-360011",
+      "date": "2024-11-27",
+      "part_id": "part:360011",
+      "type": "annual renewal",
+      "asked_pct": 3.9,
+      "settled_pct": 1.5
+     },
+     {
+      "event_id": "EV-2025-70650-360012",
+      "date": "2024-12-06",
+      "part_id": "part:360012",
+      "type": "annual renewal",
+      "asked_pct": 3.7,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2025-70650-360010",
+      "date": "2024-12-08",
+      "part_id": "part:360010",
+      "type": "annual renewal",
+      "asked_pct": 3.4,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70650-360012",
+      "date": "2025-11-27",
+      "part_id": "part:360012",
+      "type": "annual renewal",
+      "asked_pct": -1.8,
+      "settled_pct": -3.1
+     },
+     {
+      "event_id": "EV-2026-70650-360010",
+      "date": "2025-11-29",
+      "part_id": "part:360010",
+      "type": "annual renewal",
+      "asked_pct": 1.7,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70650-360011",
+      "date": "2025-12-02",
+      "part_id": "part:360011",
+      "type": "annual renewal",
+      "asked_pct": 0.5,
+      "settled_pct": -2.0
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "deprioritising_us",
+      "quote": "Hollerau's volumes are 'not strategic' for Verbindungstechnik Mairhofer GmbH any more",
+      "source": "doc:20260602-70650-M4",
+      "by": "reader agent"
+     },
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks",
+      "source": "doc:20260327-70650-M3",
+      "by": "reader agent"
+     },
+     {
+      "label": "spare_capacity",
+      "quote": "they could take additional parts at short notice; the second shift has been on hold since spring",
+      "source": "doc:20260411-70650-M5",
+      "by": "reader agent"
+     },
+     {
+      "label": "price_frozen",
+      "quote": "List conditions; supply from stock only.",
+      "source": "quote:7300072",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier has idle capacity but treats us as a non-strategic account supplied from stock at list conditions, with price moves above a small share needing committee approval, so only meaningful volume is likely to move it.",
+    "sources": [
+     "doc:20251206-70650-N",
+     "doc:20260219-70650-M6",
+     "doc:20260327-70650-M3",
+     "doc:20260411-70650-M5",
+     "doc:20260511-70650-M2",
+     "doc:20260602-70650-M4",
+     "doc:20260817-70650-M1",
+     "news:20260803-21",
+     "quote:7300072",
+     "quote:7300085"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": "REVISAR: price_frozen sale de \"List conditions; supply from stock only\" - puede ser solo deprioritising_us. Si es error, el agente solo es mas prudente."
+   }
+  },
+  "sup:70710": {
+   "name": "Edelstahl-Service Donautal GmbH",
+   "country": "DE",
+   "category": "raw material",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "group",
+    "group_parent": null,
+    "staff": 350,
+    "turnover_band": "100-250 M EUR",
+    "equity_ratio_pct": 33.9,
+    "credit_index": 177,
+    "credit_index_12m_ago": 177,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 10,
+    "contract": {
+     "id": "ctr:4600070710",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 60,
+     "price_basis": "index clause"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 25,
+    "mean_days_late": 2.2,
+    "paid_late_share": 0.76,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70710@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 88.0,
+     "ppm": 75,
+     "score": 93.6,
+     "colour": "green"
+    },
+    "notifications_12m": 7,
+    "supplier_caused_12m": 7
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:370010",
+      "status": "active",
+      "quota_pct": 80
+     },
+     {
+      "part_id": "part:370021",
+      "status": "qualified",
+      "quota_pct": 0
+     }
+    ],
+    "only_active_source_for": []
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70710-370010",
+      "date": "2022-11-27",
+      "part_id": "part:370010",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70710-370010",
+      "date": "2023-11-29",
+      "part_id": "part:370010",
+      "type": "annual renewal",
+      "asked_pct": -3.1,
+      "settled_pct": -7.1
+     },
+     {
+      "event_id": "EV-2025-70710-370010",
+      "date": "2024-12-04",
+      "part_id": "part:370010",
+      "type": "annual renewal",
+      "asked_pct": 2.0,
+      "settled_pct": -1.5
+     },
+     {
+      "event_id": "EV-2026-70710-370010",
+      "date": "2025-12-05",
+      "part_id": "part:370010",
+      "type": "annual renewal",
+      "asked_pct": 3.2,
+      "settled_pct": 1.4
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "open_book",
+      "quote": "he offered to walk us through their calculation (hourly rates and material) if that helps to settle prices",
+      "source": "doc:20260421-70710-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "hedged",
+      "quote": "our nickel and alloys requirement is covered at fixed prices until March 2027",
+      "source": "doc:20260706-70710-M1",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier has fixed its nickel and alloy costs until March , so falling market prices will not lower its costs before then, but it has offered to walk us through its calculation, which gives us a fact-based way to settle prices.",
+    "sources": [
+     "doc:20251225-70710-N",
+     "doc:20260421-70710-M2",
+     "doc:20260706-70710-M1",
+     "doc:20260912-70710-P08",
+     "news:20260822-24",
+     "quote:7300008"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70720": {
+   "name": "Stahlhandel Rupprecht-Kessel GmbH",
+   "country": "DE",
+   "category": "raw material",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 500,
+    "turnover_band": "100-250 M EUR",
+    "equity_ratio_pct": 39.0,
+    "credit_index": 177,
+    "credit_index_12m_ago": 177,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 10,
+    "contract": {
+     "id": "ctr:4600070720",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 60,
+     "price_basis": "fixed per year"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 52,
+    "mean_days_late": 2.7,
+    "paid_late_share": 0.788,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70720@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 92.2,
+     "ppm": 44,
+     "score": 95.9,
+     "colour": "green"
+    },
+    "notifications_12m": 9,
+    "supplier_caused_12m": 9
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:370012",
+      "status": "active",
+      "quota_pct": 40
+     },
+     {
+      "part_id": "part:370020",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:370020"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70720-370020",
+      "date": "2022-11-14",
+      "part_id": "part:370020",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70720-370012",
+      "date": "2022-12-09",
+      "part_id": "part:370012",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70720-370020",
+      "date": "2023-12-02",
+      "part_id": "part:370020",
+      "type": "annual renewal",
+      "asked_pct": -9.4,
+      "settled_pct": -11.7
+     },
+     {
+      "event_id": "EV-2024-70720-370012",
+      "date": "2023-12-08",
+      "part_id": "part:370012",
+      "type": "annual renewal",
+      "asked_pct": -5.9,
+      "settled_pct": -9.1
+     },
+     {
+      "event_id": "EV-2025-70720-370020",
+      "date": "2024-11-16",
+      "part_id": "part:370020",
+      "type": "annual renewal",
+      "asked_pct": -3.1,
+      "settled_pct": -6.5
+     },
+     {
+      "event_id": "EV-2025-70720-370012",
+      "date": "2024-11-17",
+      "part_id": "part:370012",
+      "type": "annual renewal",
+      "asked_pct": 1.5,
+      "settled_pct": 0.0
+     },
+     {
+      "event_id": "EV-2026-70720-370012",
+      "date": "2025-11-28",
+      "part_id": "part:370012",
+      "type": "annual renewal",
+      "asked_pct": 0.0,
+      "settled_pct": -2.3
+     },
+     {
+      "event_id": "EV-2026-70720-370020",
+      "date": "2025-12-06",
+      "part_id": "part:370020",
+      "type": "annual renewal",
+      "asked_pct": -0.8,
+      "settled_pct": -2.3
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "open_book",
+      "quote": "he offered to walk us through their calculation (hourly rates and material) if that helps to settle prices",
+      "source": "doc:20260415-70720-M2",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier values Hollerau as a reference customer and has offered to walk us through its calculation, so a cost-based discussion of its hourly rates and material could help settle prices.",
+    "sources": [
+     "doc:20251227-70720-N",
+     "doc:20260409-70720-M4",
+     "doc:20260415-70720-M2",
+     "doc:20260712-70720-M3",
+     "doc:20260916-70720-P16",
+     "doc:20260924-70720-M1"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70730": {
+   "name": "Inox Center Ostalpen GmbH",
+   "country": "AT",
+   "category": "raw material",
+   "abc_class": "B",
+   "company": {
+    "owner_type": "private",
+    "group_parent": null,
+    "staff": 150,
+    "turnover_band": "50-100 M EUR",
+    "equity_ratio_pct": 34.2,
+    "credit_index": 167,
+    "credit_index_12m_ago": 167,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 14,
+    "contract": {
+     "id": "ctr:4600070730",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 60,
+     "price_basis": "index clause"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 24,
+    "mean_days_late": 3.1,
+    "paid_late_share": 0.833,
+    "we_pay_late": false,
+    "open_overdue_invoices": 1
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70730@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 96.0,
+     "ppm": 89,
+     "score": 97.6,
+     "colour": "green"
+    },
+    "notifications_12m": 6,
+    "supplier_caused_12m": 6
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:370021",
+      "status": "active",
+      "quota_pct": 100
+     }
+    ],
+    "only_active_source_for": [
+     "part:370021"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70730-370021",
+      "date": "2022-12-04",
+      "part_id": "part:370021",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70730-370021",
+      "date": "2023-11-19",
+      "part_id": "part:370021",
+      "type": "annual renewal",
+      "asked_pct": -6.4,
+      "settled_pct": -8.9
+     },
+     {
+      "event_id": "EV-2025-70730-370021",
+      "date": "2024-12-07",
+      "part_id": "part:370021",
+      "type": "annual renewal",
+      "asked_pct": 1.2,
+      "settled_pct": -1.2
+     },
+     {
+      "event_id": "EV-2026-70730-370021",
+      "date": "2025-11-20",
+      "part_id": "part:370021",
+      "type": "annual renewal",
+      "asked_pct": -0.8,
+      "settled_pct": -2.8
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks",
+      "source": "doc:20260308-70730-M2",
+      "by": "reader agent"
+     },
+     {
+      "label": "hedged",
+      "quote": "they bought their nickel and alloys forward until January 2027",
+      "source": "doc:20260727-70730-M1",
+      "by": "reader agent"
+     },
+     {
+      "label": "open_book",
+      "quote": "he offered to walk us through their calculation (hourly rates and material)",
+      "source": "doc:20260806-70730-M3",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier has hedged its nickel and alloy costs until January , needs committee approval for price moves above a small share, and has offered an open-book walk-through of its calculation, which is the most promising route to settling prices.",
+    "sources": [
+     "doc:20251216-70730-N",
+     "doc:20260308-70730-M2",
+     "doc:20260727-70730-M1",
+     "doc:20260806-70730-M3",
+     "quote:7300063"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  },
+  "sup:70740": {
+   "name": "Blankstahl Werdenfels GmbH",
+   "country": "DE",
+   "category": "raw material",
+   "abc_class": "A",
+   "company": {
+    "owner_type": "family",
+    "group_parent": null,
+    "staff": 200,
+    "turnover_band": "50-100 M EUR",
+    "equity_ratio_pct": 39.3,
+    "credit_index": 148,
+    "credit_index_12m_ago": 148,
+    "credit_trend": "same",
+    "audit_grade_vda63": "A"
+   },
+   "terms": {
+    "payment_days": 30,
+    "cash_discount": null,
+    "incoterm": "DAP",
+    "standard_lead_time_days": 14,
+    "contract": {
+     "id": "ctr:4600070740",
+     "valid_to": "2026-12-31",
+     "payment_days": 30,
+     "notice_days": 60,
+     "price_basis": "index clause"
+    }
+   },
+   "our_payments": {
+    "invoices_paid_12m": 55,
+    "mean_days_late": 3.0,
+    "paid_late_share": 0.873,
+    "we_pay_late": false,
+    "open_overdue_invoices": 0
+   },
+   "quality": {
+    "scorecard": {
+     "id": "sc:70740@2026Q3",
+     "quarter": "2026Q3",
+     "otd_pct": 81.0,
+     "ppm": 32,
+     "score": 90.3,
+     "colour": "green"
+    },
+    "notifications_12m": 8,
+    "supplier_caused_12m": 5
+   },
+   "dependency": {
+    "parts": [
+     {
+      "part_id": "part:370010",
+      "status": "active",
+      "quota_pct": 20
+     },
+     {
+      "part_id": "part:370011",
+      "status": "active",
+      "quota_pct": 100
+     },
+     {
+      "part_id": "part:370012",
+      "status": "active",
+      "quota_pct": 60
+     }
+    ],
+    "only_active_source_for": [
+     "part:370011"
+    ]
+   },
+   "costing": {
+    "should_cost": [],
+    "sold_below_full_cost": false,
+    "history_notes": [],
+    "history": [
+     {
+      "event_id": "EV-2023-70740-370011",
+      "date": "2022-11-13",
+      "part_id": "part:370011",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70740-370012",
+      "date": "2022-11-17",
+      "part_id": "part:370012",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2023-70740-370010",
+      "date": "2022-11-21",
+      "part_id": "part:370010",
+      "type": "initial price",
+      "asked_pct": null,
+      "settled_pct": null
+     },
+     {
+      "event_id": "EV-2024-70740-370011",
+      "date": "2023-11-20",
+      "part_id": "part:370011",
+      "type": "annual renewal",
+      "asked_pct": 1.8,
+      "settled_pct": -1.7
+     },
+     {
+      "event_id": "EV-2024-70740-370012",
+      "date": "2023-11-22",
+      "part_id": "part:370012",
+      "type": "annual renewal",
+      "asked_pct": -0.3,
+      "settled_pct": -3.7
+     },
+     {
+      "event_id": "EV-2024-70740-370010",
+      "date": "2023-12-02",
+      "part_id": "part:370010",
+      "type": "annual renewal",
+      "asked_pct": -2.4,
+      "settled_pct": -5.7
+     },
+     {
+      "event_id": "EV-2025-70740-370010",
+      "date": "2024-11-17",
+      "part_id": "part:370010",
+      "type": "annual renewal",
+      "asked_pct": -2.6,
+      "settled_pct": -4.5
+     },
+     {
+      "event_id": "EV-2025-70740-370012",
+      "date": "2024-11-17",
+      "part_id": "part:370012",
+      "type": "annual renewal",
+      "asked_pct": -1.0,
+      "settled_pct": -2.4
+     },
+     {
+      "event_id": "EV-2025-70740-370011",
+      "date": "2024-12-07",
+      "part_id": "part:370011",
+      "type": "annual renewal",
+      "asked_pct": -0.5,
+      "settled_pct": -4.0
+     },
+     {
+      "event_id": "EV-2026-70740-370010",
+      "date": "2025-11-15",
+      "part_id": "part:370010",
+      "type": "annual renewal",
+      "asked_pct": -0.6,
+      "settled_pct": -4.2
+     },
+     {
+      "event_id": "EV-2026-70740-370012",
+      "date": "2025-11-27",
+      "part_id": "part:370012",
+      "type": "annual renewal",
+      "asked_pct": 3.0,
+      "settled_pct": -0.3
+     },
+     {
+      "event_id": "EV-2026-70740-370011",
+      "date": "2025-12-05",
+      "part_id": "part:370011",
+      "type": "annual renewal",
+      "asked_pct": 2.5,
+      "settled_pct": 0.7
+     }
+    ]
+   },
+   "reading": {
+    "signals": [
+     {
+      "label": "open_book",
+      "quote": "he offered to walk us through their calculation (hourly rates and material) if that helps to settle prices",
+      "source": "doc:20260514-70740-M6",
+      "by": "reader agent"
+     },
+     {
+      "label": "deprioritising_us",
+      "quote": "they are reviewing small accounts and will focus on customers with volume",
+      "source": "doc:20260601-70740-M4",
+      "by": "reader agent"
+     },
+     {
+      "label": "approval_2pct",
+      "quote": "price changes above 2 % need the approval of their pricing committee, which meets every two weeks",
+      "source": "doc:20260812-70740-M3",
+      "by": "reader agent"
+     }
+    ],
+    "summary": "The supplier offers to open its calculation, needs committee approval for larger price moves, and is shifting focus to high-volume customers, so offering more volume and walking through its cost breakdown is the likeliest way to move it.",
+    "sources": [
+     "doc:20251009-70740-N",
+     "doc:20260514-70740-M6",
+     "doc:20260601-70740-M4",
+     "doc:20260812-70740-M3",
+     "doc:20260813-70740-M2",
+     "doc:20260904-70740-M1",
+     "doc:20260916-70740-M5",
+     "doc:20260922-70740-P18",
+     "news:20260619-14"
+    ],
+    "read_ok": true
+   },
+   "review": {
+    "status": "auto",
+    "note": ""
+   }
+  }
+ }
+}

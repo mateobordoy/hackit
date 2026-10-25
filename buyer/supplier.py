@@ -39,10 +39,11 @@ def signals_in(text):
     return sorted(k for k, pat in SIGNALS.items() if re.search(pat, text or "", re.I))
 
 
-def supplier_texts(data, sid):
-    """Every text about this supplier: letters, call and meeting notes, news (package and Sunday
-    release alike, both reach the ID index), plus its quote remarks."""
-    texts = []
+def supplier_text_items(data, sid):
+    """[(source ID, text)] for every text about this supplier: letters, call and meeting notes,
+    news (package, Sunday release and a hidden case's own facts alike: all reach the ID index),
+    plus its quote remarks (source: the quote ID)."""
+    items = []
     for ref in data.ids("doc:") + data.ids("news:"):
         row = data.fact(ref) or {}
         if sid not in (row.get("supplier"), row.get("supplier_id")):
@@ -50,9 +51,15 @@ def supplier_texts(data, sid):
         text = data.document(ref)
         if not text:
             text = " ".join(str(v) for k, v in row.items() if k in ("title", "headline", "body", "subject", "text"))
-        texts.append(text)
-    texts += [r.get("remarks") or "" for r in data.query("SELECT remarks FROM quotes WHERE supplier_id = ?", (sid,))]
-    return texts
+        items.append((ref, text))
+    for r in data.query("SELECT id, remarks FROM quotes WHERE supplier_id = ?", (sid,)):
+        if r.get("remarks"):
+            items.append((r.get("id") or "quote", r["remarks"]))
+    return items
+
+
+def supplier_texts(data, sid):
+    return [text for _, text in supplier_text_items(data, sid)]
 
 
 def profile(data, sid, first_mail=""):

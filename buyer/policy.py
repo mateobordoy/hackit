@@ -20,7 +20,7 @@ import time
 from arena_kit.docs import quote_terms, standard_terms
 from arena_kit.play import ENDED, latest, moves_left, standing
 
-from . import config, llm, memory, planner, reader, supplier, telemetry, writer
+from . import config, dossier, llm, memory, planner, reader, supplier, telemetry, writer
 from . import economics as eco
 from .belief import AGREED, FINAL, OPEN, Belief
 from .datapkg import CaseData
@@ -103,13 +103,18 @@ class Negotiator:
 
     # -- setup -------------------------------------------------------------------------------
     def prefetch(self, threads):
-        """The reader agent starts on every supplier at once: our texts about it and its quote
-        e-mail. `setup` waits for it at most READER_SETUP_S after the case start."""
+        """The reader agent starts on every supplier at once: its quote e-mail and our texts about
+        it - for a supplier in the dossier only the texts the dossier has not read (a hidden case's
+        own facts), with the dossier as background. `setup` waits at most READER_SETUP_S."""
         for sid, events in threads.items():
-            texts = safe(lambda sid=sid: supplier.supplier_texts(self.data, sid), []) or []
+            items = safe(lambda sid=sid: supplier.supplier_text_items(self.data, sid), []) or []
+            known = set((dossier.reading(sid) or {}).get("sources") or [])
+            texts = [x for ref, x in items if x and ref not in known]
             first = latest(events).get("body") or ""
-            text = "\n\n---\n\n".join([*(x for x in texts if x), f"ITS QUOTE E-MAIL:\n{first}"])
-            self.prefetched[sid] = reader.submit("our data about the supplier and its quote e-mail", text)
+            text = "\n\n---\n\n".join([*texts, f"ITS QUOTE E-MAIL:\n{first}"])
+            self.prefetched[sid] = reader.submit(
+                "our data about the supplier and its quote e-mail", text, dossier.context(sid)
+            )
             self.reader_text[sid] = text
 
     def absorb(self, t, found, where):
@@ -160,6 +165,7 @@ class Negotiator:
             "rate": config.DEFAULT_RATE,
             "warm": True,
         }
+        safe(lambda: self.absorb(t, dossier.reading(sid), "dossier"))  # read and reviewed before the case
         wait = config.READER_SETUP_S - (time.time() - self.started)
         safe(lambda: self.absorb(t, reader.result(self.prefetched.get(sid), wait), "setup"))
         if not sheet_id or quote.get("unit_price") is None:
@@ -323,7 +329,11 @@ class Negotiator:
         case = self.case
         standing_terms = sheets[0]["terms"]
         status = last.get("status")
-        reading = reader.submit("supplier e-mail in the negotiation", last.get("body")) if reader_s > 0 else None
+        reading = (
+            reader.submit("supplier e-mail in the negotiation", last.get("body"), dossier.context(t.sid))
+            if reader_s > 0
+            else None
+        )
         self.reader_text[t.sid] = last.get("body")
         t0 = time.monotonic()
         terms_before = dict(t.terms)
@@ -868,6 +878,8 @@ class Negotiator:
         if llm.enabled() and writer_s >= config.LLM_MIN_S:
             notes = [f"they asked about: {', '.join(t.asks)}"] if t.asks else []
             notes.append("what our proposal contains: " + "; ".join(self.contents(t, sheets, claims, first)))
+            if background := dossier.context(t.sid):
+                notes.append(background)
             prompt = llm.prompt(case, t.prof, latest(events).get("body"), notes, t.reader)
             t0 = time.monotonic()
             para = llm.paragraph(prompt, writer_s)
