@@ -288,7 +288,6 @@ class Negotiator(PackageDesk, ClosingDesk):
         thread.requests = [k for k in mailer.REQUEST_KINDS if k in thread.requests or k in reading["requests"]]
         thread.mood, thread.tactic = reading["mood"], reading["tactic"]
         thread.matched_argument, thread.reader_notes = reading["argument"], reading["notes"]
-        thread.tactic_log.append(thread.tactic)
         self.log_event(thread.supplier_id, "reader", seconds=round(time.monotonic() - started, 1), **reading)
 
     def briefing_facts(self, thread, first, with_alternatives):

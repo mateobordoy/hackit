@@ -199,9 +199,9 @@ uv run hackit2 pull --set practice                  # finished sessions into log
 | `hackit2/evidence.py` | citable arguments in the exact form the arena verifies |
 | `hackit2/supplier_profile.py` | ownership, traits, cost of money from the data package |
 | `hackit2/prep/alpha.py`, `prep/alpha_roles.py`, `prep/research_tools.py` | default eight experts, Scout discovery and synthesis before the first e-mail |
-| `hackit2/prep/briefing.py`, `prep/sparring.py` | strategy clamps and selectable original four-specialist preparation |
+| `hackit2/prep/briefing.py`, `prep/sparring.py` | shared prompts, data helpers and strategy clamps used by the research; the sparring playbook |
 | `hackit2/mailer.py` | the reply reader, writing e-mails, conversation evidence |
-| `hackit2/model.py` | LLM transports (Anthropic with spend cap, OpenAI-compatible), timeouts, the text guard |
+| `hackit2/model.py` | the Anthropic transport with spend cap, timeouts, the text guard |
 | `hackit2/lessons.py`, `lessons.jsonl` | cross-case memory the research recalls (committed, read-only during runs) |
 | `hackit2/telemetry.py`, `liveview.py`, `liveview.html` | live telemetry and the watch UI |
 | `hackit2/cli.py` | `hackit2 play | run | pull | gui` |

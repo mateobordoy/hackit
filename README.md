@@ -38,7 +38,7 @@ alternative is cheaper.
 | `hackit2/negotiation/` | per-thread state and price step, packages, closing, engine |
 | `hackit2/prep/` | preparation team and sparring round |
 | `hackit2/mailer.py` | reading replies, writing e-mails, conversation evidence |
-| `hackit2/model.py` | model transports (Anthropic with spend cap, OpenAI-compatible), timeouts, guards |
+| `hackit2/model.py` | the Anthropic transport with spend cap, timeouts, guards |
 | `hackit2/session.py` | the case loop, batches and the Live Final loop |
 | `hackit2/cli.py` | command line |
 

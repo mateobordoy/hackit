@@ -73,7 +73,7 @@ def build_parser():
         "--no-team",
         action="store_true",
         default=argparse.SUPPRESS,
-        help="plain price engine: no preparation team, no reply reader, no debrief",
+        help="plain price engine: no preparation team, no reply reader",
     )
     shared.add_argument(
         "--gui",
