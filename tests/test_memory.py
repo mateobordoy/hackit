@@ -36,9 +36,13 @@ def test_the_pull_up_is_gradual_and_capped():
     factory = config.FLOOR_PRIOR["renewal"][0]
     memory.record(CASE, neg(thread(99.5)))
     _, _, note1 = memory.adjust(CASE, factory, 0.02)
-    expected = (config.MEMORY_N0 * factory + 0.995) / (config.MEMORY_N0 + 1) - factory
-    assert abs(note1["shift"] - expected) < 1e-4 and 0 < note1["shift"] < config.MEMORY_MAX_SHIFT
+    assert note1["shift"] == 0.0  # one case a few points up is noise
     case = {**CASE, "type": "rfq"}
+    for _ in range(2):
+        memory.record(case, neg(thread(95.0)))
+    _, _, note_small = memory.adjust(case, 0.84, 0.07)
+    expected = (config.MEMORY_N0 * 0.84 + 2 * 0.95) / (config.MEMORY_N0 + 2) - 0.84
+    assert abs(note_small["shift"] - min(expected, config.MEMORY_MAX_SHIFT)) < 1e-4
     for _ in range(20):
         memory.record(case, neg(thread(99.0)))
     mean, _, note2 = memory.adjust(case, 0.84, 0.07)

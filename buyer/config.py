@@ -164,3 +164,19 @@ MEMORY_MAX_SHIFT = 0.03
 MEMORY_MAX_SD = 0.08
 # Never lower: a greedier prior cost P18 0.07 (memory.py). [pc]
 MEMORY_MAX_DOWN = 0.0
+# Below this the pull is noise: practice stops sat within 1.4 points of the factory means and every
+# move there cost (P07 -0.013 at +1.4). [pc]
+MEMORY_MIN_SHIFT = 0.015
+# Where practice suppliers stopped under this agent, as a share of their opening quote at our terms
+# (mean over the 40 practice sessions of 25 October with buyer/memory.py on). The memory compares a
+# set with these, not with FLOOR_PRIOR: a stop measures a little above a floor, and practice suppliers
+# the factory priors already fit stopped 1.4-3.3 points above them. [eng]
+STOP_REFERENCE = {
+    "price_increase": 0.9628,
+    "renewal": 0.9808,
+    "rfq": 0.7756,
+    "bundling": 0.9436,
+    "raw_material": 0.8378,
+    "capacity": 0.9783,
+    "quality": 0.9681,
+}
