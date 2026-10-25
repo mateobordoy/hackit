@@ -173,14 +173,19 @@ def validate(raw, text):
     return out
 
 
-def _call(kind, text):
+def _call(kind, text, context=""):
     STATS["calls"] += 1
+    content = f"WHAT YOU READ ({kind}):\n{text[: config.READER_MAX_CHARS]}"
+    if context:
+        # background from our dossier: it helps to interpret, but every label and quote must come
+        # from WHAT YOU READ (validate() checks the quote against that text only)
+        content = f"BACKGROUND (our dossier; do not quote it, do not label from it):\n{context}\n\n{content}"
     r = _client().messages.create(
         model=os.environ["LLM_MODEL"],
         max_tokens=4000,
         system=GUIDE,
         output_config={"effort": "low", "format": {"type": "json_schema", "schema": SCHEMA}},
-        messages=[{"role": "user", "content": f"WHAT YOU READ ({kind}):\n{text[: config.READER_MAX_CHARS]}"}],
+        messages=[{"role": "user", "content": content}],
     )
     if r.stop_reason != "end_turn":
         raise RuntimeError(f"reader stopped: {r.stop_reason}")
@@ -188,14 +193,14 @@ def _call(kind, text):
     return validate(json.loads(body), text)
 
 
-def submit(kind, text):
+def submit(kind, text, context=""):
     """Start reading in the background; a future, or None when off or nothing to read."""
     if not enabled() or not (text or "").strip():
         return None
-    key = hashlib.sha1(f"{kind}\n{text}".encode()).hexdigest()
+    key = hashlib.sha1(f"{kind}\n{context}\n{text}".encode()).hexdigest()
     with _LOCK:
         if key not in _CACHE:
-            _CACHE[key] = _POOL.submit(_call, kind, text)
+            _CACHE[key] = _POOL.submit(_call, kind, text, context)
         return _CACHE[key]
 
 
@@ -217,5 +222,5 @@ def result(future, budget_s):
     return out
 
 
-def read(kind, text, budget_s):
-    return result(submit(kind, text), budget_s)
+def read(kind, text, budget_s, context=""):
+    return result(submit(kind, text, context), budget_s)
