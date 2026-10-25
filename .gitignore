@@ -1,39 +1,9 @@
-# Secrets
 .env
-.env.*
-!.env.example
-
-# OS / editors
-.DS_Store
-.idea/
-.vscode/
-*.swp
-
-# Node
-node_modules/
-dist/
-build/
-.next/
-.turbo/
-*.log
-
-# Python
-__pycache__/
-*.py[cod]
 .venv/
-venv/
+__pycache__/
+*.pyc
 .pytest_cache/
-.mypy_cache/
 .ruff_cache/
+logs/
+data/
 *.egg-info/
-
-# Data / notebooks
-.ipynb_checkpoints/
-out/
-
-# Agent worktrees
-.claude/worktrees/
-
-# Arena: data package (`uv run arena data`) and session logs (`uv run hackit2 pull`)
-/data/
-/logs/

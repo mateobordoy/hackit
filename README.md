@@ -1,82 +1,100 @@
-# Hack It
+﻿# Hollerau buyer: a negotiator that models each supplier
 
-## Evidence-led research and live inspection
+An autonomous buyer for the [Tacto Negotiation Arena](https://github.com/tacto-playground/negotiation-arena-kit).
+It negotiates by e-mail with supplier bots and closes the term sheet with the lowest total cost C,
+or walks away when the alternative is cheaper.
 
-The buyer defaults to **eight specialists plus Scout**, a general researcher with bounded read-only
-SQL, text search and document tools. A synthesis lead turns their sourced findings into the existing
-engine's strategy.
-**hackit2 Live** shows Buyer/Seller/Data exchanges, recorded tool requests and results, full-horizon
-total cost and the cost sweet spot at planned terms. This design was developed on alpha from
-`823c2cf`; see [the design](docs/analysis/alpha-research.md) and
-[the promotion validation](docs/analysis/alpha-main-validation.md).
+**The idea.** Previous agents (including ProcureCabana, the jury winner of the Munich 2026 final)
+follow a recipe: open at X % of the quote, concede 30 % of the gap per round, slow down when a
+model says "hold". This agent instead treats every supplier as a set of hypotheses - where its
+floor is, how fast it steps down, how much patience it has - narrows them with every reply, and
+chooses every next price by simulating each candidate against the hypotheses still alive, scoring
+the outcomes in euros with the case's own cost function. The suppliers are mechanical (they step
+toward a hidden floor, concede only after a real move, agree as soon as our sheet reaches their
+next counter, final after a token move or once patience runs out), which is exactly the kind of
+opponent that inference plus planning beats.
 
-This repository contains our autonomous AI buyer agent developed for the Tacto Challenge Industrial Agents Hackathon 2026. The core problem is building an agent that negotiates industrial procurement contracts via email with zero human intervention.
+**Code owns every number.** Prices, terms, claims, accept and walk-away are computed. An optional
+model may add one polite paragraph per e-mail; anything with a digit, a data ID or a leak is dropped.
 
-Operating within the Tacto Negotiation Arena track, our solution is evaluated on a multidimensional cost function. It must mathematically optimize unit price, payment terms, lead times, and quality against multi-agent supplier departments. Leveraging 33,000 rows of market data, our agent generates strategic arguments to capture the maximum possible savings score across the five-wave Live Final.
+## Run it
 
-## hackit2: the buyer agent
+Python 3.12.
 
-An autonomous buyer for Hollerau Pumpenwerke. For each case it negotiates by e-mail with the
-supplier bots and closes the term sheet with the lowest total cost C, or walks away when the
-alternative is cheaper.
+```sh
+python -m venv .venv && .venv\Scripts\activate        # Windows (Linux/macOS: source .venv/bin/activate)
+pip install -e ".[dev]"
+copy .env.example .env                                  # fill in ARENA_API_KEY (never commit .env)
+buyer data                                              # data package (+ Sunday release once public)
 
-### Approach
+buyer sandbox -v                                        # D01 + D02: free, no practice quota
+buyer practice --repeat 2 -v                            # every hosted practice case twice (20 sessions)
+buyer report                                            # mean/best per case vs ProcureCabana
+buyer final                                             # the Live Final: start before 13:30, leave running
+```
 
-1. **Code owns every number (`hackit2/pricing.py`, `hackit2/negotiation/`):** All commercial decisions—unit prices, non-price term packages, index-clause trades, convex relationship margin floors (`relationship_sweet_spot`), alternative ceilings (`price_ceiling`), echoes, accepts, and walk-aways—are computed deterministically with `arena_kit.cost.total_cost` and `must_haves_ok`. Language models only advise (clamped to fixed lists) and write one paragraph per e-mail; any paragraph with a digit, data ID, or cross-supplier leak is dropped (`model.UNSAFE_TEXT`) for a safe template.
-2. **Prepare (`hackit2/prep/`, ≤ 40 s before open):** The default team runs eight specialist roles and Scout's adaptive discovery in parallel. Findings cite retrieved sources and distinguish observations from inferences. A synthesis lead proposes up to two trades, argument ordering, tone and a playbook.
-3. **Negotiate (`hackit2/negotiation/`, `hackit2/evidence.py`):** One message at a time (longest-waiting thread first, within each 60 s clock). The reply reader classifies mood, tactic, and requests; the engine plans non-price terms by $C$ using an estimate of the supplier's valuation, offers cost-neutral prepared alternatives in Round 1 and cost-reducing need alternatives in later rounds, and cites verified evidence (`po:`, `idx:`, `sc:`, `fc:`).
-4. **Close (`hackit2/negotiation/closing.py`, `hackit2/session.py`):** Echo back a cheaper sheet the supplier offered, insure acceptable standing sheets before round/timeout limits expire, and accept the lowest-$C$ acceptable sheet or walk away. The research team recalls the committed outcomes of similar earlier cases (`hackit2/lessons.py`).
+`buyer play case:P08 --repeat 2` plays a single case. Every session writes its full decision trace
+to `logs/runs/<case>_<session>.json`; `python scripts/trace.py logs/runs P08` prints it readably
+(every price, the planner's table of candidates with expected C, the belief about the floor).
 
-### Layout
+## Tests
+
+```sh
+pytest -q            # 37 tests, about 75 s (one real-clock Live Final rehearsal); no arena, no quota
+ruff check . && ruff format --check .
+```
+
+- `test_sim_end_to_end.py`: the kit's `arena-sim` (the real API contract) on its 3 cases plus 4
+  practice-like cases built on the real data package (P01, P05, P08, P11 suppliers).
+- `test_flow_guards.py`: hosted-like fake bots (`tests/fakebot.py`) check the guards: never push
+  after a final offer, no token moves, no walk-away while an acceptable sheet stands, must-haves
+  kept, timeouts rolled back, RFQ closes the cheapest acceptable bidder, every sheet valid.
+- `test_final_rehearsal.py`: `buyer final`'s wave loop on the sim's Live Final rehearsal.
+- unit tests for the economics, belief, planner, evidence, writer and supplier profile.
+
+## How a case runs
+
+1. **Prepare** (per supplier, no model, < 1 s): standard terms from its quote PDF; its profile from
+   the data (owner type, persona traits in notes, letters, news and quote remarks, its cost of
+   money); its full cost from the should-cost table; the non-price terms that cost us least at
+   equal value to the supplier (`economics.plan_terms`); the evidence ranked by how often each kind
+   actually moved practice suppliers; a prior over its floor and patience by case type.
+2. **Negotiate**: open at a proven anchor with the 3 strongest verified claims; then each reply
+   updates the belief (`belief.py`) and the planner (`planner.py`) picks the next price. In RFQs
+   the cheapest rival offer is cited to the others every round and dominated bidders stop.
+3. **Close**: accept the cheapest standing sheet that keeps every must-have and beats the
+   alternative, else walk away; in the final, at the latest 90 s before the wave's cap.
+
+## Code map
 
 | Path | Role |
 |---|---|
-| `hackit2/settings.py` | every tunable constant |
-| `hackit2/pricing.py` | C, supplier worth, term planning, price ceilings |
-| `hackit2/evidence.py` | citable arguments in the format the arena verifies |
-| `hackit2/supplier_profile.py` | ownership, traits, cost of money |
-| `hackit2/negotiation/` | per-thread state and price step, packages, closing, engine |
-| `hackit2/prep/` | preparation team and sparring round |
-| `hackit2/mailer.py` | reading replies, writing e-mails, conversation evidence |
-| `hackit2/model.py` | the Anthropic transport with spend cap, timeouts, guards |
-| `hackit2/session.py` | the case loop, batches and the Live Final loop |
-| `hackit2/cli.py` | command line |
+| `buyer/config.py` | every tunable number, each with the evidence it rests on |
+| `buyer/economics.py` | C, the accept gate, the supplier's valuation, term planning, the alternative's price ceiling |
+| `buyer/supplier.py` | profile, traits, cost of money (learned online from its priced alternatives), floor priors |
+| `buyer/evidence.py` | data arguments the arena verifies, ranked by measured effect |
+| `buyer/belief.py` | the supplier as particles: floor, step, patience, token-move threshold |
+| `buyer/planner.py` | candidate prices simulated against the belief, scored in euros |
+| `buyer/policy.py` | the per-thread negotiation and every guard |
+| `buyer/runner.py` | one message at a time, clocks, keepalives, close; the Live Final waves |
+| `buyer/writer.py`, `buyer/llm.py` | e-mails (templates; optional model paragraph, guarded) |
+| `buyer/records.py`, `scripts/trace.py` | run logs, the report, a readable trace |
 
-### Setup and use
+## Lessons taken from ProcureCabana (and what changed)
 
-```sh
-uv sync                                        # Python 3.12
-cp .env.example .env                           # fill in ARENA_API_KEY and ANTHROPIC_API_KEY
-uv run arena data                              # data package into data/
-uv run hackit2 play case:D01 -v                # sandbox, free
-uv run hackit2 play case:P01 -v                # practice (uses team quota)
-uv run hackit2 run --set practice --parallel 10
-uv run hackit2 run --set final --no-gui --parallel 10 -v 2>&1 | tee logs/final.log   # Live Final
-uv run pytest -q && uv run ruff check . && uv run ruff format --check .
-```
+Kept, because their logs proved them: anchors by category goal; never push after `final_offer`;
+mirror a cheaper sheet the supplier offered itself; one last sheet at the ceiling only when what
+stands is unacceptable; a tolerant quote-PDF reader; bound the full-cost estimate by the
+supplier's own offers; prune dominated bidders; keepalives; resume crashed final cases.
 
-Live watch UI reads `logs/live/`. Add `--offline` to the standalone GUI to disable arena score
-refreshes. The agent runs the same way with or without the UI:
-
-```sh
-uv run hackit2 run --set practice                   # default: no UI, live files written (attach a UI any time)
-uv run hackit2 run --set practice --gui             # agent + watch UI in one process, http://127.0.0.1:8790
-uv run hackit2 gui                                  # the watch UI alone, for runs started elsewhere
-uv run hackit2 run --set final --no-gui             # headless: no UI, no live files (or HACKIT_NO_GUI=1)
-```
-
-It shows, per case, the module map with the code running right now and the data flowing between
-modules, every LLM call (role, prompt Python sends, answer, latency, whether it was used), the
-preparation team's findings, strategy and sparring playbook, the e-mail thread with term sheets and
-claim checks, complete-package total-cost paths and the full decision trace; finished cases can be replayed.
-
-Environment variables (names only): `ARENA_URL`, `ARENA_API_KEY`, `ARENA_DATA`, `ARENA_RELEASE`,
-`LLM_MODEL`, `LLM_EFFORT`, `ANTHROPIC_API_KEY`,
-`HACKIT_BUDGET_EUR`, `HACKIT_SPEND_FILE`, `HACKIT_NO_GUI`, `HACKIT_BRIEF_CACHE`,
-`HACKIT_REFERENCE_FILE`.
-
-Submitted commit: `<HASH>` (see `docs/submission.md`).
-
-### Licences and third-party notices
-
-See `NOTICE`.
+Changed:
+- **Pace** comes from the planner and the belief, not from a fixed 30 % with a "hold" brake
+  (the brake made suppliers final a round early). Token moves (< 0.8 %) are impossible.
+- **Evidence** is ranked by its measured effect: forecasts (84/97 taken into account), rival
+  quotes, falling indices; our own order prices (0/100) are never cited.
+- **Cost of money** is learned from the supplier's priced alternatives and from which of our two
+  round-1 packages it picks, instead of a fixed table by owner type.
+- A term the supplier refuses twice (payment, lead time, ...) is conceded, never the index clause
+  or quality terms.
+- Their stall guard never fired (it waited for `from == "supplier"`; the arena sends
+  `sales@<id>`): nothing here depends on the sender's name.

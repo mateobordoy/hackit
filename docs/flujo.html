@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hollerau buyer - el flujo completo y por qué</title>
+<style>
+  :root {
+    --bg: #0f1419; --panel: #172029; --panel2: #1d2833; --line: #2b3a47;
+    --text: #e6edf3; --muted: #9fb0c0; --accent: #4fb3ff; --good: #3fcf8e; --warn: #f2b84b; --bad: #ff6b6b;
+    --code: #0b1016;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 24px 80px; }
+  h1 { font-size: 2.1rem; margin: 0 0 6px; }
+  h2 { font-size: 1.45rem; margin: 56px 0 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.1rem; margin: 22px 0 8px; color: var(--accent); }
+  p { margin: 8px 0 12px; }
+  .sub { color: var(--muted); font-size: 1.05rem; margin-bottom: 28px; }
+  .tldr { background: linear-gradient(135deg, #16324a, #1b2a37); border: 1px solid #2d5878; border-radius: 14px; padding: 20px 24px; }
+  .tldr b { color: #fff; }
+  .grid { display: grid; gap: 14px; }
+  .g2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .g3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .card h4 { margin: 0 0 6px; font-size: 1rem; }
+  .why { border-left: 3px solid var(--warn); background: #241f14; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 10px 0; }
+  .why::before { content: "¿Por qué? "; font-weight: 700; color: var(--warn); }
+  .ev { color: var(--muted); font-size: .9rem; }
+  .tag { display: inline-block; font-size: .75rem; padding: 2px 8px; border-radius: 99px; background: var(--panel2); border: 1px solid var(--line); color: var(--muted); margin-right: 4px; }
+  .tag.code { color: var(--good); border-color: #2d5a45; }
+  .tag.llm { color: #c49bff; border-color: #4b3a6a; }
+  code, .mono { font-family: Consolas, "SF Mono", monospace; font-size: .88rem; }
+  code { background: var(--code); padding: 1px 6px; border-radius: 5px; color: #b8d7f0; }
+  pre { background: var(--code); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-size: .84rem; line-height: 1.5; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: .93rem; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; background: var(--panel); }
+  td.n { text-align: right; font-family: Consolas, monospace; }
+  .up { color: var(--good); font-weight: 700; }
+  .down { color: var(--bad); }
+  /* flow */
+  .flow { display: flex; flex-direction: column; gap: 0; margin: 18px 0; }
+  .step { display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: start; }
+  .num { width: 46px; height: 46px; border-radius: 50%; background: var(--accent); color: #04121f; font-weight: 800; display: grid; place-items: center; font-size: 1.1rem; margin: 6px auto 0; }
+  .num.loop { background: var(--good); }
+  .num.end { background: var(--warn); }
+  .rail { width: 2px; background: var(--line); height: 26px; margin: 0 auto; }
+  .stepbox { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-bottom: 4px; }
+  .stepbox h4 { margin: 0 0 4px; font-size: 1.05rem; }
+  .loopwrap { border: 2px dashed #2d5a45; border-radius: 16px; padding: 10px 12px 4px; margin: 6px 0; position: relative; }
+  .loopwrap .label { position: absolute; top: -12px; left: 18px; background: var(--bg); padding: 0 8px; color: var(--good); font-weight: 700; font-size: .85rem; }
+  .diagram { width: 100%; height: auto; display: block; margin: 8px 0 4px; }
+  .bar { height: 10px; background: var(--panel2); border-radius: 99px; overflow: hidden; }
+  .bar > span { display: block; height: 100%; background: var(--good); }
+  .small { font-size: .88rem; color: var(--muted); }
+  nav { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 18px; margin: 20px 0 0; }
+  nav a { color: var(--accent); text-decoration: none; margin-right: 14px; white-space: nowrap; line-height: 2; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Hollerau buyer</h1>
+<div class="sub">Un comprador autónomo para la Tacto Negotiation Arena - el flujo completo, paso a paso, y por qué lo hemos hecho así.</div>
+
+<div class="tldr">
+  <b>En 30 segundos.</b> El agente negocia por e-mail con bots proveedores y cierra el trato con el menor
+  <b>coste total C</b>. En vez de seguir una receta fija ("abre al 78 %, cede el 30 % cada ronda"), trata a cada
+  proveedor como <b>400 versiones posibles</b> de sí mismo (dónde está su suelo, cuánto baja por ronda, cuánta
+  paciencia tiene). Cada respuesta descarta las versiones que no encajan y, antes de cada oferta, el agente
+  <b>simula varias ofertas posibles contra las versiones que quedan</b> y elige la que da el menor coste esperado en euros.
+  Como un motor de ajedrez. Todas las cifras las decide el código; el modelo de lenguaje es opcional y solo puede añadir palabras.
+  <br><br>
+  <b>Resultado en práctica real:</b> 79.2 en la última ronda completa (10 casos), por encima del último lote de
+  ProcureCabana (77.7) y cerca de su mejor por caso (81.2).
+</div>
+
+<nav>
+  <a href="#problema">1. El problema</a>
+  <a href="#bots">2. Cómo son los bots</a>
+  <a href="#idea">3. La idea</a>
+  <a href="#flujo">4. El flujo completo</a>
+  <a href="#creencia">5. Las 400 hipótesis</a>
+  <a href="#planner">6. El planificador</a>
+  <a href="#guardas">7. Reglas de seguridad</a>
+  <a href="#pc">8. Qué cambiamos vs ProcureCabana</a>
+  <a href="#resultados">9. Resultados</a>
+  <a href="#limites">10. Límites</a>
+  <a href="#codigo">11. Mapa del código</a>
+</nav>
+
+<!-- 1 -->
+<h2 id="problema">1. El problema en simple</h2>
+<p>Somos el departamento de compras de una empresa ficticia de bombas (Hollerau). Cada <b>caso</b> es una negociación:
+un proveedor anuncia una subida, se renueva un contrato, o pedimos ofertas a 2-3 proveedores. Negociamos por e-mail;
+cada mensaje lleva hasta 3 <b>term sheets</b> (paquetes de condiciones: precio, días de pago, plazo de entrega, duración,
+cláusula de índice, calidad...). Solo nosotros cerramos: aceptamos un term sheet del proveedor o nos retiramos.</p>
+
+<div class="grid g2">
+  <div class="card">
+    <h4>Qué se puntúa</h4>
+    <p>No el precio: el <b>coste total C</b> de cubrir nuestra necesidad durante el horizonte (precio, intereses por pagar antes,
+    flete, retrasos, defectos, cláusula de índice, necesidad no cubierta, y en casos estratégicos un cargo si dejamos al
+    proveedor sin margen sano).</p>
+    <pre>score = (C_open − C_deal) / (C_open − C_best)   recortado a 0…1</pre>
+    <p class="small">C_open = la mejor oferta inicial. C_best = el mejor trato que algún proveedor aceptaría jamás. Romper un requisito obligatorio = 0.</p>
+  </div>
+  <div class="card">
+    <h4>Las reglas que condicionan el diseño</h4>
+    <ul>
+      <li><b>60 s por mensaje</b> desde la respuesta del proveedor; tarde = timeout.</li>
+      <li>Máx. <b>10 mensajes</b> por hilo; máx. 3 argumentos verificables por mensaje.</li>
+      <li>Los datos que citas se <b>verifican</b> contra el paquete de datos; un dato falso cuesta confianza.</li>
+      <li>Final en vivo: <b>5 oleadas de 8 minutos</b>, casos nuevos, sin humanos, un intento por caso.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 2 -->
+<h2 id="bots">2. Lo que sabíamos de los bots (antes de escribir una línea)</h2>
+<p>El equipo ganador (ProcureCabana) publicó sus ~170 negociaciones de práctica. Al analizarlas con números salió algo clave:
+<b>los bots son mecánicos</b>. No son humanos impredecibles; siguen patrones muy regulares:</p>
+
+<div class="grid g3">
+  <div class="card"><h4>🪜 Bajan en escalera</h4><p>Bajan hacia un <b>suelo oculto</b>, cada ronda un escalón más pequeño, y lo alcanzan en las rondas 2-4. Luego se plantan y mandan <code>final_offer</code>.</p><p class="ev">P11: 47 → 46.5 → 46 → 45.5 → igual → igual → final.</p></div>
+  <div class="card"><h4>🤏 Castigan los movimientos simbólicos</h4><p>Si nos movemos unos céntimos (~1 %), cortan antes y a <b>peor</b> precio.</p><p class="ev">P08: final subió de 5.43 a 5.51 tras moverse 0.05. P05: "you only moved a few cents" y se retiró.</p></div>
+  <div class="card"><h4>🤝 "Agreed" congela</h4><p>Dicen <code>agreed</code> en cuanto nuestra oferta llega a la contraoferta que iban a hacer. Después <b>no bajan nunca más</b> (83 de 86 rondas).</p></div>
+  <div class="card"><h4>⏳ Tienen paciencia limitada</h4><p>Cortan cuando la "distancia acumulada" entre nuestras ofertas y las suyas llega al 36-42 %; los proveedores estratégicos o sin capacidad, al 14-19 %.</p></div>
+  <div class="card"><h4>📊 Los argumentos cuentan en la ronda 1</h4><p>La primera contraoferta depende de los datos citados, no de lo bajo que abras. Pero no todos sirven: previsión de demanda 84/97, precios de pedidos antiguos <b>0/100</b>.</p></div>
+  <div class="card"><h4>🎁 Valoran cosas distintas que nosotros</h4><p>Un proveedor sin liquidez valora cobrar antes mucho más de lo que nos cuesta (36-54 % anual vs nuestro 8 %). Una cláusula de cobre vale ~8 % para Nordmark y nos cuesta ~1 %.</p></div>
+</div>
+
+<div class="why">Un rival mecánico con parámetros ocultos es exactamente el tipo de problema en el que <b>estimar esos parámetros y planificar</b> gana a una receta fija. Las recetas del ganador funcionaban en práctica (~0.81) pero en la final, con proveedores nuevos, cayó a ~0.69: sus constantes estaban ajustadas a 1-3 sesiones con proveedores concretos y no se adaptaban a desconocidos.</div>
+
+<!-- 3 -->
+<h2 id="idea">3. La idea: un motor de ajedrez para negociar</h2>
+<div class="grid g2">
+  <div class="card">
+    <h4>❌ Enfoque receta (ProcureCabana)</h4>
+    <ul>
+      <li>Abre al X % según el tipo de caso.</li>
+      <li>Cede siempre el 30 % de la distancia.</li>
+      <li>Si un LLM dice "hold", cede el 21 %.</li>
+      <li>Paciencia fija por tipo (0.14, 0.16, 0.3, 1.0...).</li>
+    </ul>
+    <p class="small">Más de 30 números fijos, cada uno ajustado a mano.</p>
+  </div>
+  <div class="card">
+    <h4>✅ Enfoque creencia + planificación (el nuestro)</h4>
+    <ul>
+      <li>El proveedor = 400 hipótesis sobre sus parámetros ocultos.</li>
+      <li>Cada respuesta actualiza cuáles son creíbles (inferencia bayesiana).</li>
+      <li>Cada oferta candidata se juega hacia delante contra todas las hipótesis.</li>
+      <li>Gana la que da el menor <b>coste esperado en euros</b>.</li>
+    </ul>
+    <p class="small">El ritmo, cuándo aceptar o cuándo "aterrizar" en su precio <b>salen solos</b> del cálculo.</p>
+  </div>
+</div>
+<div class="why">Las preguntas que en una receta son números a adivinar ("¿cuánto ceder?", "¿cuándo llega su final offer?", "¿acepto ya?") aquí se responden con el mismo cálculo, adaptado a <b>este</b> proveedor con <b>sus</b> respuestas. Eso es lo que debería aguantar mejor frente a proveedores que nunca hemos visto.</div>
+
+<!-- 4 -->
+<h2 id="flujo">4. El flujo completo de un caso</h2>
+<p class="small"><span class="tag code">código</span> decide números y acciones · <span class="tag llm">LLM opcional</span> solo escribe un párrafo de cortesía (apagado por defecto)</p>
+
+<div class="flow">
+  <div class="step"><div><div class="num">0</div></div>
+    <div class="stepbox">
+      <h4>Abrir la sesión <span class="tag code">runner.py</span></h4>
+      <p>Abrimos el caso; cada proveedor manda su oferta inicial con un PDF de presupuesto. Leemos el PDF: sus <b>condiciones estándar</b>
+      (lo que no se negocie cierra con ellas). Si el PDF no se puede leer, usamos lo que ofertó, nunca lo más favorable.</p>
+      <div class="why">En pruebas vimos que si no conocemos sus condiciones estándar podemos aceptar un trato que rompe un requisito obligatorio (score 0).</div>
+    </div>
+  </div>
+  <div class="rail"></div>
+
+  <div class="step"><div><div class="num">1</div></div>
+    <div class="stepbox">
+      <h4>Preparar, por proveedor (&lt; 1 s, sin LLM) <span class="tag code">supplier.py · economics.py · evidence.py</span></h4>
+      <ul>
+        <li><b>Perfil:</b> tipo de propietario, rasgos encontrados en notas, cartas, noticias y comentarios de presupuestos (falta de liquidez, precio congelado, sin capacidad, cubierto con contratos a plazo...), y cuánto le cuesta el dinero.</li>
+        <li><b>Coste real estimado</b> del proveedor desde la tabla de should-cost, corregido ×0.985.</li>
+        <li><b>Condiciones a pedir:</b> se prueban todas las combinaciones permitidas (días de pago, duración, plazo, cláusula...) valoradas como las valora el proveedor, y se elige la que menos nos cuesta a igual valor para él.</li>
+        <li><b>Argumentos:</b> solo los que empujan a nuestro favor, ordenados por cuánto convencieron de verdad.</li>
+        <li><b>Creencia inicial:</b> 400 hipótesis con un "prior" según el tipo de caso.</li>
+      </ul>
+      <div class="why">Hacerlo todo en código y en menos de un segundo protege el reloj de 8 minutos de la final. El ganador gastaba ~40 s de LLMs aquí y no pudo demostrar que mejorara nada.</div>
+    </div>
+  </div>
+  <div class="rail"></div>
+
+  <div class="step"><div><div class="num">2</div></div>
+    <div class="stepbox">
+      <h4>Primera oferta: ancla probada + los 3 mejores argumentos</h4>
+      <p>Abrimos a un % de su oferta según el objetivo del caso (78 % en leverage, 92 % en stabilise...), ajustado por rasgos
+      (precio congelado → 95 %, sin capacidad → 93 %). En subidas de precio, nunca por encima del precio actual. Se citan los 3 argumentos más fuertes
+      (el árbitro verifica máx. 3 por mensaje). Si el pago es negociable, añadimos un segundo paquete <b>con el mismo coste para nosotros</b> pero pago más rápido, para ver qué elige.</p>
+      <div class="why">Estas anclas son de las pocas constantes que mantuvimos del ganador: estaban validadas en sus logs. Abrir más bajo no baja su primera contraoferta, solo gasta paciencia. El paquete doble es para <b>aprender</b>: el proveedor siempre elige el que más le conviene a él, y eso revela cuánto valora cobrar antes.</div>
+    </div>
+  </div>
+  <div class="rail"></div>
+
+  <div class="loopwrap"><span class="label">↻ BUCLE: cada respuesta del proveedor</span>
+    <div class="step"><div><div class="num loop">3</div></div>
+      <div class="stepbox">
+        <h4>Leer la respuesta <span class="tag code">policy.read_reply</span></h4>
+        <ul>
+          <li>Su nueva oferta se convierte a "precio en nuestras condiciones" (mismo valor para él), así comparamos manzanas con manzanas.</li>
+          <li>Si nos manda alternativas con precios, deducimos <b>cuánto le cuesta el dinero</b> y replanificamos si sale más barato.</li>
+          <li>Si rechaza dos veces el mismo término (p. ej. 90 días de pago), se lo concedemos. Nunca la cláusula de índice ni la calidad.</li>
+          <li>Su oferta nunca está por debajo de su coste → acota nuestra estimación de su coste real.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="rail"></div>
+    <div class="step"><div><div class="num loop">4</div></div>
+      <div class="stepbox">
+        <h4>Actualizar la creencia <span class="tag code">belief.py</span></h4>
+        <p>Cada una de las 400 hipótesis predice qué habría respondido este proveedor a nuestra oferta. Las que acertaron ganan peso; las que no, lo pierden.
+        Tras 2-3 respuestas, la creencia sobre su suelo se estrecha mucho (ver <a href="#creencia">sección 5</a>).</p>
+      </div>
+    </div>
+    <div class="rail"></div>
+    <div class="step"><div><div class="num loop">5</div></div>
+      <div class="stepbox">
+        <h4>¿Seguir, aceptar o terminar?</h4>
+        <ul>
+          <li><b>final_offer / agreed / sin mensajes</b> → cierre del hilo (con las reglas de la <a href="#guardas">sección 7</a>).</li>
+          <li><b>Su oferta ≤ la nuestra</b> → aceptar.</li>
+          <li><b>En caso estratégico, su oferta ≤ nuestro óptimo de relación</b> → aceptar (bajar más nos costaría más en el cargo de relación).</li>
+          <li><b>Acotado por la alternativa:</b> nunca ofrecemos por encima del precio en que el trato iguala a nuestra alternativa.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="rail"></div>
+    <div class="step"><div><div class="num loop">6</div></div>
+      <div class="stepbox">
+        <h4>Planificar el siguiente precio <span class="tag code">planner.py</span></h4>
+        <p>7 precios candidatos entre nuestra última oferta y su contraoferta. Cada uno se simula hasta el final contra las 400 hipótesis y se puntúa en euros
+        con la fórmula real de C. Gana el de menor coste esperado. Aceptar ya es otro candidato (solo tras ver cómo se mueve). Excepción probada:
+        si su primera bajada es enorme (&ge; 6 %), mantenemos el ancla (el taller de P05 aceptó así en todas las sesiones).</p>
+        <div class="why">Así el ritmo se adapta a cada proveedor: con uno paciente y con suelo lejano, pasos cortos; con uno al límite, aterrizar en su precio. Y es imposible un movimiento simbólico (&lt; 0.8 %).</div>
+      </div>
+    </div>
+    <div class="rail"></div>
+    <div class="step"><div><div class="num loop">7</div></div>
+      <div class="stepbox">
+        <h4>Escribir y enviar el e-mail <span class="tag code">writer.py</span> <span class="tag llm">llm.py</span></h4>
+        <p>Plantilla cálida (agradece, reconoce sus costes, pregunta qué necesita para moverse), las frases con cifras que responden a lo que pidió
+        ("confirmamos un volumen vinculante de N unidades"), los argumentos con su ID de dato y la propuesta exacta. El LLM, si está activado, solo añade un
+        párrafo; si contiene un dígito, un ID o una filtración ("deadline", "no alternative"...), se descarta.</p>
+        <div class="why">En el sandbox, solo cambiando palabras: frío 50.00, cálido 49.60, preguntar qué necesita 49.40. Pero un e-mail 100 % escrito por LLM dio lo mismo que la plantilla, así que el LLM es un adorno, no una palanca, y nunca toca una cifra.</div>
+      </div>
+    </div>
+  </div>
+  <div class="rail"></div>
+
+  <div class="step"><div><div class="num end">8</div></div>
+    <div class="stepbox">
+      <h4>Cerrar <span class="tag code">policy.close</span></h4>
+      <p>Aceptamos la oferta vigente más barata que cumple todos los requisitos obligatorios y bate a la alternativa. Si no hay ninguna, nos retiramos.
+      En la final, como tarde 90 s antes del límite de la oleada. Cada decisión queda en <code>logs/runs/&lt;caso&gt;_&lt;sesión&gt;.json</code>.</p>
+    </div>
+  </div>
+</div>
+
+<h3>Con varios proveedores (subastas)</h3>
+<p>Un mensaje cada vez, siempre al hilo que lleva más tiempo esperando (la arena atiende una llamada por sesión a la vez y cada hilo tiene su reloj de 60 s).
+A cada proveedor le citamos la <b>oferta del rival más barato</b> en cada ronda. Si un proveedor ya no puede batir una oferta congelada de otro, dejamos de
+gastar rondas con él. A los hilos terminados les mandamos una pregunta corta para que su oferta no caduque.</p>
+
+<!-- 5 -->
+<h2 id="creencia">5. Las 400 hipótesis</h2>
+<p>Cada hipótesis es un proveedor posible con 7 parámetros. Precios en "fracción de su oferta inicial" (1.0 = su primer precio):</p>
+<table>
+  <tr><th>Parámetro</th><th>Qué significa</th><th>De dónde sale el rango</th></tr>
+  <tr><td><b>F</b> suelo</td><td>el precio por debajo del cual no baja</td><td>prior por tipo de caso (materia prima ~0.88, renovación ~0.975...) desde los precios finales de los logs; acotado por cada oferta suya</td></tr>
+  <tr><td><b>β</b> primera bajada</td><td>qué parte del camino al suelo recorre en la ronda 1</td><td>amplio (0.1-0.9): los logs van de 2 % a 92 %</td></tr>
+  <tr><td><b>α</b> bajadas siguientes</td><td>qué parte del camino restante recorre cada ronda (escalones cada vez menores)</td><td>0.1-0.6</td></tr>
+  <tr><td><b>P</b> paciencia</td><td>distancia acumulada que tolera antes de su final_offer</td><td>0.30-0.50 normal; 0.12-0.30 estratégico, sin capacidad o casi a coste</td></tr>
+  <tr><td><b>m</b> movimiento mínimo</td><td>por debajo de esto, nuestro paso es "simbólico" y responde con final_offer</td><td>0.1-1.2 %</td></tr>
+  <tr><td><b>H</b> rondas plantado</td><td>cuántas veces repite su suelo antes del final_offer</td><td>1 ó 2</td></tr>
+  <tr><td><b>W</b> margen de retirada</td><td>pasada su paciencia por esto, se retira en vez de mandar final_offer</td><td>0-15 % (Nordmark se retiró sin final_offer)</td></tr>
+</table>
+
+<h3>Ejemplo real: P01 (Brandlhuber, +9.5 %), sesión <code>245fd901</code>, score 0.992</h3>
+<pre>prior del suelo:  p10 0.894   p50 0.928   p90 0.967      (antes de hablar)
+tras ronda 1:     p10 0.899   p50 0.929   p90 0.954      (bajó de 138.55 a 133.60)
+tras ronda 2:     p10 0.902   p50 0.926   p90 0.945      (bajó a 131.50 - la creencia se estrecha)
+ronda 3: ofrecemos 129.63  →  "agreed" a 129.63     (C_best equivale a ~129.5)</pre>
+
+<!-- 6 -->
+<h2 id="planner">6. El planificador por dentro</h2>
+<p>Misma sesión de P01, ronda 2. Su contraoferta: 133.60; nuestra última: 125.83. Tabla real del log
+(precio candidato → coste total esperado):</p>
+<table>
+  <tr><th>Precio candidato</th><th>C esperado (€)</th><th>P(retirada)</th><th>Rondas esperadas</th><th></th></tr>
+  <tr><td class="n">126.84</td><td class="n">1,109,182</td><td class="n">0.0</td><td class="n">2.6</td><td>demasiado tímido: gasta paciencia</td></tr>
+  <tr><td class="n">127.23</td><td class="n">1,105,657</td><td class="n">0.0</td><td class="n">3.1</td><td></td></tr>
+  <tr style="background:#163226"><td class="n"><b>127.77</b></td><td class="n"><b>1,104,818</b></td><td class="n">0.0</td><td class="n">3.1</td><td class="up">← elegido</td></tr>
+  <tr><td class="n">128.32</td><td class="n">1,105,147</td><td class="n">0.0</td><td class="n">2.8</td><td></td></tr>
+  <tr><td class="n">129.71</td><td class="n">1,105,673</td><td class="n">0.0</td><td class="n">2.3</td><td></td></tr>
+  <tr><td class="n">130.49</td><td class="n">1,106,490</td><td class="n">0.0</td><td class="n">2.1</td><td>demasiado generoso: regala dinero</td></tr>
+</table>
+<p>En la ronda 3, con la creencia ya estrecha, eligió 129.63 justo bajo su siguiente contraoferta prevista → <code>agreed</code>. Eso es el
+"aterrizaje": no lo programamos como regla, sale del cálculo.</p>
+<div class="why">Puntuar en euros (no en precio) importa en casos estratégicos: por debajo del margen sano del proveedor, cada euro de descuento genera un cargo de relación. El planificador lo ve en la curva de coste y deja de apretar solo.</div>
+
+<!-- 7 -->
+<h2 id="guardas">7. Reglas de seguridad que nunca se doblan</h2>
+<p>Cada una está pagada con una pérdida real en los logs de alguien:</p>
+<table>
+  <tr><th>Regla</th><th>Por qué</th></tr>
+  <tr><td>El código decide cada número; cada term sheet lleva todos los campos negociables con valores permitidos</td><td>un 422 en la final es una ronda perdida; un LLM con números rompe tratos</td></tr>
+  <tr><td>Nunca ofrecer por encima del precio que iguala a la alternativa; nunca aceptar algo peor que la alternativa ni que rompa un requisito</td><td>romper un requisito = score 0</td></tr>
+  <tr><td>Tras <code>final_offer</code> o <code>agreed</code>: aceptar, devolver una alternativa más barata que él mismo ofreció, o (solo si lo que hay es inaceptable) una última oferta en nuestro techo</td><td>presionar tras su última palabra provoca retiradas</td></tr>
+  <tr><td>Nunca dar un paso atrás, nunca reenviar lo mismo, nunca un movimiento simbólico (&lt; 0.8 %)</td><td>P08/P18: movimientos de céntimos → final_offer antes y más caro</td></tr>
+  <tr><td>Un mal trato es mejor que ningún trato: no hay retirada si hay una oferta aceptable</td><td>sin trato puntúa la alternativa (o 0)</td></tr>
+  <tr><td>Un mensaje tarde (timeout) se deshace internamente; un crash en la final se retoma</td><td>3 timeouts seguidos cierran el hilo</td></tr>
+</table>
+
+<!-- 8 -->
+<h2 id="pc">8. Qué tomamos de ProcureCabana y qué cambiamos</h2>
+<div class="grid g2">
+  <div class="card">
+    <h4>✅ Mantenido (probado en sus logs)</h4>
+    <ul>
+      <li>Anclas por objetivo del caso.</li>
+      <li>Planificar condiciones al valor que les da el proveedor.</li>
+      <li>No presionar tras final_offer; devolver su alternativa más barata.</li>
+      <li>Lector tolerante del PDF de presupuesto.</li>
+      <li>Acotar su coste real con sus propias ofertas.</li>
+      <li>Descartar proveedores dominados en subastas; preguntas de mantenimiento.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>🔧 Cambiado</h4>
+    <ul>
+      <li><b>Ritmo:</b> planificador + creencia en vez de 30 % fijo con freno "hold" (el freno hacía cerrar una ronda antes).</li>
+      <li><b>Argumentos:</b> ordenados por efecto medido; nunca nuestros precios antiguos (0/100).</li>
+      <li><b>Coste del dinero:</b> aprendido de sus alternativas y de qué paquete elige, no de una tabla.</li>
+      <li><b>Términos rechazados dos veces</b> se conceden (salvo cláusula y calidad).</li>
+      <li><b>Bug heredado eliminado:</b> su detector de "estancado" esperaba <code>from == "supplier"</code> y la arena manda <code>sales@70110</code>: nunca funcionó.</li>
+      <li><b>Sin 40 s de LLMs</b> antes de empezar: la preparación tarda &lt; 1 s.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 9 -->
+<h2 id="resultados">9. Resultados en la arena real (34 sesiones)</h2>
+<h3>Lo que las pruebas reales nos enseñaron (y arreglamos)</h3>
+<table>
+  <tr><th>Hallazgo en los logs</th><th>Arreglo</th><th>Efecto</th></tr>
+  <tr><td>D01 paraba en la ronda 2: sin should-cost, su coste real se estimaba demasiado alto</td><td>sin should-cost no hay parada dura; el planificador ya puntúa el cargo de relación</td><td class="up">0.78 → 0.94</td></tr>
+  <tr><td>P02: Nordmark, ya en su suelo, se retiró sin avisar mientras apretábamos</td><td>cada hipótesis tiene su propio riesgo de retirada</td><td class="up">0.00 → 0.73</td></tr>
+  <tr><td>P02: rechazábamos la cláusula de cobre (a precio bajo dispara el cargo de relación)</td><td>en casos estratégicos: precio en nuestro óptimo + cláusula encima</td><td class="up">0.50 → 0.73 (agreed en ronda 1)</td></tr>
+  <tr><td>P01: apuntábamos alto porque el should-cost sobreestima el coste real ~1.5 %</td><td>corrección ×0.985 (medida por el ganador en P01, P02, P03)</td><td class="up">0.88 → 0.99</td></tr>
+  <tr><td>P05: nuestro bot de prueba nos llevó a una condición errónea en la regla "mantener el ancla"</td><td>confiar en los logs reales, no en el bot inventado</td><td class="up">0.79 → 0.82</td></tr>
+</table>
+
+<h3>Última ronda completa vs ProcureCabana</h3>
+<table>
+  <tr><th>Caso</th><th>Tipo</th><th>Nosotros</th><th>PC último lote</th><th>PC mejor</th></tr>
+  <tr><td>P01</td><td>subida de precio · estratégico</td><td class="n up">0.992</td><td class="n">0.909</td><td class="n">0.999</td></tr>
+  <tr><td>P02</td><td>subida (cobre) · estratégico</td><td class="n">0.731</td><td class="n">0.735</td><td class="n">0.735</td></tr>
+  <tr><td>P03</td><td>renovación · estratégico</td><td class="n">0.923</td><td class="n">0.928</td><td class="n">0.933</td></tr>
+  <tr><td>P04</td><td>renovación · rutina</td><td class="n">0.860</td><td class="n">0.860</td><td class="n">0.860</td></tr>
+  <tr><td>P05</td><td>subasta 3 proveedores</td><td class="n">0.822</td><td class="n">0.822</td><td class="n">0.828</td></tr>
+  <tr><td>P07</td><td>paquete con distribuidor</td><td class="n down">0.715</td><td class="n">0.731</td><td class="n">0.760</td></tr>
+  <tr><td>P08</td><td>materia prima</td><td class="n up">0.737</td><td class="n">0.704</td><td class="n">0.748</td></tr>
+  <tr><td>P10</td><td>capacidad · asegurar suministro</td><td class="n">0.679</td><td class="n">0.679</td><td class="n">0.710</td></tr>
+  <tr><td>P11</td><td>calidad</td><td class="n">0.710</td><td class="n">0.710</td><td class="n">0.794</td></tr>
+  <tr><td>P18</td><td>materia prima</td><td class="n up">0.756</td><td class="n">0.696</td><td class="n">0.756</td></tr>
+  <tr><th>Media</th><th></th><th class="n">79.2</th><th class="n">77.7</th><th class="n">81.2</th></tr>
+</table>
+<p class="small">Una sesión por caso; las repeticiones varían 1-2 %, así que 79.2 es un dato sólido, no una media demostrada. Sesiones de práctica usadas: 32 (quedan 143 hoy).</p>
+
+<!-- 10 -->
+<h2 id="limites">10. Límites honestos y siguientes pasos</h2>
+<ul>
+  <li><b>El modelo del proveedor está calibrado con los logs del ganador.</b> Si en la final aparece un tipo de proveedor muy distinto, la creencia se adapta, pero el prior inicial puede estar sesgado. Los números a tocar están en <code>config.py</code> (<code>FLOOR_PRIOR</code>, <code>PATIENCE_PRIOR</code>, <code>ACCEPT_MARGIN</code>).</li>
+  <li><b>P07 y P10</b> mandan su final_offer en la ronda 2-3. En P10 la ganancia que falta está en el plazo de entrega (C_best usa 42 días, no 56), no en el ritmo de precio.</li>
+  <li><b>P11</b> varía entre 0.71 y 0.79 según la sesión.</li>
+  <li><b>Subastas de 3 proveedores</b> pueden apurar el reloj de 60 s (la arena atiende una llamada a la vez).</li>
+</ul>
+
+<!-- 11 -->
+<h2 id="codigo">11. Mapa del código</h2>
+<table>
+  <tr><th>Archivo</th><th>Qué hace</th><th>Paso del flujo</th></tr>
+  <tr><td><code>buyer/config.py</code></td><td>todos los números ajustables, cada uno con su evidencia</td><td>todos</td></tr>
+  <tr><td><code>buyer/runner.py</code></td><td>relojes, un mensaje cada vez, preguntas de mantenimiento, cierre, oleadas de la final</td><td>0, 8</td></tr>
+  <tr><td><code>buyer/supplier.py</code></td><td>perfil, rasgos, coste del dinero, priors</td><td>1, 3</td></tr>
+  <tr><td><code>buyer/economics.py</code></td><td>C, cuándo aceptar, valor para el proveedor, condiciones, techo de la alternativa</td><td>1, 5, 6</td></tr>
+  <tr><td><code>buyer/evidence.py</code></td><td>argumentos verificables ordenados por efecto</td><td>1, 2</td></tr>
+  <tr><td><code>buyer/belief.py</code></td><td>las 400 hipótesis y su actualización</td><td>4</td></tr>
+  <tr><td><code>buyer/planner.py</code></td><td>simulación de candidatos y elección</td><td>6</td></tr>
+  <tr><td><code>buyer/policy.py</code></td><td>la negociación por hilo y todas las reglas</td><td>2-8</td></tr>
+  <tr><td><code>buyer/writer.py</code>, <code>buyer/llm.py</code></td><td>e-mails (plantilla + párrafo opcional con filtro)</td><td>7</td></tr>
+  <tr><td><code>buyer/records.py</code>, <code>scripts/trace.py</code></td><td>logs por sesión, informe, traza legible</td><td>-</td></tr>
+  <tr><td><code>tests/</code></td><td>57 tests: simulador del kit, bots de prueba, ensayo de la final, casos de práctica reales</td><td>-</td></tr>
+</table>
+<pre>buyer sandbox -v                 # gratis: los 2 casos de demo
+buyer practice --repeat 2 -v     # 10 casos x 2 (cuota)
+buyer report                     # media/mejor por caso vs ProcureCabana
+buyer final                      # la final: arrancar antes de las 13:30 y dejarlo corriendo
+python scripts/trace.py logs/runs P01</pre>
+
+</main>
+</body>
+</html>

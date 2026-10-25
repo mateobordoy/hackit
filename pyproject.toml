@@ -1,26 +1,29 @@
 [project]
-name = "hackit2"
-version = "2.0.0"
-description = "Hack It's autonomous buyer agent for the Tacto Negotiation Arena"
+name = "hollerau-buyer"
+version = "0.1.0"
+description = "Belief-based buyer agent for the Tacto Negotiation Arena: it models each supplier and plans every move"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-dependencies = ["arena-kit[anthropic,sim,mcp]"]
+dependencies = [
+    "arena-kit[sim] @ git+https://github.com/tacto-playground/negotiation-arena-kit@a3e4086401fb926cb3077e1c10f90de1eb58c1bc#subdirectory=starter-kit",
+]
 
-[project.scripts]
-hackit2 = "hackit2.cli:main"
-
-[dependency-groups]
+[project.optional-dependencies]
+anthropic = ["anthropic>=1.0"]
 dev = ["pytest>=8", "ruff>=0.6"]
 
-[tool.uv.sources]
-arena-kit = { git = "https://github.com/tacto-playground/negotiation-arena-kit", subdirectory = "starter-kit", rev = "75eecd19bf42c4f4b5a93f01139fa2a757ec5c07" }
+[project.scripts]
+buyer = "buyer.cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [tool.hatch.build.targets.wheel]
-packages = ["hackit2"]
+packages = ["buyer"]
 
 [tool.ruff]
 line-length = 120
@@ -31,3 +34,4 @@ select = ["E", "F", "I", "B", "UP"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["slow: real-clock tests (about a minute)"]
