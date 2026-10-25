@@ -1,4 +1,4 @@
-# Hack IT Buyer Live: watch UI contract (`buyer gui`, `buyer/liveview.py` + `buyer/liveview.html`)
+# HackIt Buyer Live: watch UI contract (`buyer gui`, `buyer/liveview.py` + `buyer/liveview.html`)
 
 The agent appends JSON lines to `logs/live/case_<P01>.jsonl` while a case runs (`buyer/telemetry.py`).
 `buyer/liveview.py` serves the page and these endpoints (standard library only, http://127.0.0.1:8790).

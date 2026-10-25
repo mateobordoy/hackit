@@ -37,7 +37,7 @@ buyer final                                             # the Live Final: start 
 to `logs/runs/<case>_<session>.json`; `python scripts/trace.py logs/runs P08` prints it readably
 (every price, the planner's table of candidates with expected C, the belief about the floor).
 
-## Watch it: Hack IT Buyer Live and the Showcase
+## Watch it: HackIt Buyer Live and the Showcase
 
 ```sh
 buyer gui                                               # http://127.0.0.1:8790, any run of this or a sibling checkout

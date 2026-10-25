@@ -1,4 +1,4 @@
-"""Hack IT Buyer Live: a local watch UI for running and finished cases (`buyer gui`).
+"""HackIt Buyer Live: a local watch UI for running and finished cases (`buyer gui`).
 
 Reads the live files the agent writes (`logs/live/case_<id>.jsonl`, see `telemetry.py`) and the run
 logs (`logs/runs/*.json`, see `records.py`) and serves one page (`liveview.html`) that shows, per case:
@@ -410,7 +410,7 @@ def serve(port=8790, live=None, runs=None, roots=None, offline=False, background
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     if not offline:
         threading.Thread(target=team_loop, name="team-best", daemon=True).start()
-    print(f"Hack IT Buyer Live on http://127.0.0.1:{port}  (reading {live_dir()})", flush=True)
+    print(f"HackIt Buyer Live on http://127.0.0.1:{port}  (reading {live_dir()})", flush=True)
     if background:
         threading.Thread(target=server.serve_forever, name="liveview", daemon=True).start()
         return server
@@ -419,7 +419,7 @@ def serve(port=8790, live=None, runs=None, roots=None, offline=False, background
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(prog="buyer gui", description="Hack IT Buyer live watch UI")
+    ap = argparse.ArgumentParser(prog="buyer gui", description="HackIt Buyer live watch UI")
     ap.add_argument("--port", type=int, default=8790)
     ap.add_argument("--live", default=None, help="folder with the live case files (default logs/live)")
     ap.add_argument("--offline", action="store_true", help="never contact the arena")

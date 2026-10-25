@@ -372,7 +372,7 @@ def story(events, source="recorded", choices=None):
     steps.append(
         step(
             "outro",
-            "How Hack IT Buyer works",
+            "How HackIt Buyer works",
             "Code owns every number. A belief about each supplier, narrowed by every reply, and a planner that "
             "scores candidate prices in euros - not a fixed recipe. Guards that never bend: no sheet above the "
             "alternative, no token moves, never push after a final offer, no walk-away while an acceptable sheet "

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hack IT Buyer Live · Negotiation control room</title><link rel="icon" href="data:,">
+<title>HackIt Buyer Live · Negotiation control room</title><link rel="icon" href="data:,">
 <style>
 :root{--bg:#0b0d12;--panel:#12151d;--panel2:#181c26;--line:#262b38;--text:#e8eaf0;--muted:#8b93a7;
 --us:#5b8cff;--them:#ff9a4d;--ok:#3ddc97;--warn:#ffcc4d;--bad:#ff5d6c;--llm:#b48cff;--code:#4dd2ff;--glow:0 0 0 2px rgba(91,140,255,.35),0 0 24px rgba(91,140,255,.45)}
@@ -158,10 +158,10 @@ button,input{font:inherit}button{color:inherit}summary{cursor:pointer;overflow-w
 @media(max-width:1100px){.sc-prep-columns{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.sc-map .sc-map-active{opacity:1}.sc-packet{display:none}.sc-node.sc-active rect{stroke:var(--code)}}
 </style></head><body>
-<header><div class="dot"></div><h1>Hack IT Buyer Live <span class="brand-sub">/ Negotiation control room</span></h1><button class="btn showcase-launch" id="showcaseBtn">▶ Showcase</button><button class="btn" id="scoresBtn" data-action="scores">Scores</button><button class="btn" id="historyBtn" data-action="history">Run history</button><div class="stat" id="gstats"></div><div style="flex:1"></div><div class="stat" id="clock"></div></header>
+<header><div class="dot"></div><h1>HackIt Buyer Live <span class="brand-sub">/ Negotiation control room</span></h1><button class="btn showcase-launch" id="showcaseBtn">▶ Showcase</button><button class="btn" id="scoresBtn" data-action="scores">Scores</button><button class="btn" id="historyBtn" data-action="history">Run history</button><div class="stat" id="gstats"></div><div style="flex:1"></div><div class="stat" id="clock"></div></header>
 <div class="layout"><aside id="cases"></aside><main id="main"><div class="empty">Waiting for a case… start a sandbox or practice run.</div></main></div>
-<section class="sc" id="showcase" role="dialog" aria-modal="true" aria-label="Hack IT Buyer Showcase" hidden>
- <div class="sc-top"><div class="sc-brand">Hack IT Buyer <span>· Showcase</span></div><div class="sc-case-title" id="scCaseTitle">Recorded negotiation</div><span class="sc-outcome neutral" id="scOutcome">SHOWCASE</span><select id="scRun" aria-label="Choose recorded run" disabled><option>Loading runs…</option></select><button class="sc-icon" id="scClose" aria-label="Close showcase (Escape)">×</button></div>
+<section class="sc" id="showcase" role="dialog" aria-modal="true" aria-label="HackIt Buyer Showcase" hidden>
+ <div class="sc-top"><div class="sc-brand">HackIt Buyer <span>· Showcase</span></div><div class="sc-case-title" id="scCaseTitle">Recorded negotiation</div><span class="sc-outcome neutral" id="scOutcome">SHOWCASE</span><select id="scRun" aria-label="Choose recorded run" disabled><option>Loading runs…</option></select><button class="sc-icon" id="scClose" aria-label="Close showcase (Escape)">×</button></div>
  <div class="sc-body" id="scBody"></div>
  <div class="sc-bottom"><nav class="sc-ticks" id="scTicks" aria-label="Showcase steps"></nav><div class="sc-controls"><span class="sc-counter" id="scCounter">Step – / –</span><button class="btn" id="scPrev" aria-label="Previous step (Left arrow)">←</button><button class="btn sc-play" id="scPlay">Ⅱ Pause</button><button class="btn" id="scNext" aria-label="Next step (Right arrow)">→</button><label class="sc-muted" for="scSpeed">Speed</label><select id="scSpeed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select><button class="btn" id="scRestart">↺ Restart</button><span class="sc-shortcuts">SPACE pause · ← → steps · ESC close</span></div></div>
 </section>
@@ -682,7 +682,7 @@ function showcaseTick(now){
 async function showcaseLoad(session=''){
  const version=++SHOW.version;SHOW.requestSession=String(session??'');SHOW.controller?.abort();const controller=new AbortController();SHOW.controller=controller;
  SHOW.steps=[];SHOW.playing=true;showcaseControls();$('#showcase').setAttribute('aria-busy','true');$('#scRun').disabled=true;$('#scCaseTitle').textContent='Loading recorded negotiation…';$('#scOutcome').textContent='SHOWCASE';$('#scOutcome').classList.add('neutral');
- $('#scBody').innerHTML='<div class="sc-loading"><div class="sc-kicker">Hack IT Buyer</div><h2>Preparing the showcase…</h2><p>Loading a recorded negotiation from this server.</p></div>';
+ $('#scBody').innerHTML='<div class="sc-loading"><div class="sc-kicker">HackIt Buyer</div><h2>Preparing the showcase…</h2><p>Loading a recorded negotiation from this server.</p></div>';
  const timeout=setTimeout(()=>controller.abort(),12000);
  try{
   const response=await fetch('/api/showcase'+(session?'?session='+encodeURIComponent(session):''),{cache:'no-store',signal:controller.signal});

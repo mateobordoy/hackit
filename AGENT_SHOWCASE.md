@@ -1,11 +1,11 @@
-# Agent handoff: Hack IT Buyer Live + Showcase (branch `proposal-1-ui`)
+# Agent handoff: HackIt Buyer Live + Showcase (branch `proposal-1-ui`)
 
 Read this first if you continue this work. Owner: Burak (team Hack It). Chat with Burak in Turkish;
 code, docs and the page are in English. Code freeze Sun 25 Oct 2026 13:00 CET, Live Final 13:30.
 
 ## What this branch is
 - `proposal-1` (Jose, pushed from another PC) is the belief-based buyer in `buyer/`.
-- `proposal-1-ui` = `proposal-1` + the watch UI ("Hack IT Buyer Live") + the Showcase.
+- `proposal-1-ui` = `proposal-1` + the watch UI ("HackIt Buyer Live") + the Showcase.
 - **Sync rule:** whenever `origin/proposal-1` moves, merge it into `proposal-1-ui`
   (`git fetch origin && git merge origin/proposal-1`), run the gate, push. Never push to `proposal-1`.
   Our changes to Jose's files are only small telemetry hooks (`buyer/policy.py`, `buyer/runner.py`,
@@ -60,7 +60,7 @@ system map (ids in docs/liveview-contract.md) to animate a data packet along.
 - [x] checked: nothing of `proposal-1` / `belief-buyer` missing (belief-buyer is an older proposal-1)
 - [x] old hackit2 UI features: ported except hackit2-only ones (nine-agent research, buyer boundaries,
       observer sessions, model spend, pulled arena sessions) - this agent has none of them
-- [x] rename brand to "Hack IT Buyer Live" (page title, header, server print, README)
+- [x] rename brand to "HackIt Buyer Live" (page title, header, server print, README)
 - [x] `buyer/showcase.py` storyboard + `/api/showcase` + `buyer showcase` CLI + tests (`tests/test_showcase.py`)
 - [x] bundled real runs: `buyer/showcase/default.jsonl` (D01, deal, 0.940), `rfq-d02.jsonl` (D02, deal, 0.723); sample storyboard `docs/showcase-sample.json`
 - [x] Showcase player in `buyer/liveview.html` (Codex): overlay, auto-play, captions, animated packets
@@ -75,5 +75,5 @@ system map (ids in docs/liveview-contract.md) to animate a data packet along.
 - Live Final: the agent and the UI must not call /v1/events, /screen, /leaderboard, /results;
   `buyer final --gui` makes no arena call from the UI at all.
 - "Hollerau Pumpenwerke" is the buyer company of the cases: keep it in e-mails and prompts; only the
-  UI brand is "Hack IT Buyer".
+  UI brand is "HackIt Buyer".
 - Commits end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
