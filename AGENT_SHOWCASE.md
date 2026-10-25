@@ -44,7 +44,7 @@ A selector lets the presenter pick another recorded run (successful or not).
   choices: [{session, case_id, title, score, deal, source}],           # what the selector offers
   steps: [ {kind, title, caption, supplier?, round?, flow: [[from, to], ...], data: {...}} ] }
 ```
-Step kinds, in order: `intro` (case, goal, suppliers, alternative), `prep` (one per supplier: profile,
+Step kinds, in order: `intro` (data.case_title, type, goal, suppliers, c_alt, need, horizon), `prep` (one per supplier: profile,
 reader labels with quotes, claims, planned terms, anchor, prior; memory shift), `send` (our e-mail:
 subject, body, term sheets, claims), `reply` (its e-mail: status, price, claim checks; belief after),
 `plan` (planner table: candidates with expected C, P(walk), rounds; chosen price), `guard` (a notable
@@ -59,8 +59,8 @@ system map (ids in docs/liveview-contract.md) to animate a data packet along.
 - [x] old hackit2 UI features: ported except hackit2-only ones (nine-agent research, buyer boundaries,
       observer sessions, model spend, pulled arena sessions) - this agent has none of them
 - [ ] rename brand to "Hack IT Buyer Live" (page title, header, server print, README)
-- [ ] `buyer/showcase.py` storyboard + `/api/showcase` + `buyer showcase` CLI + tests
-- [ ] bundled real run(s) in `buyer/showcase/` (sandbox D01/D02 on the real arena: free, no quota)
+- [x] `buyer/showcase.py` storyboard + `/api/showcase` + `buyer showcase` CLI + tests (`tests/test_showcase.py`)
+- [x] bundled real runs: `buyer/showcase/default.jsonl` (D01, deal, 0.940), `rfq-d02.jsonl` (D02, deal, 0.723); sample storyboard `docs/showcase-sample.json`
 - [ ] Showcase player in `buyer/liveview.html` (Codex): overlay, auto-play, captions, animated packets
       on the map, per-kind visuals, play/pause/prev/next/speed/exit, keys Space/←/→/Esc, run selector
 - [ ] browser check (screenshots), gate, push

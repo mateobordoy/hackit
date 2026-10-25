@@ -37,7 +37,7 @@ buyer final                                             # the Live Final: start 
 to `logs/runs/<case>_<session>.json`; `python scripts/trace.py logs/runs P08` prints it readably
 (every price, the planner's table of candidates with expected C, the belief about the floor).
 
-## Watch it (control room)
+## Watch it: Hack IT Buyer Live and the Showcase
 
 ```sh
 buyer gui                                               # http://127.0.0.1:8790, any run of this or a sibling checkout
@@ -51,6 +51,13 @@ that moved between the modules, the e-mail thread, the belief about each supplie
 with the planner's candidate table behind every price, the preparation, the model calls, a decision
 feed, Scores against the ProcureCabana reference and the run History. Contract: `docs/liveview-contract.md`.
 In `buyer final --gui` the UI makes no arena call at all.
+
+**Showcase** (header button, or open `http://127.0.0.1:8790/#showcase`): an auto-playing, animated
+walkthrough of one real recorded interaction for the jury - the case, the preparation, every e-mail,
+the belief narrowing, the planner's table behind each price, the guards, the close and the result.
+It plays the bundled real runs in `buyer/showcase/` (D01 deal 0.940 by default, D02 RFQ 0.723), so it
+works after the Live Final and offline; `buyer showcase --list` / `--save <session>` picks or freezes
+another run. Handoff notes for agents: `AGENT_SHOWCASE.md`.
 
 ## Tests
 

@@ -1,4 +1,4 @@
-# Watch UI contract (`buyer gui`, `buyer/liveview.py` + `buyer/liveview.html`)
+# Hack IT Buyer Live: watch UI contract (`buyer gui`, `buyer/liveview.py` + `buyer/liveview.html`)
 
 The agent appends JSON lines to `logs/live/case_<P01>.jsonl` while a case runs (`buyer/telemetry.py`).
 `buyer/liveview.py` serves the page and these endpoints (standard library only, http://127.0.0.1:8790).
@@ -67,3 +67,6 @@ memory-belief, belief-planner, planner-policy, economics-planner, policy-writer,
 ## GET /api/run?session=ID
 Same shape as /api/events for a finished run, built from `logs/live` if present else from
 `logs/runs/<case>_<session>.json` (notes only, no e-mails).
+
+## GET /api/showcase[?session=ID or bundled name]
+The jury Showcase storyboard: see AGENT_SHOWCASE.md (schema) and docs/showcase-sample.json (a real one).
