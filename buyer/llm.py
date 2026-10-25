@@ -45,9 +45,11 @@ Never promise anything the proposal does not contain. Reply with the sentences o
 
 
 def enabled():
+    """On with LLM_MODEL; WRITER=0 keeps the reader agent and the templates only (the writer adds
+    time to every message and moved no score in the sandbox)."""
     from .reader import _BROKEN
 
-    return bool(os.environ.get("LLM_MODEL")) and not _BROKEN.is_set()
+    return bool(os.environ.get("LLM_MODEL")) and os.environ.get("WRITER", "1") != "0" and not _BROKEN.is_set()
 
 
 def _complete():
