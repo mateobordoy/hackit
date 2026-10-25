@@ -202,7 +202,7 @@ def intro_step(head, suppliers, result):
 def prep_step(card):
     sid, q0, anchor = card["id"], card["q0"], card["anchor"]
     mean, sd = (card["prior"] or [None, None])[:2]
-    parts = [f"{card['owner'] or 'Unknown'}-owned supplier"]
+    parts = [f"{card['owner']}-owned supplier" if card["owner"] else "supplier with no owner data"]
     if card["signals"]:
         parts.append("signals " + ", ".join(card["signals"]))
     if card["rate"]:
@@ -255,7 +255,9 @@ def reply_caption(sid, note, prev):
 def plan_caption(note):
     table = note.get("table") or []
     best = min(table, key=lambda r: r[1]) if table else None
-    text = f"The planner plays {len(table)} candidate prices forward against 400 hypotheses and scores each in euros. "
+    n = len(table)
+    text = f"The planner plays {n} candidate price{'s' if n != 1 else ''} forward against 400 hypotheses "
+    text += "and scores each in euros. "
     if note.get("what") == "planner_accept":
         return text + f"Accepting its sheet now ({eur(note.get('accept'), 0)}) beats every further step."
     text += f"{eur(note.get('price'))} has the lowest expected total cost ({eur(note.get('expected'), 0)})"
@@ -267,6 +269,8 @@ def plan_caption(note):
 def guard_caption(note):
     what, sid = note.get("what"), note.get("supplier")
     fields = {k: v for k, v in note.items() if k not in ("event", "at", "t", "what", "supplier", "transfers")}
+    if what == "rate_learned":
+        fields = {"was": pct(fields.get("was")), "now": pct(fields.get("now"))}
     detail = ", ".join(f"{k} {v}" for k, v in list(fields.items())[:3] if not isinstance(v, (dict, list)))
     return f"{GUARDS.get(what, what)}{' · ' + sid if sid else ''}." + (f" ({detail})" if detail else "")
 
