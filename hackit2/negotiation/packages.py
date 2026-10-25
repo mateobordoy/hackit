@@ -99,8 +99,12 @@ class PackageDesk:
         main_cost = pricing.buyer_cost(case, main, thread.standard, thread.valuation)
         main_worth = pricing.supplier_worth(case, main, thread.valuation)
         for trade in thread.prep_trades:
-            if trade.get("field") == "index_clause" and main.get("index_clause") is None:
-                continue  # offer_index_clause already vetted index clauses against C and supplier hedging
+            if (
+                trade.get("field") == "index_clause"
+                and main.get("index_clause") is None
+                and "hedged" not in (thread.profile.get("traits") or ())
+            ):
+                continue  # non-hedged index clauses were already vetted by offer_index_clause against C
             terms = {**main, trade["field"]: trade["value"]}
             if terms == main or loosens_quality(main, terms) or not pricing.must_haves_ok(case, terms, thread.standard):
                 continue

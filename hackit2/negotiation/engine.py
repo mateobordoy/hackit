@@ -35,18 +35,15 @@ MOOD_HINTS = {
 
 def index_in_first_round(evidence, hedged):
     """Make sure verified index falls are among the first-round claims: without them the first counter
-    started higher (P11: 47.00 vs 46.50; P08: 5.57 vs 5.52; P18: 5.50 vs 5.30). A hedged supplier
-    rejects its raw-material index ("covered at fixed prices") in round one, so its producer-price
-    series goes in round one while the raw-material series stays in its normal place for round two."""
+    started higher (P11: 47.00 vs 46.50; P18: 5.50 vs 5.30). A hedged supplier rejects its index claims
+    ("covered at fixed prices") in round one, so its index claims wait for rounds two and three."""
+    if hedged:
+        return [a for a in evidence if a["topic"] != "index"] + [a for a in evidence if a["topic"] == "index"]
     first = settings.CLAIMS_FIRST_ROUND
     indices = [a for a in evidence if a["topic"] == "index"]
     if not indices or first < 1:
         return evidence
-    if hedged:
-        ppi = [a for a in indices if any("idx:PPI" in r for r in a["refs"])]
-        wanted = (ppi or indices)[:1]
-    else:
-        wanted = indices[:first]
+    wanted = indices[:first]
     missing = [a for a in wanted if a not in evidence[:first]]
     if not missing:
         return evidence

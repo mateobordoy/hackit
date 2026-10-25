@@ -90,16 +90,15 @@ def test_verified_index_falls_make_the_first_round():
     assert len(ordered) == len(evidence)
 
 
-def test_a_hedged_supplier_hears_the_producer_price_index_first_and_keeps_raw_material_for_round_two():
+def test_a_hedged_supplier_hears_index_claims_after_non_index_claims():
     evidence = [
         arg("hedged", "doc:1"),
+        arg("index", "idx:AS-14404@1"),
         arg("order_history", "po:1"),
         arg("scorecard", "sc:1"),
-        arg("index", "idx:AS-14404@1"),
         arg("index", "idx:PPI-C2431@1"),
-        arg("forecast", "fc:1"),
     ]
     ordered = index_in_first_round(evidence, hedged=True)
-    refs = [a["refs"][0] for a in ordered]
-    assert "idx:PPI-C2431@1" in refs[: settings.CLAIMS_FIRST_ROUND]
-    assert refs.index("idx:AS-14404@1") < refs.index("fc:1")
+    first_topics = [a["topic"] for a in ordered[: settings.CLAIMS_FIRST_ROUND]]
+    assert "index" not in first_topics
+    assert [a["topic"] for a in ordered[-2:]] == ["index", "index"]
