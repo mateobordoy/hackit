@@ -8,10 +8,9 @@ the template is used instead.
 Calls run on a background pool with a hard wall-clock limit. A late call is abandoned, not
 interrupted: it finishes in the background while the move goes out without it.
 
-Transports (chosen by `connect`):
-  anthropic  ANTHROPIC_API_KEY, LLM_MODEL, LLM_EFFORT - every call is priced and added to a spend file
-             shared by all processes on the machine; past HACKIT_BUDGET_EUR no call is made.
-  openai     LLM_API_KEY, LLM_MODEL, LLM_BASE_URL, LLM_EFFORT - any OpenAI-compatible endpoint.
+Transport (`connect`): Anthropic with ANTHROPIC_API_KEY, LLM_MODEL, LLM_EFFORT. Every call is priced
+and added to a spend file shared by all processes on the machine; past HACKIT_BUDGET_EUR no call is
+made.
 """
 
 import fcntl
@@ -24,8 +23,6 @@ import time
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-
-import httpx
 
 from . import settings, telemetry
 
@@ -198,31 +195,9 @@ def _anthropic_transport():
     return complete
 
 
-def _openai_transport():
-    model, key = os.environ.get("LLM_MODEL"), os.environ.get("LLM_API_KEY")
-    if not model or not key:
-        return None
-    base = os.environ.get("LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
-    effort = os.environ.get("LLM_EFFORT", "low")
-    client = httpx.Client(timeout=settings.MODEL_TIMEOUT_S, headers={"Authorization": f"Bearer {key}"})
-
-    def complete(system, user):
-        messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
-        response = client.post(
-            f"{base}/chat/completions", json={"model": model, "messages": messages, "reasoning_effort": effort}
-        )
-        response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"]
-
-    return complete
-
-
 def connect():
-    """complete(system, user) -> text for the configured provider, or None when none is configured."""
-    provider = os.environ.get("LLM_PROVIDER") or ("anthropic" if os.environ.get("ANTHROPIC_API_KEY") else "openai")
-    if provider == "anthropic":
-        return _anthropic_transport() if os.environ.get("ANTHROPIC_API_KEY") else None
-    return _openai_transport()
+    """complete(system, user) -> text, or None without ANTHROPIC_API_KEY."""
+    return _anthropic_transport() if os.environ.get("ANTHROPIC_API_KEY") else None
 
 
 # --- calling patterns -------------------------------------------------------------------------

@@ -11,17 +11,15 @@ import time
 from pathlib import Path
 from urllib.parse import urlparse
 
-from arena_kit import ArenaClient, ArenaError, RemoteTable, play, play_all
-from arena_kit.agents import NaiveAgent
+from arena_kit import ArenaClient, ArenaError
 from arena_kit.cli import load_env, summary
 from arena_kit.data import DataPackage
-from arena_kit.play import hosted, play_waves
+from arena_kit.play import hosted
 
 from . import liveview, model, session, settings
 from .prep import briefing
 
 SESSION_LOGS = Path("logs/sessions")
-AGENTS = ("hackit", "naive")  # our engine, or the kit's baseline for comparison
 
 
 def open_package(path):
@@ -95,11 +93,9 @@ def build_parser():
     data = {"default": os.environ.get("ARENA_DATA"), "help": "data package folder"}
     play_cmd = commands.add_parser("play", help="play one case")
     play_cmd.add_argument("case_id")
-    play_cmd.add_argument("--agent", default="hackit", choices=AGENTS)
     play_cmd.add_argument("--data", **data)
     run_cmd = commands.add_parser("run", help="play every playable case of a set in parallel; final: wave by wave")
     run_cmd.add_argument("--set", default="practice", choices=["practice", "sandbox", "final"])
-    run_cmd.add_argument("--agent", default="hackit", choices=AGENTS)
     run_cmd.add_argument("--data", **data)
     run_cmd.add_argument("--parallel", type=int, default=8, help="cases at once (at most 10)")
     run_cmd.add_argument("--waves", type=int, default=5, help="final: stop after this many waves have closed")
@@ -165,17 +161,12 @@ def main(argv=None):
 
     if args.command == "pull":
         return pull_sessions(client, args.set)
-    naive = args.agent == "naive"
-    pkg = None if naive else open_package(args.data)
-    complete = None if naive or no_llm else model.connect()
+    pkg = open_package(args.data)
+    complete = None if no_llm else model.connect()
     if args.command == "play":
         try:
-            if naive:
-                table = RemoteTable(client)
-                result = play(table, args.case_id, NaiveAgent())
-            else:
-                table = session.PrefetchedTable(client, find_case_file(client, args.case_id))
-                result = session.run_case(table, args.case_id, pkg, complete=complete, team=team)
+            table = session.PrefetchedTable(client, find_case_file(client, args.case_id))
+            result = session.run_case(table, args.case_id, pkg, complete=complete, team=team)
         except ArenaError as exc:  # not hosted, the quota, a paused key: the arena says why
             raise SystemExit(str(exc)) from None
         print(json.dumps(summary(result), indent=2))
@@ -184,11 +175,8 @@ def main(argv=None):
         pull_sessions(client, state["set"])
     elif args.set == "final":  # no human in the loop: waits for each wave and plays it within its cap
         parallel = min(args.parallel, 10)
-        if naive:
-            outcomes = play_waves(client, NaiveAgent, args.waves, parallel)
-        else:
-            enable_final_brief_cache()
-            outcomes = session.run_final(client, pkg, args.waves, parallel, complete=complete, team=team)
+        enable_final_brief_cache()
+        outcomes = session.run_final(client, pkg, args.waves, parallel, complete=complete, team=team)
         print_outcomes(outcomes)
     else:
         cases = hosted(client.cases(args.set))
@@ -196,10 +184,7 @@ def main(argv=None):
             wanted = args.cases.split(",")
             cases = [c for c in cases if c["case_id"].split(":")[-1] in wanted]
         parallel = min(args.parallel, 10)
-        if naive:
-            outcomes = play_all(lambda: RemoteTable(client), [c["case_id"] for c in cases], NaiveAgent, parallel)
-        else:
-            outcomes = session.run_batch(client, cases, pkg, parallel, complete=complete, team=team)
+        outcomes = session.run_batch(client, cases, pkg, parallel, complete=complete, team=team)
         print_outcomes(outcomes)
         scores = [r["score"] for r in outcomes.values() if isinstance(r, dict) and r.get("score") is not None]
         if scores:
