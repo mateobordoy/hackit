@@ -37,6 +37,21 @@ buyer final                                             # the Live Final: start 
 to `logs/runs/<case>_<session>.json`; `python scripts/trace.py logs/runs P08` prints it readably
 (every price, the planner's table of candidates with expected C, the belief about the floor).
 
+## Watch it (control room)
+
+```sh
+buyer gui                                               # http://127.0.0.1:8790, any run of this or a sibling checkout
+buyer practice --gui -v                                 # the agent and the UI in one process
+python scripts/sim_demo.py X01 X02 S01                  # local arena-sim runs, no arena, no quota
+```
+
+Every case appends its decisions, e-mails, model calls and result to `logs/live/case_<id>.jsonl`
+(`buyer/telemetry.py`, passive; `--no-live` turns it off). The page shows the system map with the data
+that moved between the modules, the e-mail thread, the belief about each supplier's floor (p10-p90)
+with the planner's candidate table behind every price, the preparation, the model calls, a decision
+feed, Scores against the ProcureCabana reference and the run History. Contract: `docs/liveview-contract.md`.
+In `buyer final --gui` the UI makes no arena call at all.
+
 ## Tests
 
 ```sh
