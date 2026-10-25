@@ -22,7 +22,8 @@ CASE_DIR = Path(__file__).parent.parent / "logs" / "cases"
 def stored_cases():
     found = {}
     for path in sorted(CASE_DIR.glob("*.json")):
-        for case in json.loads(path.read_text()):
+        data = json.loads(path.read_text())
+        for case in [data] if isinstance(data, dict) else data:
             case = {key: value for key, value in case.items() if key != "hosted"}
             found[case["case_id"]] = case
     return found

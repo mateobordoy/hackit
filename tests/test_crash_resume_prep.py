@@ -36,5 +36,5 @@ def test_a_restarted_process_reuses_the_frozen_briefs(monkeypatch, tmp_path):
         calls.append(system)
         return "{}"
 
-    assert briefing.prepare_briefs(case, None, model) == briefs
+    assert briefing.prepare_baseline_briefs(case, None, model) == briefs
     assert calls == []

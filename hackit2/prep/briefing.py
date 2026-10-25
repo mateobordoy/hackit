@@ -341,6 +341,18 @@ def clamp_strategy(raw, case):
 
 @telemetry.traced("prep.briefing.prepare_briefs", result_view=lambda briefs: {"briefs_for": list(briefs)})
 def prepare_briefs(case, pkg, complete, budget_s=None):
+    """Select the experimental or baseline team; each owns a separate preparation cache."""
+    mode = os.environ.get("HACKIT_RESEARCH_MODE", settings.RESEARCH_MODE)
+    if mode == "alpha":
+        from .alpha import prepare
+
+        return prepare(case, pkg, complete, budget_s)
+    if mode != "baseline":
+        raise ValueError(f"unknown research mode: {mode}")
+    return prepare_baseline_briefs(case, pkg, complete, budget_s)
+
+
+def prepare_baseline_briefs(case, pkg, complete, budget_s=None):
     """{supplier_id: brief} for a case: the specialists' findings, the lead's checked strategy and the
     sparring playbook. {} without a model; a supplier whose lead answered too late gets no brief.
 

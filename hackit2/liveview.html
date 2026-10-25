@@ -65,7 +65,7 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line);b
 <script>
 const $=s=>document.querySelector(s), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=(v,d=2)=>v==null||isNaN(v)?'–':Number(v).toFixed(d), tm=t=>t?new Date(t*1000).toLocaleTimeString([], {hour12:false}):'';
-const TELEMETRY=new Set(['case_start','trace','model_call','model_done','model_outcome','model_skipped','prep_stage','prep_report','prep_strategy','prep_brief','message_in','message_out','thread_state','delivery_failed']);
+const TELEMETRY=new Set(['case_start','trace','model_call','model_done','model_outcome','model_skipped','prep_stage','prep_report','prep_strategy','prep_brief','message_in','message_out','thread_state','delivery_failed','research_tool','research_gap']);
 const NODES={arena:{x:100,y:230,label:'Arena API',sub:'supplier bots',cls:'ext'},
  session:{x:280,y:230,label:'session.py',sub:'case loop · clocks'},
  'prep.briefing':{x:450,y:70,label:'prep.briefing',sub:'research team'},
@@ -115,6 +115,8 @@ function apply(e,animate){
  else if(k==='prep_report'){(S.prep.reports[e.supplier]=S.prep.reports[e.supplier]||{})[e.specialist]=e.report}
  else if(k==='prep_strategy'){S.prep.strategy[e.supplier]=e}
  else if(k==='prep_brief'){S.prep.brief[e.supplier]=e.brief}
+ else if(k==='research_tool'){S.feed.push({t:e.at,cls:'f-llm',kind:'model',txt:`Scout lookup · ${e.tool} · ${e.seconds}s · ${JSON.stringify(e.request)} → ${JSON.stringify(e.result)}`})}
+ else if(k==='research_gap'){S.feed.push({t:e.at,cls:'f-dec',kind:'dec',txt:`Research coverage gap · ${e.specialist||''} · ${e.source}: ${e.error}`})}
  else if(k==='message_in'||k==='message_out'){S.msgs.push(e);if(animate){touchNode('arena');touchNode('session');k==='message_in'?touchFlow('arena','session','ext',1600):touchFlow('session','arena','ext',1600)}
   S.feed.push({t:e.at,cls:'f-msg',kind:'msg',txt:`${k==='message_in'?'✉ in ':'✉ out'} ${e.supplier}  ${e.action?JSON.stringify(e.action):(e.sheets||[]).map(s=>s&&s.unit_price).join(' / ')} ${e.status||''}`})}
  else if(k==='thread_state'){S.states[e.supplier]=e}
@@ -171,9 +173,9 @@ function mapSVG(){
   if(id==='model'){const recent=S.callOrder.slice(-3).map(i=>S.calls[i]);recent.forEach((c,i)=>{s+=`<text class="sub" x="${n.x}" y="${n.y+24+i*13}" text-anchor="middle">${esc(c.role)} · ${esc(c.status)}${c.seconds!=null?' '+c.seconds+'s':''}</text>`})}
   s+=`</g>`}
  return s+'</svg>'}
-function sheetChip(t,i,n){if(!t)return'';const keys=['payment_days','contract_months','volume_per_year','lead_time_days','incoterm','index_clause','ppm_commitment'];
+function sheetChip(t,i,n,cost){if(!t)return'';const keys=['payment_days','contract_months','volume_per_year','lead_time_days','incoterm','index_clause','ppm_commitment'];
  const extra=keys.filter(k=>t[k]!=null&&t[k]!=='').map(k=>k==='index_clause'?(t[k]?'index '+t[k].series:'fixed price'):`${k.replace(/_/g,' ')} ${t[k]}`).join(' · ');
- return `<div class="sheet">${n>1?'Option '+String.fromCharCode(65+i)+': ':''}<b>€${fmt(t.unit_price)}</b> <span class="muted">${esc(extra)}</span></div>`}
+ return `<div class="sheet">${n>1?'Option '+String.fromCharCode(65+i)+': ':''}<b>€${fmt(t.unit_price)} / unit</b>${cost&&cost.total_cost!=null?`<b style="color:var(--ok)"> · Total C €${fmt(cost.total_cost,0)}</b>`:''} <span class="muted">${esc(extra)}</span>${cost?costBreakdownHTML(cost):''}</div>`}
 function chatHTML(){if(!S.msgs.length)return '<div class="muted">no e-mails yet (the preparation team works before the first e-mail)</div>';
  return S.msgs.map(m=>{if(m.event==='timeout')return `<div class="muted" style="text-align:center;font-size:11.5px;margin:6px 0">⏱ timeout · ${esc(m.supplier||'')} · round ${esc(m.round??'?')}</div>`;
   const out=m.event==='message_out';const claims=(m.claim_results||[]).map(c=>`<span class="claim ${c.result==='verified'?'c-verified':c.result==='contradicted'?'c-contradicted':'c-other'}">claim ${c.index+1}: ${esc(c.result)}</span>`).join('');
@@ -181,22 +183,38 @@ function chatHTML(){if(!S.msgs.length)return '<div class="muted">no e-mails yet 
   return `<div class="msg ${out?'out':'in'}"><div class="who"><b style="color:${out?'var(--us)':'var(--them)'}">${out?'Hollerau (hackit2)':esc(m.sender||m.supplier)}</b><span>${esc(m.supplier)}</span>
    ${m.status?`<span class="pill ${m.status==='open'?'live':m.status==='agreed'?'done':'bad'}">${esc(m.status)}</span>`:''}<span>${tm(m.at)}</span>
    ${(m.refs||[]).length?`<span class="badge">${m.refs.length} refs</span>`:''}${(m.attachments||[]).length?`<span class="badge">📎 ${esc(m.attachments.join(', '))}</span>`:''}</div>
-   ${body}${(m.sheets||[]).length?`<div class="sheets">${m.sheets.map((t,i)=>sheetChip(t,i,m.sheets.length)).join('')}</div>`:''}${claims?`<div style="margin-top:6px">${claims}</div>`:''}</div>`}).join('')}
-function chart(st){const th=st.their_prices||[],ou=st.our_prices||[];const vals=[...th,...ou,st.sweet_spot,st.quote_at_plan].filter(v=>v!=null&&v>0);if(!vals.length)return'';
+   ${body}${(m.sheets||[]).length?`<div class="sheets">${m.sheets.map((t,i)=>sheetChip(t,i,m.sheets.length,(m.sheet_costs||[])[i])).join('')}</div>`:''}${claims?`<div style="margin-top:6px">${claims}</div>`:''}</div>`}).join('')}
+function unitPriceChart(st){const th=st.their_prices||[],ou=st.our_prices||[];const vals=[...th,...ou,st.sweet_spot,st.quote_at_plan].filter(v=>v!=null&&v>0);if(!vals.length)return'';
  let lo=Math.min(...vals),hi=Math.max(...vals);if(hi-lo<1e-6){hi+=1;lo-=1}const pad=(hi-lo)*.08;lo-=pad;hi+=pad;
  const n=Math.max(th.length,ou.length,2),W=420,H=150,P=24,x=i=>P+i*(W-2*P)/(n-1),y=v=>H-14-(v-lo)/(hi-lo)*(H-28);
  const line=(a,c,dy)=>a.length?`<polyline fill="none" stroke="${c}" stroke-width="2.4" points="${a.map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`+a.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="3.6" fill="${c}"><title>${fmt(v)}</title></circle><text x="${x(i)}" y="${y(v)+dy}" text-anchor="middle" style="font-size:10px;fill:${c}">${fmt(v)}</text>`).join(''):'';
  const hl=(v,c,l)=>v?`<line x1="${P}" x2="${W-P}" y1="${y(v)}" y2="${y(v)}" stroke="${c}" stroke-dasharray="4 4"/><text x="${W-P}" y="${y(v)-3}" text-anchor="end" style="font-size:10px;fill:${c}">${l} ${fmt(v)}</text>`:'';
  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${hl(st.sweet_spot,'var(--ok)','sweet spot')}${hl(st.quote_at_plan,'#5c6478','quote')}${line(th,'var(--them)',-7)}${line(ou,'var(--us)',15)}</svg>`}
+const COST_LABELS={price:'Committed purchase spend',payment_terms:'Payment financing',freight:'Freight',quality:'Quality',late_delivery:'Late delivery',uncovered_need:'Uncovered demand',fallback_risk:'Fallback risk',relationship:'Supplier health',tooling:'Tooling',index_clause:'Expected index move',index_risk:'Index risk'};
+function costBreakdownHTML(cost){if(!cost||cost.total_cost==null)return '<span class="muted">Total cost unavailable</span>';
+ return `<details><summary>Total C €${fmt(cost.total_cost,0)} · show cost formula</summary><div class="muted">C = purchase spend + financing + freight + quality + delay + uncovered demand + fallback risk + supplier health + tooling + index move + index risk</div><div class="kv">${Object.entries(COST_LABELS).map(([key,label])=>`<span>${label}</span><span>€${fmt((cost.breakdown||{})[key]||0)}</span>`).join('')}</div>${cost.must_haves_ok===false?'<b style="color:var(--bad)">Must-have violated: not acceptable</b>':''}${cost.relationship_estimate_available===false?'<div class="muted">Supplier-health estimate unavailable; this component is omitted.</div>':''}</details>`}
+function chart(st){const th=st.their_costs||[],ou=st.our_costs||[],valid=v=>typeof v==='number'&&Number.isFinite(v);const vals=[...th,...ou,st.sweet_spot_cost,st.fallback_cost].filter(valid);
+ if(!th.some(valid)&&!ou.some(valid))return '<div class="muted">Recorded unit prices · total cost was not captured</div>'+unitPriceChart(st);
+ let lo=Math.min(...vals),hi=Math.max(...vals);if(hi-lo<1){hi+=1;lo-=1}const pad=(hi-lo)*.12;lo-=pad;hi+=pad;
+ const W=520,H=190,P=34,n=Math.max(th.length,ou.length,2),x=i=>P+i*(W-2*P)/(n-1),y=v=>H-24-(v-lo)/(hi-lo)*(H-52);
+ const line=(a,color)=>{let s='',previous=null;a.forEach((v,i)=>{if(!valid(v)){previous=null;return}if(previous)s+=`<line x1="${previous[0]}" y1="${previous[1]}" x2="${x(i)}" y2="${y(v)}" stroke="${color}" stroke-width="2.5"/>`;s+=`<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="${color}"><title>Offer ${i+1}: Total C €${fmt(v,2)}</title></circle>`;previous=[x(i),y(v)]});return s};
+ const mark=(v,color,label)=>valid(v)?`<line x1="${P}" x2="${W-P}" y1="${y(v)}" y2="${y(v)}" stroke="${color}" stroke-dasharray="5 4"/><text x="${W-P}" y="${y(v)-5}" text-anchor="end" style="fill:${color};font-size:11px">${label} €${fmt(v,0)}</text>`:'';
+ return `<div><b>Total buyer cost C · full demand horizon</b><div class="muted"><span style="color:var(--us)">● Buyer</span> · <span style="color:var(--them)">● Seller</span> · Each point uses its complete package</div><svg viewBox="0 0 ${W} ${H}" style="width:100%">${mark(st.sweet_spot_cost,'var(--ok)','Plan sweet spot')}${mark(st.fallback_cost,'var(--warn)','Alternative')}${line(th,'var(--them)')}${line(ou,'var(--us)')}<text x="${P}" y="${H-5}" class="sub">Offer sequence per side · current supplier cost estimate</text></svg></div>`}
+function sweetCurve(st){const points=(st.cost_curve||[]).filter(p=>p.total_cost!=null);if(points.length<2)return'';
+ const W=480,H=140,P=28,low=Math.min(...points.map(p=>p.total_cost)),high=Math.max(...points.map(p=>p.total_cost)),a=points[0].unit_price,b=points.at(-1).unit_price;
+ const x=p=>P+(p-a)/Math.max(.01,b-a)*(W-2*P),y=c=>H-P-(c-low)/Math.max(1,high-low)*(H-2*P);
+ return `<details><summary>Why this sweet spot? Total-cost curve</summary><div class="muted">Vary unit price; hold planned terms fixed. Green is the engine's searched optimum, not an oracle for all packages.</div><svg viewBox="0 0 ${W} ${H}" style="width:100%"><polyline fill="none" stroke="var(--llm)" stroke-width="2" points="${points.map(p=>x(p.unit_price)+','+y(p.total_cost)).join(' ')}"/><circle cx="${x(st.sweet_spot)}" cy="${y(st.sweet_spot_cost)}" r="5" fill="var(--ok)"/><text x="${P}" y="${H-6}">Unit price €${fmt(a)} → €${fmt(b)}</text><text x="${P}" y="14">Total C €${fmt(low,0)} → €${fmt(high,0)}</text></svg></details>`}
 function statesHTML(){return S.suppliers.map(sid=>{const st=S.states[sid];if(!st)return `<div class="sup"><b>${esc(sid)}</b> <span class="muted">waiting…</span></div>`;
  const used=st.patience?Math.min(1,(st.patience_used||0)/st.patience):0;
  return `<div class="sup"><div class="flex" style="justify-content:space-between"><b>${esc(sid)}</b><span class="pill ${st.phase==='active'?'live':st.phase==='gone'?'bad':'done'}">${esc(st.phase)}</span></div>
-  ${chart(st)}<div class="kv"><span>opening</span><span>€${fmt(st.opening)} · quote at our terms €${fmt(st.quote_at_plan)}</span>
+  ${chart(st)}${sweetCurve(st)}<div class="kv"><span>sweet spot at planned terms</span><span>${st.sweet_spot_cost!=null?`Total C €${fmt(st.sweet_spot_cost,0)} · unit price €${fmt(st.sweet_spot)}`:'Not estimated for this case'}</span><span>opening unit price</span><span>€${fmt(st.opening)} · quote at our terms €${fmt(st.quote_at_plan)}</span>
   <span>patience</span><span><div class="bar"><i style="width:${(used*100).toFixed(0)}%"></i></div><span class="muted">${fmt(st.patience_used,3)} of ${fmt(st.patience,2)} used</span></span>
   <span>reader</span><span>${st.tactic?`<span class="chipm">${esc(st.tactic)}</span>`:'<span class="muted">–</span>'} ${st.mood?`mood ${esc(st.mood)}`:''}</span>
   <span>requests</span><span>${(st.requests||[]).join(', ')||'–'}</span><span>plan</span><span class="muted">${esc(Object.entries(st.plan||{}).map(([k,v])=>`${k}=${typeof v==='object'?(v?v.series:'none'):v}`).join(' · '))}</span>
-  <span>arguments left</span><span>${st.evidence_left??'–'}</span></div></div>`}).join('')}
-function prepHTML(){const st=S.prep.stages,order=[['specialists','4 specialists study the data'],['lead_and_sparring','lead researcher + sparring supplier'],['sparring_buyer','sparring buyer answers']];
+  <span>arguments left</span><span>${st.evidence_left??'–'}</span></div>${st.sweet_spot_cost!=null?`<h4>Sweet spot · planned package</h4>${costBreakdownHTML(st.sweet_spot_summary)}`:''}<h4>Planned package · opening anchor</h4>${costBreakdownHTML(st.plan_cost)}</div>`}).join('')}
+function researchLedgerHTML(brief){const r=brief.research;if(!r)return'';
+ return `<div class="find" style="margin-top:10px"><h3>Nine-agent evidence ledger · ${esc(r.version)}</h3><div class="muted">${fmt(r.seconds,1)}s · ${(r.tool_calls||[]).length} discovery lookups · source references prove retrieval; interpretations remain hypotheses</div>${Object.entries(r.reports||{}).map(([name,report])=>`<details><summary>${esc(name)} · ${(report.evidence||[]).length} sourced findings</summary>${(report.evidence||[]).map(f=>`<p><b>${esc(f.claim)}</b><br><span class="badge">${esc(f.status)} · ${esc(f.confidence)}</span> ${esc((f.source_ids||[]).join(', '))}<br>Decision: ${esc(f.decision_use)}<br>Unknown: ${esc(f.uncertainty)}</p>`).join('')}${(report.open_questions||[]).map(q=>`<p>Open question: ${esc(q)}</p>`).join('')}</details>`).join('')}<details><summary>Retrieved sources (${Object.keys(r.sources||{}).length})</summary><pre>${esc(JSON.stringify(r.sources,null,2))}</pre></details><details><summary>Scout tool requests and results</summary><pre>${esc(JSON.stringify(r.tool_calls,null,2))}</pre></details></div>`}
+function prepHTML(){const st=S.prep.stages,isAlpha=(st.specialists||{}).agents===9||(st.specialists||{}).mode?.startsWith('alpha')||Object.values(S.prep.brief).some(b=>b.research);const order=isAlpha?[['specialists','8 experts + Scout discovery'],['lead_and_sparring','Synthesis lead · strategy + playbook']]:[['specialists','4 specialists study the data'],['lead_and_sparring','lead researcher + sparring supplier'],['sparring_buyer','sparring buyer answers']];
  const stg=order.map(([k,l])=>{const s=st[k]||{};const cls=s.end?'ok':s.start?'run':'';return `<div class="stage ${cls}"><b>${l}</b><div class="muted">${s.end?'done '+fmt(s.end-s.start,1)+'s':s.start?'running…':'waiting'}</div></div>`}).join('');
  let body='';for(const sid of S.suppliers){const reps=S.prep.reports[sid]||{},strat=(S.prep.strategy[sid]||{}).strategy,spar=(S.prep.strategy[sid]||{}).sparring_supplier,brief=S.prep.brief[sid];
   if(!Object.keys(reps).length&&!strat&&!brief)continue;
@@ -209,6 +227,7 @@ function prepHTML(){const st=S.prep.stages,order=[['specialists','4 specialists 
    body+=`<div class="find"><h3>sparring round · playbook</h3>${args.map((a,i)=>`<div style="margin-bottom:6px"><b style="color:var(--them)">them:</b> ${esc(a)}${pb.answers&&pb.answers[i]?`<div><b style="color:var(--us)">us:</b> ${esc(pb.answers[i])}</div>`:''}</div>`).join('')||'<span class="muted">–</span>'}
    ${(pb.raise||[]).length?`<div><b>raise:</b> ${esc(pb.raise.join(' · '))}</div>`:''}${(pb.wants||(spar||{}).wants||[]).length?`<div class="muted">wants: ${esc((pb.wants||spar.wants).join(', '))}</div>`:''}
    ${(spar||{}).weak_spots&&spar.weak_spots.length?`<div class="muted">weak spots: ${esc(spar.weak_spots.join(' · '))}</div>`:''}</div></div>`}}
+ for(const brief of Object.values(S.prep.brief))body+=researchLedgerHTML(brief);
  if(S.prep.lessons&&S.prep.lessons.length)body+=`<div class="find" style="margin-top:10px"><h3>memory · similar earlier cases</h3><ul>${S.prep.lessons.map(l=>`<li>${esc(l)}</li>`).join('')}</ul></div>`;
  return `<div class="stages">${stg}</div>${body||'<div class="muted">no preparation data (plain engine, or not started yet)</div>'}`}
 let expanded=new Set();
@@ -306,7 +325,7 @@ function render(force){if(VIEW!=='case'||!SEL||!S)return;const c=CASES.find(x=>x
    <span class="flex">${PINNED?`<button class="btn" onclick="showHistory()">← History</button>`:''}<button class="btn" onclick="startReplay(4)">▶ replay ×4</button><button class="btn" onclick="startReplay(12)">▶ ×12</button><button class="btn" onclick="replay=null;select(SEL)">⟳ live</button></span></div>
    <div class="now" id="now"></div><div class="card"><h2>Module map · code paths and data flow</h2><div id="mapbox"></div>
    <div class="muted" style="font-size:11.5px">Blue glow: Python function running now · purple: LLM call in flight · orange: e-mail to / from the arena. Arrows animate when data moves between modules.</div></div>
-   <div class="grid2"><div class="card"><h2>Negotiation · live e-mail thread</h2><div class="chat" id="chat"></div></div><div class="card"><h2>Supplier state · price paths</h2><div id="states"></div></div></div>
+   <div class="grid2"><div class="card"><h2>Negotiation · live e-mail thread</h2><div class="chat" id="chat"></div></div><div class="card"><h2>Offer comparison · total buyer cost</h2><div id="states"></div></div></div>
    <div class="card"><div class="tabs" id="tabs"></div><div id="tabbody"></div></div>`}
  const title=S.head.title||S.session.title||c.title||'';$('#ctitle').textContent=`${SEL} · ${title}`;
  const sid=S.session.session_id||c.session_id;

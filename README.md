@@ -1,4 +1,13 @@
 # Hack It
+
+## Experimental alpha branch
+
+This worktree starts from main `823c2cf` and defaults to **eight specialists plus Scout**, a general
+researcher with bounded read-only SQL, text search and document tools. A synthesis lead turns their
+sourced findings into the existing engine's strategy. Select `--research-mode baseline` for main's
+four-specialist pipeline. The alpha Watch UI shows full-horizon total cost, cost components and the
+total-cost sweet spot at planned terms. See [the alpha design and experiment commands](docs/analysis/alpha-research.md).
+
 This repository contains our autonomous AI buyer agent developed for the Tacto Challenge Industrial Agents Hackathon 2026. The core problem is building an agent that negotiates industrial procurement contracts via email with zero human intervention.
 
 Operating within the Tacto Negotiation Arena track, our solution is evaluated on a multidimensional cost function. It must mathematically optimize unit price, payment terms, lead times, and quality against multi-agent supplier departments. Leveraging 33,000 rows of market data, our agent generates strategic arguments to capture the maximum possible savings score across the five-wave Live Final.
@@ -12,7 +21,7 @@ alternative is cheaper.
 ### Approach
 
 1. **Code owns every number (`hackit2/pricing.py`, `hackit2/negotiation/`):** All commercial decisions—unit prices, non-price term packages, index-clause trades, convex relationship margin floors (`relationship_sweet_spot`), alternative ceilings (`price_ceiling`), echoes, accepts, and walk-aways—are computed deterministically with `arena_kit.cost.total_cost` and `must_haves_ok`. Language models only advise (clamped to fixed lists) and write one paragraph per e-mail; any paragraph with a digit, data ID, or cross-supplier leak is dropped (`model.UNSAFE_TEXT`) for a safe template.
-2. **Prepare (`hackit2/prep/`, ≤ 40 s before open):** Four specialist models study slices of the data package per supplier; a lead researcher proposes up to two trades, the argument order, and the tone; a sparring supplier and buyer rehearse arguments into an objection playbook.
+2. **Prepare (`hackit2/prep/`, ≤ 40 s before open):** Alpha runs eight specialist roles and Scout's adaptive discovery in parallel. Findings cite retrieved sources and distinguish observations from inferences. A synthesis lead proposes up to two trades, argument ordering, tone and a playbook. `--research-mode baseline` retains main's four specialists, lead and separate supplier/buyer rehearsal.
 3. **Negotiate (`hackit2/negotiation/`, `hackit2/evidence.py`):** One message at a time (longest-waiting thread first, within each 60 s clock). The reply reader classifies mood, tactic, and requests; the engine plans non-price terms by $C$ at the supplier's own valuation, offers cost-neutral prepared alternatives in Round 1 and cost-reducing need alternatives in later rounds, and cites verified evidence (`po:`, `idx:`, `sc:`, `fc:`).
 4. **Close (`hackit2/negotiation/closing.py`, `hackit2/session.py`):** Echo back a cheaper sheet the supplier offered, insure acceptable standing sheets before round/timeout limits expire, and accept the lowest-$C$ acceptable sheet or walk away. Scored cases leave a lesson for similar later cases (`hackit2/lessons.py`).
 

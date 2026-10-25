@@ -17,6 +17,7 @@ from arena_kit.cost import (
     RELATIONSHIP_GOALS,
     closing_terms,
     complete_offer,
+    cost_breakdown,
     must_haves_ok,
     supplier_value,
     total_cost,
@@ -57,6 +58,28 @@ def buyer_cost(case, terms, standard=None, valuation=None):
         return total_cost(case, terms, standard, valuation)
     except (KeyError, TypeError, ValueError, ZeroDivisionError):
         return math.inf
+
+
+def offer_summary(case, terms, standard=None, valuation=None):
+    """Display-only C and official cost components for the exact effective package.
+
+    Never multiply a unit-price optimum by volume: payment, coverage, quality, index clauses and
+    supplier health must be recomputed with the same function used by the acceptance gate.
+    """
+    estimate = valuation if valuation and valuation.get("full_cost") else None
+    try:
+        parts = cost_breakdown(case, terms, standard, estimate)
+        c = buyer_cost(case, terms, standard, valuation)
+        if not math.isfinite(c) or any(not math.isfinite(value) for value in parts.values()):
+            return {"total_cost": None, "breakdown": {}, "error": "unpriceable package"}
+        return {
+            "total_cost": c,
+            "breakdown": parts,
+            "must_haves_ok": must_haves_ok(case, terms, standard),
+            "relationship_estimate_available": estimate is not None,
+        }
+    except (KeyError, TypeError, ValueError, ZeroDivisionError):
+        return {"total_cost": None, "breakdown": {}, "error": "incomplete package"}
 
 
 def fallback_cost(case):

@@ -14,12 +14,15 @@ from arena_kit.cost import complete_offer
 from arena_kit.sim import Sim, create_app, load_cases
 
 from hackit2 import session
+from hackit2.prep import alpha, briefing
 
 
 @pytest.fixture(autouse=True)
 def private_live_files(tmp_path, monkeypatch):
     """Live telemetry of test cases goes to a temporary folder, never into the real logs/live."""
     monkeypatch.setattr(session, "LIVE_LOGS", tmp_path / "live")
+    monkeypatch.setattr(alpha, "_cache", {})
+    monkeypatch.setattr(briefing, "_briefs_by_case", {})
 
 
 # --- the simulator ----------------------------------------------------------------------------
