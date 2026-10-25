@@ -1,6 +1,6 @@
 """The preparation team with a scripted model: every helper answer is clamped, a team without data
 proposes no trades, a failing team leaves the plain engine, prepared alternatives cost us what the
-main sheet costs, and the persona specialist reads the Sunday release through the ID index."""
+main sheet costs, and supplier documents are found through the ID index (the Sunday release)."""
 
 from conftest import (
     LEVERAGE_QUOTE,
@@ -14,7 +14,7 @@ from conftest import (
 
 from hackit2 import lessons, pricing
 from hackit2.negotiation import Negotiator
-from hackit2.prep import briefing, sparring
+from hackit2.prep import alpha, briefing, sparring
 
 
 def test_lead_strategy_and_sparring_playbook_are_clamped():
@@ -31,7 +31,7 @@ def test_lead_strategy_and_sparring_playbook_are_clamped():
 
 
 def test_team_without_data_proposes_no_trades_but_keeps_tone_and_notes(monkeypatch):
-    monkeypatch.setattr(briefing, "_briefs_by_case", {})
+    monkeypatch.setattr(alpha, "_cache", {})
     monkeypatch.setattr(lessons, "recall_lessons", lambda case: [])
     brief = briefing.prepare_briefs(leverage_case(), None, scripted_model)["sup:S"]  # no package, no findings
     assert brief["trades"] == [] and not brief["findings"]
@@ -39,13 +39,13 @@ def test_team_without_data_proposes_no_trades_but_keeps_tone_and_notes(monkeypat
 
 
 def test_missing_or_failing_model_yields_no_briefs(monkeypatch):
-    monkeypatch.setattr(briefing, "_briefs_by_case", {})
+    monkeypatch.setattr(alpha, "_cache", {})
     assert briefing.prepare_briefs(leverage_case(), None, None) == {}
     assert briefing.prepare_briefs(leverage_case(), None, failing_model) == {}
 
 
 def test_prepared_alternatives_cost_us_what_the_main_sheet_costs(monkeypatch):
-    monkeypatch.setattr(briefing, "_briefs_by_case", {})
+    monkeypatch.setattr(alpha, "_cache", {})
     case = leverage_case()
     briefs = briefing.prepare_briefs(case, None, scripted_model)
     plain = Negotiator(case).open_thread("sup:S", supplier_quote("open", LEVERAGE_QUOTE))
@@ -63,10 +63,8 @@ def test_prepared_alternatives_cost_us_what_the_main_sheet_costs(monkeypatch):
         assert sheet_cost <= main_cost and main_cost - sheet_cost < 0.01 * main_cost
 
 
-def test_persona_slice_reads_the_sunday_release_through_the_id_index():
-    package = SundayReleasePackage()
-    # routine mail (the holiday shutdown) is left out
-    assert briefing.recent_letters(package, "sup:S") == ["2026-10-08 letter: text of doc:new"]
-    assert briefing.recent_news(package, "sup:S") == ["2026-10-06: Sold to a group. text of news:new"]
-    persona = briefing.data_slice(package, {"parts": [], "trigger_doc": None}, "sup:S", "persona")
-    assert "text of doc:new" in persona and "Sold to a group" in persona and "doc:other" not in persona
+def test_supplier_documents_come_from_the_id_index_which_the_sunday_release_reaches():
+    package = SundayReleasePackage()  # its SQL tables know nothing of the release
+    docs = [ref for ref, _ in briefing.records_about(package, "sup:S", "doc:")]
+    assert docs == ["doc:new", "doc:old"]  # this supplier's only, newest first
+    assert [ref for ref, _ in briefing.records_about(package, "sup:S", "news:")] == ["news:new"]

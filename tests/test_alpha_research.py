@@ -90,7 +90,6 @@ def test_unknown_citations_and_unstructured_findings_cannot_become_evidence():
 
 
 def test_synthesis_can_use_the_remaining_budget_instead_of_the_legacy_stage_cap(monkeypatch):
-    monkeypatch.setattr(settings, "PREP_STAGE_S", 0.005)
 
     def complete(system, user):
         if "lead researcher" in system:

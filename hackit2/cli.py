@@ -90,12 +90,6 @@ def build_parser():
         help="headless: no watch UI and no live telemetry files (same as HACKIT_NO_GUI=1)",
     )
     shared.add_argument("--gui-port", type=int, default=argparse.SUPPRESS, help="port of the watch UI")
-    shared.add_argument(
-        "--research-mode",
-        choices=("alpha", "baseline"),
-        default=argparse.SUPPRESS,
-        help="alpha: eight experts + discovery researcher; baseline: main's four experts",
-    )
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser = functools.partial(commands.add_parser, parents=[shared])
     data = {"default": os.environ.get("ARENA_DATA"), "help": "data package folder"}
@@ -147,8 +141,6 @@ def print_outcomes(outcomes):
 def main(argv=None):
     load_env()
     args = build_parser().parse_args(argv)
-    if hasattr(args, "research_mode"):
-        os.environ["HACKIT_RESEARCH_MODE"] = args.research_mode
     gui_port = getattr(args, "gui_port", settings.GUI_PORT)
     if args.command == "gui":
         return liveview.serve(gui_port, offline=args.offline, reference=args.reference)

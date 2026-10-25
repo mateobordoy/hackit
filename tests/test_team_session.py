@@ -10,6 +10,7 @@ from arena_kit.sim import load_cases
 from conftest import WILD_ANSWERS, failing_model, scripted_model
 
 from hackit2 import session
+from hackit2.prep import alpha
 
 
 def test_team_case_closes_and_records_a_lesson(arena_url, tmp_path, monkeypatch):
@@ -17,7 +18,7 @@ def test_team_case_closes_and_records_a_lesson(arena_url, tmp_path, monkeypatch)
     client = ArenaClient(arena_url, api_key, rate=1000)
     monkeypatch.setattr(session, "RUN_LOGS", tmp_path)
     monkeypatch.setattr(session.lessons, "LESSONS_FILE", tmp_path / "lessons.jsonl")
-    monkeypatch.setattr(session.briefing, "_briefs_by_case", {})
+    monkeypatch.setattr(alpha, "_cache", {})
     case = load_cases()["case:S01"]
     result = session.run_case(RemoteTable(client, case), "case:S01", complete=scripted_model)
     assert result["deal"] and 0 <= result["score"] <= 1
@@ -28,6 +29,6 @@ def test_team_case_closes_and_records_a_lesson(arena_url, tmp_path, monkeypatch)
     # the lead sees what happened in the run, never one run's moral
     assert recalled and WILD_ANSWERS["lesson"] not in recalled[0]
 
-    monkeypatch.setattr(session.briefing, "_briefs_by_case", {})
+    monkeypatch.setattr(alpha, "_cache", {})
     result = session.run_case(RemoteTable(client, case), "case:S01", complete=failing_model)
     assert result["deal"]  # the plain engine plays on

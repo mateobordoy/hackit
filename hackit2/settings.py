@@ -88,8 +88,6 @@ PARAGRAPH_MAX_CHARS = 900
 # --- Preparation team -------------------------------------------------------------------------
 
 PREP_BUDGET_S = 40.0  # the whole team per case, before the session opens
-PREP_STAGE_S = 13.0  # one stage: specialists; then lead + sparring supplier; then sparring buyer
-RESEARCH_MODE = "alpha"  # alpha worktree default; baseline keeps main's four-specialist pipeline
 ALPHA_RESEARCH_S = 24.0  # parallel experts and bounded discovery, leaving time for synthesis
 ALPHA_SEARCH_ROUNDS = 3
 ALPHA_TOOL_CALLS = 10

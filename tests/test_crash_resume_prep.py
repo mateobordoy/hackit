@@ -21,20 +21,3 @@ def test_final_enables_a_brief_cache_folder_per_arena_host(monkeypatch, tmp_path
 def test_an_explicit_brief_cache_is_kept(monkeypatch):
     monkeypatch.setenv(briefing.BRIEF_CACHE_ENV, "/tmp/my-briefs")
     assert cli.enable_final_brief_cache() == "/tmp/my-briefs"
-
-
-def test_a_restarted_process_reuses_the_frozen_briefs(monkeypatch, tmp_path):
-    """Second process (empty in-memory cache) loads the briefs from disk without any model call."""
-    monkeypatch.setenv(briefing.BRIEF_CACHE_ENV, str(tmp_path))
-    case = {"case_id": "case:F01"}
-    briefs = {"sup:1": {"trades": [], "tone": "warm"}}
-    briefing.freeze_briefs(case, briefs)
-    monkeypatch.setattr(briefing, "_briefs_by_case", {})
-    calls = []
-
-    def model(system, user):
-        calls.append(system)
-        return "{}"
-
-    assert briefing.prepare_baseline_briefs(case, None, model) == briefs
-    assert calls == []
