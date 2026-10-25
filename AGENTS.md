@@ -23,8 +23,8 @@ messages and docs are in **English**.
 ## 2. Where we are now (update this section when the state changes)
 
 - Preparation now defaults to **eight experts + Scout**, followed by one synthesis lead.
-  Scout uses bounded read-only package tools. `--research-mode baseline` retains the original
-  four-expert pipeline. The numerical negotiation and acceptance policies remain unchanged.
+  Scout uses bounded read-only package tools. The numerical negotiation and acceptance policies
+  remain unchanged.
   See `docs/analysis/alpha-main-validation.md` for promotion evidence and limitations.
 - Rule of the design: **code owns every number** (prices, terms, accept/walk); models only advise
   (clamped to fixed lists) and write one paragraph per e-mail.
@@ -179,7 +179,7 @@ uv run hackit2 gui                                  # watch UI, http://127.0.0.1
 uv run hackit2 pull --set practice                  # finished sessions into logs/sessions/
 ```
 
-- `.env` keys (names only): `ARENA_URL`, `ARENA_API_KEY`, `ARENA_DATA` (`../package`), `LLM_PROVIDER`,
+- `.env` keys (names only): `ARENA_URL`, `ARENA_API_KEY`, `ARENA_DATA` (`../package`),
   `LLM_MODEL`, `LLM_EFFORT`, `ANTHROPIC_API_KEY`, `HACKIT_BUDGET_EUR`, `HACKIT_SPEND_FILE` (absolute,
   shared by all worktrees so the EUR cap is global), `HACKIT_NO_GUI`.
 - Local simulator (free), from `../negotiation-arena-kit/starter-kit`:
@@ -194,15 +194,15 @@ uv run hackit2 pull --set practice                  # finished sessions into log
 | `hackit2/settings.py` | every tunable number (read as `settings.X` at call time) |
 | `hackit2/session.py` | case loop: clocks, one message at a time, keepalives, close, batches, Live Final waves |
 | `hackit2/negotiation/engine.py` | `Negotiator`: open a thread, each move, the e-mail, delivery bookkeeping |
-| `hackit2/negotiation/{concession,packages,closing,thread,common}.py` | price step, alternative sheets, echo/accept/walk, per-thread state |
+| `hackit2/negotiation/{thread,packages,closing}.py` | per-thread state, phases and the price step; alternative sheets; echo/accept/walk |
 | `hackit2/pricing.py` | C, supplier worth, term planning, price ceiling, relationship sweet spot |
 | `hackit2/evidence.py` | citable arguments in the exact form the arena verifies |
 | `hackit2/supplier_profile.py` | ownership, traits, cost of money from the data package |
 | `hackit2/prep/alpha.py`, `prep/alpha_roles.py`, `prep/research_tools.py` | default eight experts, Scout discovery and synthesis before the first e-mail |
 | `hackit2/prep/briefing.py`, `prep/sparring.py` | strategy clamps and selectable original four-specialist preparation |
-| `hackit2/reply_reader.py`, `mailer.py`, `transcript.py` | reading replies, writing e-mails, conversation evidence |
+| `hackit2/mailer.py` | the reply reader, writing e-mails, conversation evidence |
 | `hackit2/model.py` | LLM transports (Anthropic with spend cap, OpenAI-compatible), timeouts, the text guard |
-| `hackit2/lessons.py`, `lessons.jsonl` | cross-case memory (committed, the final starts with it) |
+| `hackit2/lessons.py`, `lessons.jsonl` | cross-case memory the research recalls (committed, read-only during runs) |
 | `hackit2/telemetry.py`, `liveview.py`, `liveview.html` | live telemetry and the watch UI |
 | `hackit2/cli.py` | `hackit2 play | run | pull | gui` |
 | `tests/` | unit + simulator tests; `conftest.py` sends live files to a temp folder |

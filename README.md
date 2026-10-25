@@ -4,7 +4,7 @@
 
 The buyer defaults to **eight specialists plus Scout**, a general researcher with bounded read-only
 SQL, text search and document tools. A synthesis lead turns their sourced findings into the existing
-engine's strategy. Select `--research-mode baseline` for the original four-specialist pipeline.
+engine's strategy.
 **hackit2 Live** shows Buyer/Seller/Data exchanges, recorded tool requests and results, full-horizon
 total cost and the cost sweet spot at planned terms. This design was developed on alpha from
 `823c2cf`; see [the design](docs/analysis/alpha-research.md) and
@@ -23,9 +23,9 @@ alternative is cheaper.
 ### Approach
 
 1. **Code owns every number (`hackit2/pricing.py`, `hackit2/negotiation/`):** All commercial decisions—unit prices, non-price term packages, index-clause trades, convex relationship margin floors (`relationship_sweet_spot`), alternative ceilings (`price_ceiling`), echoes, accepts, and walk-aways—are computed deterministically with `arena_kit.cost.total_cost` and `must_haves_ok`. Language models only advise (clamped to fixed lists) and write one paragraph per e-mail; any paragraph with a digit, data ID, or cross-supplier leak is dropped (`model.UNSAFE_TEXT`) for a safe template.
-2. **Prepare (`hackit2/prep/`, ≤ 40 s before open):** The default team runs eight specialist roles and Scout's adaptive discovery in parallel. Findings cite retrieved sources and distinguish observations from inferences. A synthesis lead proposes up to two trades, argument ordering, tone and a playbook. `--research-mode baseline` retains the original four specialists, lead and separate supplier/buyer rehearsal.
+2. **Prepare (`hackit2/prep/`, ≤ 40 s before open):** The default team runs eight specialist roles and Scout's adaptive discovery in parallel. Findings cite retrieved sources and distinguish observations from inferences. A synthesis lead proposes up to two trades, argument ordering, tone and a playbook.
 3. **Negotiate (`hackit2/negotiation/`, `hackit2/evidence.py`):** One message at a time (longest-waiting thread first, within each 60 s clock). The reply reader classifies mood, tactic, and requests; the engine plans non-price terms by $C$ using an estimate of the supplier's valuation, offers cost-neutral prepared alternatives in Round 1 and cost-reducing need alternatives in later rounds, and cites verified evidence (`po:`, `idx:`, `sc:`, `fc:`).
-4. **Close (`hackit2/negotiation/closing.py`, `hackit2/session.py`):** Echo back a cheaper sheet the supplier offered, insure acceptable standing sheets before round/timeout limits expire, and accept the lowest-$C$ acceptable sheet or walk away. Scored cases leave a lesson for similar later cases (`hackit2/lessons.py`).
+4. **Close (`hackit2/negotiation/closing.py`, `hackit2/session.py`):** Echo back a cheaper sheet the supplier offered, insure acceptable standing sheets before round/timeout limits expire, and accept the lowest-$C$ acceptable sheet or walk away. The research team recalls the committed outcomes of similar earlier cases (`hackit2/lessons.py`).
 
 ### Layout
 
@@ -35,9 +35,9 @@ alternative is cheaper.
 | `hackit2/pricing.py` | C, supplier worth, term planning, price ceilings |
 | `hackit2/evidence.py` | citable arguments in the format the arena verifies |
 | `hackit2/supplier_profile.py` | ownership, traits, cost of money |
-| `hackit2/negotiation/` | per-thread state, concession step, packages, closing, engine |
+| `hackit2/negotiation/` | per-thread state and price step, packages, closing, engine |
 | `hackit2/prep/` | preparation team and sparring round |
-| `hackit2/reply_reader.py`, `hackit2/mailer.py`, `hackit2/transcript.py` | reading replies, writing e-mails |
+| `hackit2/mailer.py` | reading replies, writing e-mails, conversation evidence |
 | `hackit2/model.py` | model transports (Anthropic with spend cap, OpenAI-compatible), timeouts, guards |
 | `hackit2/session.py` | the case loop, batches and the Live Final loop |
 | `hackit2/cli.py` | command line |
@@ -71,9 +71,9 @@ preparation team's findings, strategy and sparring playbook, the e-mail thread w
 claim checks, complete-package total-cost paths and the full decision trace; finished cases can be replayed.
 
 Environment variables (names only): `ARENA_URL`, `ARENA_API_KEY`, `ARENA_DATA`, `ARENA_RELEASE`,
-`LLM_PROVIDER`, `LLM_MODEL`, `LLM_EFFORT`, `ANTHROPIC_API_KEY`, `LLM_BASE_URL`, `LLM_API_KEY`,
+`LLM_MODEL`, `LLM_EFFORT`, `ANTHROPIC_API_KEY`,
 `HACKIT_BUDGET_EUR`, `HACKIT_SPEND_FILE`, `HACKIT_NO_GUI`, `HACKIT_BRIEF_CACHE`,
-`HACKIT_REFERENCE_FILE`, `HACKIT_RESEARCH_MODE`.
+`HACKIT_REFERENCE_FILE`.
 
 Submitted commit: `<HASH>` (see `docs/submission.md`).
 
