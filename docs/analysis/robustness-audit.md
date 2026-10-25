@@ -82,10 +82,36 @@ fair point", "that is not our reality", "does not concern this part". Counted ov
   word (`final_offer` status), which the engine already obeys (rule 5). Since P10 says final in round
   2, **round 1 carries most of the value**: what we cite in round 1 (section 1) matters more than the
   pace constants.
-- Failures in the 308 sessions (score 0 or < 0.3): 14, all from experimental builds or old code:
+- Failures in the 308 sessions (score 0 or < 0.3): 14. The ones I traced look like experimental
+  builds or old code:
   - 5 x three buyer timeouts in a row (Sat 21:00-21:52, Sun 02:16: the agent never sent a message);
   - P02 Sun 02:58: opened at 351 without the index clause (the reverted T18 build), the supplier
     raised its price and walked in round 4;
   - P18 Sun 02:16: opened at 0.95 of the quote (not main's 0.78), so the supplier agreed at once.
   The hosted sessions do not record the build. Main's own failure rate cannot be told apart; the
   two recent main runs (P08, P10) closed normally.
+
+## 4. What the order-history candidate would change
+
+Round 1 cites the first three arguments of the thread's list. That list is sorted by weight, then
+re-sorted by the research lead's `argument_order`. The lead sometimes puts order history first (P02,
+P03, P04), so changing the weight alone is not enough: order history has to go last *after* the
+lead's order too. Main's round-1 lists from the run journals (first five):
+
+| Case | Round-1 arguments today | With order history last |
+|---|---|---|
+| P01 | index, should_cost, notice | same (order history is 4th) |
+| P02 | order history, forecast | same (only two arguments) |
+| P03 | **order history**, scorecard, forecast | scorecard, forecast, **should_cost** |
+| P04 | **order history**, forecast, scorecard | forecast, scorecard, **open_book** |
+| P05 | index x3 | same |
+| P07 | forecast x3 | same |
+| P08 | index, index, own words | same (order history is 4th) |
+| P10 | should_cost, **order history**, scorecard | should_cost, scorecard, **forecast** |
+| P11 | index, **order history**, forecast | index, forecast, **scorecard (ppm)** |
+| P18 | index, index, **order history** | index, index, **open_book** |
+
+Five of ten cases change in round 1 only, including the weak P10 and P18. Prices, terms and the
+accept/walk gate do not change. Order history is still cited in later rounds when nothing else is
+left. Proposed test: practice A/B on P03, P10, P11, P18, or on the new 08:00 cases, which is the
+better held-out test.
